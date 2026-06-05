@@ -1,0 +1,41 @@
+# VoiceBridge recording script.
+# Read each line in a natural, relaxed voice — the way you'd actually talk in a
+# game. Lines starting with '#' are ignored. Aim for 5-15 minutes total across
+# everything; add your own lines to cover how you really speak (callouts, slang).
+
+The quick brown fox jumps over the lazy dog while the sun sets behind the hills.
+I honestly didn't think we'd make it out of there alive, but here we are.
+Could you cover the east side? I'll push through the compound from the north.
+One, two, three, four, five, six, seven, eight, nine, ten, eleven, twelve.
+She sells seashells by the seashore on a bright and breezy summer morning.
+Watch out, there's a sniper on the rooftop near the blue water tower.
+My favorite part of the day is when everything finally goes quiet.
+Pass me the medkit, I'm down to about thirty health and no armor left.
+The weather changed so fast this afternoon, it went from sunny to storming.
+Honestly, that was the cleanest play I've seen you pull off all week.
+How much wood would a woodchuck chuck if a woodchuck could chuck wood?
+Let's regroup at the bridge, then we'll hit the base together at midnight.
+Red leather, yellow leather, red leather, yellow leather, said it perfectly.
+I'm telling you, that loot is way better than anything we found yesterday.
+Peter Piper picked a peck of pickled peppers from the patch by the river.
+Give me two seconds to reload, then I'll lay down some covering fire for you.
+The old lighthouse stood alone against the grey and endless rolling waves.
+Are you absolutely sure about this plan, or are we just making it up as we go?
+Thirty-three thirsty travelers thought they'd thaw the thick frozen lake.
+Keep your voice down, I think I can hear footsteps right above us somewhere.
+A big black bug bit a big black bear and made the big black bear bleed badly.
+We should build the wall higher before nightfall, otherwise they'll raid us.
+I can't believe you actually remembered to bring the keys this time around.
+Fresh fried fish, fish fresh fried, fried fish fresh, fresh fish fried fast.
+Take the left path, it loops around behind them and gives us the high ground.
+The early morning fog rolled gently across the valley and into the open fields.
+Whatever you do, do not open that door until I give you the all clear signal.
+Six slippery snails slid slowly seaward along the smooth and shining shoreline.
+That's a solid trade if you ask me, but it's totally your call in the end.
+The library was so silent you could hear a single page turn across the room.
+Eleven benevolent elephants elegantly ambled along the avenue at eleven.
+Alright everyone, stack up on the door, breach on three, and watch your corners.
+I poured the coffee, grabbed my coat, and headed straight out into the cold.
+Unique New York, you know you need unique New York, you really really do.
+If we hold this position for two more minutes, the reinforcements will arrive.
+Sometimes the simplest answer really is the right one, even when it feels wrong.
