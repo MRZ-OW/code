@@ -1,0 +1,21 @@
+# --- Core runtime (needed for the real-time engine on Windows) ---
+numpy>=1.24,<2.0
+sounddevice>=0.4.6        # PortAudio bindings; WASAPI low-latency capture/playback on Windows
+soundfile>=0.12.1        # read/write wav for recording + reference clips
+PyYAML>=6.0              # config files
+soxr>=0.3.7              # high-quality, fast resampling for the real-time path
+
+# --- Neural voice-conversion backends ---
+# PyTorch is intentionally NOT pinned here: install the CUDA build that matches
+# your GPU/driver from https://pytorch.org (see docs/SETUP_WINDOWS.md).
+# torch>=2.1
+# torchaudio>=2.1
+
+# RVC backend (cloned-voice inference). Optional; install when you use it.
+# rvc-python>=0.1.5
+
+# --- GUI (girlfriend-facing control panel) ---
+# Tkinter ships with the standard Windows Python installer; no pip package needed.
+
+# --- Dev / tests (not needed at runtime) ---
+# pytest>=7.4
