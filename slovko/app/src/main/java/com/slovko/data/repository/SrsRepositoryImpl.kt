@@ -79,6 +79,7 @@ class SrsRepositoryImpl @Inject constructor(
             lapses = next.lapses,
         )
         if (existing == null) srsDao.insert(entity) else srsDao.update(entity)
+        Unit
     }
 
     override suspend fun bornCard(cardId: String, direction: CardDirection) = withContext(io) {
