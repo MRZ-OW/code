@@ -1,0 +1,354 @@
+{
+  "unit": { "id": "u2", "name": "Ja a ty", "cefr": "A1", "order": 2 },
+  "skills": [
+    {
+      "id": "s2-zamena-byt",
+      "unitId": "u2",
+      "title": "Zámená a byť",
+      "description": "Personal pronouns and the present tense of 'byť' (to be).",
+      "iconKey": "person",
+      "colorKey": "blue",
+      "orderIndex": 0,
+      "cefrLevel": "A1",
+      "vocab": [
+        { "id": "v2-ja", "sk": "ja", "en": "I", "partOfSpeech": "pronoun", "exampleSk": "Ja som tu.", "exampleEn": "I am here.", "register": "neutral", "frequencyRank": 15 },
+        { "id": "v2-ty", "sk": "ty", "en": "you (informal)", "partOfSpeech": "pronoun", "exampleSk": "Ty si Slovák?", "exampleEn": "Are you Slovak?", "register": "informal", "frequencyRank": 25 },
+        { "id": "v2-on", "sk": "on", "en": "he", "partOfSpeech": "pronoun", "exampleSk": "On je doma.", "exampleEn": "He is at home.", "register": "neutral", "frequencyRank": 30 },
+        { "id": "v2-ona", "sk": "ona", "en": "she", "partOfSpeech": "pronoun", "exampleSk": "Ona je učiteľka.", "exampleEn": "She is a teacher.", "register": "neutral", "frequencyRank": 35 },
+        { "id": "v2-my", "sk": "my", "en": "we", "partOfSpeech": "pronoun", "exampleSk": "My sme tu.", "exampleEn": "We are here.", "register": "neutral", "frequencyRank": 40 },
+        { "id": "v2-som", "sk": "som", "en": "(I) am", "partOfSpeech": "verb", "exampleSk": "Som unavený.", "exampleEn": "I am tired.", "register": "neutral", "frequencyRank": 10 },
+        { "id": "v2-si", "sk": "si", "en": "(you) are", "partOfSpeech": "verb", "exampleSk": "Si pripravený?", "exampleEn": "Are you ready?", "register": "informal", "frequencyRank": 45 },
+        { "id": "v2-je", "sk": "je", "en": "(he/she/it) is", "partOfSpeech": "verb", "exampleSk": "Je to dobré.", "exampleEn": "It is good.", "register": "neutral", "frequencyRank": 5 }
+      ],
+      "lessons": [
+        {
+          "id": "l2-byt-teach",
+          "title": "Som, si, je",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e2-bt-1",
+              "orderIndex": 0,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the pronouns.",
+              "answer": "",
+              "acceptable": [],
+              "pairs": [
+                ["ja", "I"],
+                ["ty", "you"],
+                ["on", "he"],
+                ["ona", "she"],
+                ["my", "we"]
+              ],
+              "register": "neutral"
+            },
+            {
+              "id": "e2-bt-2",
+              "orderIndex": 1,
+              "type": "MCQ",
+              "promptEn": "Choose the correct form: 'Ja ___ tu.'",
+              "answer": "som",
+              "acceptable": ["som"],
+              "choices": ["som", "si", "je", "sme"],
+              "vocabCardId": "v2-som",
+              "register": "neutral"
+            },
+            {
+              "id": "e2-bt-3",
+              "orderIndex": 2,
+              "type": "MCQ",
+              "promptEn": "Choose the correct form: 'Ty ___ Slovák?'",
+              "answer": "si",
+              "acceptable": ["si"],
+              "choices": ["si", "som", "je", "ste"],
+              "vocabCardId": "v2-si",
+              "register": "informal"
+            },
+            {
+              "id": "e2-bt-4",
+              "orderIndex": 3,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Ona je učiteľka.",
+              "answer": "She is a teacher.",
+              "acceptable": ["she is a teacher", "she's a teacher"],
+              "vocabCardId": "v2-ona",
+              "register": "neutral"
+            },
+            {
+              "id": "e2-bt-5",
+              "orderIndex": 4,
+              "type": "MCQ",
+              "promptEn": "Choose: 'My ___ tu.'",
+              "answer": "sme",
+              "acceptable": ["sme"],
+              "choices": ["sme", "som", "ste", "sú"],
+              "vocabCardId": "v2-my",
+              "register": "neutral"
+            },
+            {
+              "id": "e2-bt-6",
+              "orderIndex": 5,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'I am tired.'",
+              "answer": "Som unavený.",
+              "acceptable": ["som unavený", "som unavený."],
+              "choices": ["unavený.", "Som"],
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l2-byt-practice",
+          "title": "Otázky a odpovede",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e2-bp-1",
+              "orderIndex": 0,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "Fill: 'On ___ doma.' (He is at home.)",
+              "promptSk": "On ___ doma.",
+              "answer": "je",
+              "acceptable": ["je"],
+              "choices": ["je", "som", "si", "sú"],
+              "vocabCardId": "v2-je",
+              "register": "neutral"
+            },
+            {
+              "id": "e2-bp-2",
+              "orderIndex": 1,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "Are you ready?",
+              "answer": "Si pripravený?",
+              "acceptable": ["si pripravený?", "si pripravený", "si pripravená?", "si pripravená"],
+              "vocabCardId": "v2-si",
+              "register": "informal"
+            },
+            {
+              "id": "e2-bp-3",
+              "orderIndex": 2,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Which 'to be' form do you hear?",
+              "answer": "je",
+              "acceptable": ["je"],
+              "choices": ["je", "som", "si", "sme"],
+              "vocabCardId": "v2-je",
+              "audioKey": "je",
+              "register": "neutral"
+            },
+            {
+              "id": "e2-bp-4",
+              "orderIndex": 3,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'Are you Slovak?'",
+              "answer": "Ty si Slovák?",
+              "acceptable": ["ty si slovák?", "ty si slovák", "si slovák?"],
+              "choices": ["Slovák?", "Ty", "si"],
+              "register": "informal"
+            },
+            {
+              "id": "e2-bp-5",
+              "orderIndex": 4,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Je to dobré.",
+              "answer": "It is good.",
+              "acceptable": ["it is good", "it's good", "that is good", "that's good"],
+              "vocabCardId": "v2-je",
+              "register": "neutral"
+            },
+            {
+              "id": "e2-bp-6",
+              "orderIndex": 5,
+              "type": "SPEAK",
+              "promptEn": "Say: 'I am here.'",
+              "promptSk": "Ja som tu.",
+              "answer": "Ja som tu.",
+              "acceptable": ["ja som tu", "som tu"],
+              "audioKey": "ja-som-tu",
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s2-odkial-cisla",
+      "unitId": "u2",
+      "title": "Odkiaľ si a čísla",
+      "description": "Saying where you're from, nationalities, languages, and numbers 0-20.",
+      "iconKey": "number",
+      "colorKey": "teal",
+      "orderIndex": 1,
+      "cefrLevel": "A1",
+      "vocab": [
+        { "id": "v2-som-z", "sk": "som z", "en": "I'm from", "partOfSpeech": "phrase", "exampleSk": "Som zo Slovenska.", "exampleEn": "I'm from Slovakia.", "register": "neutral", "frequencyRank": 160 },
+        { "id": "v2-slovensko", "sk": "Slovensko", "en": "Slovakia", "partOfSpeech": "noun", "gender": "neuter", "exampleSk": "Slovensko je krásne.", "exampleEn": "Slovakia is beautiful.", "register": "neutral", "frequencyRank": 170 },
+        { "id": "v2-slovak", "sk": "Slovák", "en": "Slovak (man)", "partOfSpeech": "noun", "gender": "masculine", "exampleSk": "Som Slovák.", "exampleEn": "I'm Slovak.", "register": "neutral", "frequencyRank": 180 },
+        { "id": "v2-hovoris", "sk": "hovoríš po anglicky", "en": "do you speak English", "partOfSpeech": "phrase", "exampleSk": "Hovoríš po anglicky?", "exampleEn": "Do you speak English?", "register": "informal", "frequencyRank": 190 },
+        { "id": "v2-jeden", "sk": "jeden", "en": "one", "partOfSpeech": "numeral", "exampleSk": "Jeden, dva, tri.", "exampleEn": "One, two, three.", "register": "neutral", "frequencyRank": 100 },
+        { "id": "v2-dva", "sk": "dva", "en": "two", "partOfSpeech": "numeral", "exampleSk": "Mám dva psy.", "exampleEn": "I have two dogs.", "register": "neutral", "frequencyRank": 105 },
+        { "id": "v2-tri", "sk": "tri", "en": "three", "partOfSpeech": "numeral", "exampleSk": "Tri kávy, prosím.", "exampleEn": "Three coffees, please.", "register": "neutral", "frequencyRank": 115 },
+        { "id": "v2-desat", "sk": "desať", "en": "ten", "partOfSpeech": "numeral", "exampleSk": "Mám desať eur.", "exampleEn": "I have ten euros.", "register": "neutral", "frequencyRank": 125 }
+      ],
+      "lessons": [
+        {
+          "id": "l2-odkial-teach",
+          "title": "Som zo Slovenska",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e2-ot-1",
+              "orderIndex": 0,
+              "type": "MCQ",
+              "promptEn": "How do you say 'I'm from'?",
+              "answer": "som z",
+              "acceptable": ["som z"],
+              "choices": ["som z", "som tu", "volám sa", "mám sa"],
+              "vocabCardId": "v2-som-z",
+              "register": "neutral"
+            },
+            {
+              "id": "e2-ot-2",
+              "orderIndex": 1,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Som zo Slovenska.",
+              "answer": "I'm from Slovakia.",
+              "acceptable": ["i'm from slovakia", "i am from slovakia"],
+              "vocabCardId": "v2-som-z",
+              "audioKey": "som-zo-slovenska",
+              "register": "neutral"
+            },
+            {
+              "id": "e2-ot-3",
+              "orderIndex": 2,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Which question do you hear?",
+              "answer": "Hovoríš po anglicky?",
+              "acceptable": ["hovoríš po anglicky?", "hovoríš po anglicky"],
+              "choices": ["Hovoríš po anglicky?", "Ako sa máš?", "Odkiaľ si?", "Kde si?"],
+              "vocabCardId": "v2-hovoris",
+              "audioKey": "hovoris-po-anglicky",
+              "register": "informal"
+            },
+            {
+              "id": "e2-ot-4",
+              "orderIndex": 3,
+              "type": "MCQ",
+              "promptEn": "How do you ask informally 'Where are you from?'",
+              "answer": "Odkiaľ si?",
+              "acceptable": ["odkiaľ si?", "odkiaľ si"],
+              "choices": ["Odkiaľ si?", "Kto si?", "Čo si?", "Kedy si?"],
+              "register": "informal"
+            },
+            {
+              "id": "e2-ot-5",
+              "orderIndex": 4,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'Do you speak English?'",
+              "answer": "Hovoríš po anglicky?",
+              "acceptable": ["hovoríš po anglicky?", "hovoríš po anglicky"],
+              "choices": ["po", "Hovoríš", "anglicky?"],
+              "register": "informal"
+            },
+            {
+              "id": "e2-ot-6",
+              "orderIndex": 5,
+              "type": "SPEAK",
+              "promptEn": "Say: 'I'm Slovak.'",
+              "promptSk": "Som Slovák.",
+              "answer": "Som Slovák.",
+              "acceptable": ["som slovák", "som slovenka"],
+              "vocabCardId": "v2-slovak",
+              "audioKey": "som-slovak",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l2-cisla-practice",
+          "title": "Čísla 0-20",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e2-cp-1",
+              "orderIndex": 0,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the numbers.",
+              "answer": "",
+              "acceptable": [],
+              "pairs": [
+                ["jeden", "1"],
+                ["dva", "2"],
+                ["tri", "3"],
+                ["desať", "10"]
+              ],
+              "register": "neutral"
+            },
+            {
+              "id": "e2-cp-2",
+              "orderIndex": 1,
+              "type": "MCQ",
+              "promptEn": "What is 'five' in Slovak?",
+              "answer": "päť",
+              "acceptable": ["päť"],
+              "choices": ["päť", "štyri", "šesť", "sedem"],
+              "audioKey": "pat",
+              "register": "neutral"
+            },
+            {
+              "id": "e2-cp-3",
+              "orderIndex": 2,
+              "type": "LISTEN_TYPE",
+              "promptEn": "Type the number you hear (as a Slovak word).",
+              "answer": "sedem",
+              "acceptable": ["sedem"],
+              "audioKey": "sedem",
+              "hint": "It's 7.",
+              "register": "neutral"
+            },
+            {
+              "id": "e2-cp-4",
+              "orderIndex": 3,
+              "type": "MCQ",
+              "promptEn": "What is 'twelve'?",
+              "answer": "dvanásť",
+              "acceptable": ["dvanásť"],
+              "choices": ["dvanásť", "jedenásť", "trinásť", "dvadsať"],
+              "audioKey": "dvanast",
+              "register": "neutral"
+            },
+            {
+              "id": "e2-cp-5",
+              "orderIndex": 4,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "Three coffees, please.",
+              "answer": "Tri kávy, prosím.",
+              "acceptable": ["tri kávy, prosím", "tri kávy prosím"],
+              "vocabCardId": "v2-tri",
+              "register": "neutral"
+            },
+            {
+              "id": "e2-cp-6",
+              "orderIndex": 5,
+              "type": "SPEAK",
+              "promptEn": "Count out loud: one, two, three.",
+              "promptSk": "jeden, dva, tri",
+              "answer": "jeden, dva, tri",
+              "acceptable": ["jeden, dva, tri", "jeden dva tri"],
+              "audioKey": "jeden-dva-tri",
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

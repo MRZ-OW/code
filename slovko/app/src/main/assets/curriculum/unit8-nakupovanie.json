@@ -1,0 +1,392 @@
+{
+  "unit": { "id": "u8", "name": "Nakupovanie", "cefr": "A1", "order": 8 },
+  "skills": [
+    {
+      "id": "s8-ceny",
+      "unitId": "u8",
+      "title": "Koľko to stojí?",
+      "description": "Asking prices, euros and cents, paying by card, and the genitive of quantity (dve kávy).",
+      "iconKey": "money",
+      "colorKey": "green",
+      "orderIndex": 0,
+      "cefrLevel": "A1",
+      "vocab": [
+        { "id": "v8-kolko", "sk": "koľko to stojí", "en": "how much does it cost", "partOfSpeech": "phrase", "exampleSk": "Koľko to stojí?", "exampleEn": "How much does it cost?", "register": "neutral", "frequencyRank": 220 },
+        { "id": "v8-euro", "sk": "euro", "en": "euro", "partOfSpeech": "noun", "gender": "n", "exampleSk": "Stojí to päť eur.", "exampleEn": "It costs five euros.", "register": "neutral", "frequencyRank": 280 },
+        { "id": "v8-cent", "sk": "cent", "en": "cent", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Stojí to deväťdesiat centov.", "exampleEn": "It costs ninety cents.", "register": "neutral", "frequencyRank": 700 },
+        { "id": "v8-platit", "sk": "platiť", "en": "to pay", "partOfSpeech": "verb", "exampleSk": "Chcem platiť.", "exampleEn": "I'd like to pay.", "register": "neutral", "frequencyRank": 340 },
+        { "id": "v8-kartou", "sk": "platiť kartou", "en": "to pay by card", "partOfSpeech": "phrase", "exampleSk": "Môžem platiť kartou?", "exampleEn": "Can I pay by card?", "register": "neutral", "frequencyRank": 760 },
+        { "id": "v8-hotovost", "sk": "hotovosť", "en": "cash", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Platím v hotovosti.", "exampleEn": "I'm paying in cash.", "register": "neutral", "frequencyRank": 900 },
+        { "id": "v8-kava", "sk": "káva", "en": "coffee", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Dám si dve kávy.", "exampleEn": "I'll have two coffees.", "register": "neutral", "frequencyRank": 250 },
+        { "id": "v8-ucet", "sk": "účet", "en": "bill / receipt", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Účet, prosím.", "exampleEn": "The bill, please.", "register": "neutral", "frequencyRank": 820 }
+      ],
+      "lessons": [
+        {
+          "id": "l8-ceny-teach",
+          "title": "Ceny a platenie",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e8-ct-1",
+              "orderIndex": 0,
+              "type": "MCQ",
+              "promptEn": "What does 'Koľko to stojí?' mean?",
+              "answer": "How much does it cost?",
+              "acceptable": ["how much does it cost?"],
+              "choices": ["How much does it cost?", "Where is it?", "What is it?", "Do you have it?"],
+              "audioKey": "kolko-to-stoji",
+              "vocabCardId": "v8-kolko",
+              "register": "neutral"
+            },
+            {
+              "id": "e8-ct-2",
+              "orderIndex": 1,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Listen and choose the word.",
+              "answer": "euro",
+              "acceptable": ["euro"],
+              "choices": ["euro", "cent", "káva", "účet"],
+              "audioKey": "euro",
+              "vocabCardId": "v8-euro",
+              "register": "neutral"
+            },
+            {
+              "id": "e8-ct-3",
+              "orderIndex": 2,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Môžem platiť kartou?",
+              "answer": "Can I pay by card?",
+              "acceptable": ["can i pay by card?", "can i pay by card", "may i pay by card?"],
+              "vocabCardId": "v8-kartou",
+              "register": "neutral"
+            },
+            {
+              "id": "e8-ct-4",
+              "orderIndex": 3,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the money word to its meaning.",
+              "answer": "",
+              "pairs": [["euro", "euro"], ["cent", "cent"], ["hotovosť", "cash"], ["účet", "bill"], ["platiť", "to pay"]],
+              "register": "neutral"
+            },
+            {
+              "id": "e8-ct-5",
+              "orderIndex": 4,
+              "type": "MCQ",
+              "promptEn": "Which means 'It costs five euros.'?",
+              "answer": "Stojí to päť eur.",
+              "acceptable": ["stojí to päť eur."],
+              "choices": ["Stojí to päť eur.", "Stojí to päť euro.", "Stojí to päť centov.", "Stojí to päť eurá."],
+              "hint": "After 5 and higher, use the genitive plural: päť eur.",
+              "vocabCardId": "v8-euro",
+              "register": "neutral"
+            },
+            {
+              "id": "e8-ct-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "The bill, please.",
+              "answer": "Účet, prosím.",
+              "acceptable": ["účet, prosím.", "účet prosím", "ucet prosim"],
+              "vocabCardId": "v8-ucet",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l8-ceny-practice",
+          "title": "Genitív množstva: dve kávy",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e8-cp-1",
+              "orderIndex": 0,
+              "type": "FILL_CASE",
+              "promptEn": "Dám si dve ____ (the noun 'káva' after 'dve').",
+              "promptSk": "Dám si dve ____.",
+              "answer": "kávy",
+              "acceptable": ["kávy"],
+              "choices": ["kávy", "káva", "káv", "kávu"],
+              "hint": "After 2, 3, 4 use nominative plural: dve kávy.",
+              "vocabCardId": "v8-kava",
+              "register": "neutral",
+              "caseTag": "genitive"
+            },
+            {
+              "id": "e8-cp-2",
+              "orderIndex": 1,
+              "type": "FILL_CASE",
+              "promptEn": "Stojí to päť ____ (the noun 'euro' after 'päť').",
+              "promptSk": "Stojí to päť ____.",
+              "answer": "eur",
+              "acceptable": ["eur"],
+              "choices": ["eur", "euro", "eurá", "eurom"],
+              "hint": "After 5+ use the genitive plural: päť eur.",
+              "vocabCardId": "v8-euro",
+              "register": "neutral",
+              "caseTag": "genitive"
+            },
+            {
+              "id": "e8-cp-3",
+              "orderIndex": 2,
+              "type": "FILL_CASE",
+              "promptEn": "Stojí to deväťdesiat ____ (the noun 'cent' after 'deväťdesiat').",
+              "promptSk": "Stojí to deväťdesiat ____.",
+              "answer": "centov",
+              "acceptable": ["centov"],
+              "choices": ["centov", "cent", "centy", "centu"],
+              "hint": "After numbers 5+ use the genitive plural: centov.",
+              "vocabCardId": "v8-cent",
+              "register": "neutral",
+              "caseTag": "genitive"
+            },
+            {
+              "id": "e8-cp-4",
+              "orderIndex": 3,
+              "type": "FILL_CASE",
+              "promptEn": "Dám si tri ____ (the noun 'euro' after 'tri').",
+              "promptSk": "Dám si tri ____.",
+              "answer": "eurá",
+              "acceptable": ["eurá"],
+              "choices": ["eurá", "eur", "euro", "eurách"],
+              "hint": "After 2, 3, 4 use nominative plural: tri eurá.",
+              "vocabCardId": "v8-euro",
+              "register": "neutral",
+              "caseTag": "genitive"
+            },
+            {
+              "id": "e8-cp-5",
+              "orderIndex": 4,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Ako budete platiť? — ____, prosím.",
+              "promptSk": "— Ako budete platiť? — ____, prosím.",
+              "answer": "Kartou",
+              "acceptable": ["kartou"],
+              "choices": ["Kartou", "Karta", "Karte", "Kartu"],
+              "hint": "By card = instrumental: kartou.",
+              "vocabCardId": "v8-kartou",
+              "register": "formal",
+              "caseTag": "instrumental"
+            },
+            {
+              "id": "e8-cp-6",
+              "orderIndex": 5,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'I'll have two coffees.'",
+              "answer": "Dám si dve kávy.",
+              "acceptable": ["dám si dve kávy.", "dám si dve kávy"],
+              "choices": ["Dám", "si", "dve", "kávy.", "káva"],
+              "register": "neutral"
+            },
+            {
+              "id": "e8-cp-7",
+              "orderIndex": 6,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "How much does it cost?",
+              "answer": "Koľko to stojí?",
+              "acceptable": ["koľko to stojí?", "koľko to stojí", "kolko to stoji"],
+              "vocabCardId": "v8-kolko",
+              "register": "neutral"
+            },
+            {
+              "id": "e8-cp-8",
+              "orderIndex": 7,
+              "type": "SPEAK",
+              "promptEn": "Ask: 'Can I pay by card?'",
+              "promptSk": "Môžem platiť kartou?",
+              "answer": "Môžem platiť kartou?",
+              "acceptable": ["môžem platiť kartou?", "môžem platiť kartou"],
+              "audioKey": "mozem-platit-kartou",
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s8-oblecenie",
+      "unitId": "u8",
+      "title": "Oblečenie a veľkosti",
+      "description": "Clothing items, sizes, and shopping phrases for trying things on and choosing colours.",
+      "iconKey": "shop",
+      "colorKey": "orange",
+      "orderIndex": 1,
+      "cefrLevel": "A1",
+      "vocab": [
+        { "id": "v8-tricko", "sk": "tričko", "en": "T-shirt", "partOfSpeech": "noun", "gender": "n", "exampleSk": "Hľadám tričko.", "exampleEn": "I'm looking for a T-shirt.", "register": "neutral", "frequencyRank": 1200 },
+        { "id": "v8-nohavice", "sk": "nohavice", "en": "trousers", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Tie nohavice sú pekné.", "exampleEn": "Those trousers are nice.", "register": "neutral", "frequencyRank": 1300 },
+        { "id": "v8-topanky", "sk": "topánky", "en": "shoes", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Potrebujem nové topánky.", "exampleEn": "I need new shoes.", "register": "neutral", "frequencyRank": 1000 },
+        { "id": "v8-velkost", "sk": "veľkosť", "en": "size", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Akú máte veľkosť?", "exampleEn": "What size are you?", "register": "neutral", "frequencyRank": 1100 },
+        { "id": "v8-skusit", "sk": "skúsiť si", "en": "to try on", "partOfSpeech": "verb", "exampleSk": "Môžem si to skúsiť?", "exampleEn": "Can I try it on?", "register": "neutral", "frequencyRank": 1400 },
+        { "id": "v8-velky", "sk": "veľký", "en": "big", "partOfSpeech": "adjective", "exampleSk": "Je to príliš veľké.", "exampleEn": "It's too big.", "register": "neutral", "frequencyRank": 150 },
+        { "id": "v8-maly", "sk": "malý", "en": "small", "partOfSpeech": "adjective", "exampleSk": "Je to trochu malé.", "exampleEn": "It's a bit small.", "register": "neutral", "frequencyRank": 160 }
+      ],
+      "lessons": [
+        {
+          "id": "l8-oblecenie-teach",
+          "title": "Čo si oblečiem?",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e8-ot-1",
+              "orderIndex": 0,
+              "type": "MCQ",
+              "promptEn": "What does 'topánky' mean?",
+              "answer": "shoes",
+              "acceptable": ["shoes"],
+              "choices": ["shoes", "trousers", "T-shirt", "size"],
+              "audioKey": "topanky",
+              "vocabCardId": "v8-topanky",
+              "register": "neutral"
+            },
+            {
+              "id": "e8-ot-2",
+              "orderIndex": 1,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Listen and choose the clothing item.",
+              "answer": "tričko",
+              "acceptable": ["tričko"],
+              "choices": ["tričko", "nohavice", "topánky", "veľkosť"],
+              "audioKey": "tricko",
+              "vocabCardId": "v8-tricko",
+              "register": "neutral"
+            },
+            {
+              "id": "e8-ot-3",
+              "orderIndex": 2,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Akú máte veľkosť?",
+              "answer": "What size are you?",
+              "acceptable": ["what size are you?", "what size are you", "what is your size?"],
+              "vocabCardId": "v8-velkost",
+              "register": "formal"
+            },
+            {
+              "id": "e8-ot-4",
+              "orderIndex": 3,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the item to its meaning.",
+              "answer": "",
+              "pairs": [["tričko", "T-shirt"], ["nohavice", "trousers"], ["topánky", "shoes"], ["veľkosť", "size"], ["veľký", "big"]],
+              "register": "neutral"
+            },
+            {
+              "id": "e8-ot-5",
+              "orderIndex": 4,
+              "type": "MCQ",
+              "promptEn": "Which means 'It's too big.'?",
+              "answer": "Je to príliš veľké.",
+              "acceptable": ["je to príliš veľké."],
+              "choices": ["Je to príliš veľké.", "Je to trochu malé.", "Je to pekné.", "Je to lacné."],
+              "vocabCardId": "v8-velky",
+              "register": "neutral"
+            },
+            {
+              "id": "e8-ot-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I need new shoes.",
+              "answer": "Potrebujem nové topánky.",
+              "acceptable": ["potrebujem nové topánky.", "potrebujem nové topánky"],
+              "vocabCardId": "v8-topanky",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l8-oblecenie-practice",
+          "title": "V obchode: skúsiť si",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e8-op-1",
+              "orderIndex": 0,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Dobrý deň, ____ vám pomôcť? — Áno, hľadám tričko.",
+              "promptSk": "— Dobrý deň, ____ vám pomôcť?",
+              "answer": "môžem",
+              "acceptable": ["môžem"],
+              "choices": ["môžem", "musím", "chcem", "viem"],
+              "hint": "Can I help you? = Môžem vám pomôcť?",
+              "vocabCardId": "v8-skusit",
+              "register": "formal"
+            },
+            {
+              "id": "e8-op-2",
+              "orderIndex": 1,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Môžem si to ____? — Áno, skúšobňa je vzadu.",
+              "promptSk": "— Môžem si to ____?",
+              "answer": "skúsiť",
+              "acceptable": ["skúsiť"],
+              "choices": ["skúsiť", "skúšam", "skúsim", "skúšať"],
+              "hint": "After môžem use the infinitive: skúsiť.",
+              "vocabCardId": "v8-skusit",
+              "register": "neutral"
+            },
+            {
+              "id": "e8-op-3",
+              "orderIndex": 2,
+              "type": "MCQ",
+              "promptEn": "The shoes are a bit small. How do you say it?",
+              "answer": "Sú trochu malé.",
+              "acceptable": ["sú trochu malé."],
+              "choices": ["Sú trochu malé.", "Sú príliš veľké.", "Sú veľmi pekné.", "Sú lacné."],
+              "vocabCardId": "v8-maly",
+              "register": "neutral"
+            },
+            {
+              "id": "e8-op-4",
+              "orderIndex": 3,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'Can I try it on?'",
+              "answer": "Môžem si to skúsiť?",
+              "acceptable": ["môžem si to skúsiť?", "môžem si to skúsiť"],
+              "choices": ["Môžem", "si", "to", "skúsiť?", "skúšam"],
+              "register": "neutral"
+            },
+            {
+              "id": "e8-op-5",
+              "orderIndex": 4,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "Those trousers are nice.",
+              "answer": "Tie nohavice sú pekné.",
+              "acceptable": ["tie nohavice sú pekné.", "tie nohavice sú pekné"],
+              "vocabCardId": "v8-nohavice",
+              "register": "neutral"
+            },
+            {
+              "id": "e8-op-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "It's too big.",
+              "answer": "Je to príliš veľké.",
+              "acceptable": ["je to príliš veľké.", "je to príliš veľké", "je to prilis velke"],
+              "vocabCardId": "v8-velky",
+              "register": "neutral"
+            },
+            {
+              "id": "e8-op-7",
+              "orderIndex": 6,
+              "type": "SPEAK",
+              "promptEn": "Say: 'I'm looking for a T-shirt.'",
+              "promptSk": "Hľadám tričko.",
+              "answer": "Hľadám tričko.",
+              "acceptable": ["hľadám tričko.", "hľadám tričko"],
+              "audioKey": "hladam-tricko",
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

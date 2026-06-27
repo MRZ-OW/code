@@ -1,0 +1,360 @@
+{
+  "unit": { "id": "u6", "name": "Čas a plány", "cefr": "A1", "order": 6 },
+  "skills": [
+    {
+      "id": "s6-cas",
+      "unitId": "u6",
+      "title": "Koľko je hodín?",
+      "description": "Telling the time (o koľkej), days of the week and months, and saying dnes / zajtra / cez víkend.",
+      "iconKey": "clock",
+      "colorKey": "purple",
+      "orderIndex": 0,
+      "cefrLevel": "A1",
+      "vocab": [
+        { "id": "v6-hodina", "sk": "hodina", "en": "hour / o'clock", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Je jedna hodina.", "exampleEn": "It's one o'clock.", "register": "neutral", "frequencyRank": 240 },
+        { "id": "v6-dnes", "sk": "dnes", "en": "today", "partOfSpeech": "adverb", "exampleSk": "Dnes mám čas.", "exampleEn": "I have time today.", "register": "neutral", "frequencyRank": 130 },
+        { "id": "v6-zajtra", "sk": "zajtra", "en": "tomorrow", "partOfSpeech": "adverb", "exampleSk": "Zajtra idem do práce.", "exampleEn": "Tomorrow I'm going to work.", "register": "neutral", "frequencyRank": 190 },
+        { "id": "v6-vikend", "sk": "víkend", "en": "weekend", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Cez víkend oddychujem.", "exampleEn": "I relax over the weekend.", "register": "neutral", "frequencyRank": 510 },
+        { "id": "v6-pondelok", "sk": "pondelok", "en": "Monday", "partOfSpeech": "noun", "gender": "m", "exampleSk": "V pondelok mám stretnutie.", "exampleEn": "On Monday I have a meeting.", "register": "neutral", "frequencyRank": 620 },
+        { "id": "v6-piatok", "sk": "piatok", "en": "Friday", "partOfSpeech": "noun", "gender": "m", "exampleSk": "V piatok ideme von.", "exampleEn": "On Friday we're going out.", "register": "neutral", "frequencyRank": 630 },
+        { "id": "v6-rano", "sk": "ráno", "en": "morning", "partOfSpeech": "noun", "gender": "n", "exampleSk": "Ráno pijem kávu.", "exampleEn": "In the morning I drink coffee.", "register": "neutral", "frequencyRank": 350 },
+        { "id": "v6-vecer", "sk": "večer", "en": "evening", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Večer pozerám film.", "exampleEn": "In the evening I watch a film.", "register": "neutral", "frequencyRank": 360 }
+      ],
+      "lessons": [
+        {
+          "id": "l6-cas-teach",
+          "title": "O koľkej?",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e6-ct-1",
+              "orderIndex": 0,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Koľko je hodín?",
+              "answer": "What time is it?",
+              "acceptable": ["what time is it?", "what time is it"],
+              "vocabCardId": "v6-hodina",
+              "register": "neutral"
+            },
+            {
+              "id": "e6-ct-2",
+              "orderIndex": 1,
+              "type": "MCQ",
+              "promptEn": "How do you say 'It's three o'clock.'?",
+              "answer": "Sú tri hodiny.",
+              "acceptable": ["sú tri hodiny."],
+              "choices": ["Sú tri hodiny.", "Je tri hodina.", "Je tri hodín.", "Sú tri hodina."],
+              "hint": "2–4 use 'sú' + hodiny.",
+              "register": "neutral"
+            },
+            {
+              "id": "e6-ct-3",
+              "orderIndex": 2,
+              "type": "MCQ",
+              "promptEn": "'At what time?' in Slovak is...",
+              "answer": "O koľkej?",
+              "acceptable": ["o koľkej?"],
+              "choices": ["O koľkej?", "Koľko je?", "Kedy je?", "Aký čas?"],
+              "register": "neutral"
+            },
+            {
+              "id": "e6-ct-4",
+              "orderIndex": 3,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Listen: what time is mentioned?",
+              "answer": "o piatej",
+              "acceptable": ["o piatej"],
+              "choices": ["o piatej", "o tretej", "o jednej", "o ôsmej"],
+              "audioKey": "o-piatej",
+              "register": "neutral"
+            },
+            {
+              "id": "e6-ct-5",
+              "orderIndex": 4,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the time word to its meaning.",
+              "answer": "",
+              "pairs": [["dnes", "today"], ["zajtra", "tomorrow"], ["ráno", "morning"], ["večer", "evening"], ["víkend", "weekend"]],
+              "register": "neutral"
+            },
+            {
+              "id": "e6-ct-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "Tomorrow I have time.",
+              "answer": "Zajtra mám čas.",
+              "acceptable": ["zajtra mám čas.", "zajtra mám čas"],
+              "vocabCardId": "v6-zajtra",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l6-cas-practice",
+          "title": "Dni a čas",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e6-cp-1",
+              "orderIndex": 0,
+              "type": "MCQ",
+              "promptEn": "Which day is 'piatok'?",
+              "answer": "Friday",
+              "acceptable": ["friday"],
+              "choices": ["Friday", "Monday", "Sunday", "Tuesday"],
+              "vocabCardId": "v6-piatok",
+              "register": "neutral"
+            },
+            {
+              "id": "e6-cp-2",
+              "orderIndex": 1,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— O koľkej sa stretneme? — ____ piatej.",
+              "promptSk": "— O koľkej sa stretneme? — ____ piatej.",
+              "answer": "O",
+              "acceptable": ["o"],
+              "choices": ["O", "Na", "Do", "Za"],
+              "hint": "Time uses 'o' + locative.",
+              "register": "informal"
+            },
+            {
+              "id": "e6-cp-3",
+              "orderIndex": 2,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'On Monday I have a meeting.'",
+              "answer": "V pondelok mám stretnutie.",
+              "acceptable": ["v pondelok mám stretnutie.", "v pondelok mám stretnutie"],
+              "choices": ["V", "pondelok", "mám", "stretnutie.", "zajtra"],
+              "vocabCardId": "v6-pondelok",
+              "register": "neutral"
+            },
+            {
+              "id": "e6-cp-4",
+              "orderIndex": 3,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I relax over the weekend.",
+              "answer": "Cez víkend oddychujem.",
+              "acceptable": ["cez víkend oddychujem.", "cez víkend oddychujem"],
+              "vocabCardId": "v6-vikend",
+              "register": "neutral"
+            },
+            {
+              "id": "e6-cp-5",
+              "orderIndex": 4,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Ráno pijem kávu a večer čaj.",
+              "answer": "In the morning I drink coffee and in the evening tea.",
+              "acceptable": ["in the morning i drink coffee and in the evening tea.", "in the morning i drink coffee and tea in the evening"],
+              "vocabCardId": "v6-rano",
+              "register": "neutral"
+            },
+            {
+              "id": "e6-cp-6",
+              "orderIndex": 5,
+              "type": "SPEAK",
+              "promptEn": "Say: 'Today I have time.'",
+              "promptSk": "Dnes mám čas.",
+              "answer": "Dnes mám čas.",
+              "acceptable": ["dnes mám čas.", "dnes mám čas"],
+              "audioKey": "dnes-mam-cas",
+              "vocabCardId": "v6-dnes",
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s6-plany",
+      "unitId": "u6",
+      "title": "Robíme plány",
+      "description": "Making plans and an intro to verb aspect: imperfective robiť vs perfective urobiť, practised with ASPECT_CHOICE.",
+      "iconKey": "calendar",
+      "colorKey": "teal",
+      "orderIndex": 1,
+      "cefrLevel": "A1",
+      "vocab": [
+        { "id": "v6-robit", "sk": "robiť", "en": "to do / be doing (imperfective)", "partOfSpeech": "verb", "exampleSk": "Čo robíš večer?", "exampleEn": "What are you doing this evening?", "register": "neutral", "frequencyRank": 90 },
+        { "id": "v6-urobit", "sk": "urobiť", "en": "to do / get done (perfective)", "partOfSpeech": "verb", "exampleSk": "Zajtra to urobím.", "exampleEn": "I'll get it done tomorrow.", "register": "neutral", "frequencyRank": 200 },
+        { "id": "v6-stretnut", "sk": "stretnúť sa", "en": "to meet (perfective)", "partOfSpeech": "verb", "exampleSk": "Stretneme sa o päť.", "exampleEn": "We'll meet at five.", "register": "neutral", "frequencyRank": 400 },
+        { "id": "v6-volny", "sk": "voľný", "en": "free / available", "partOfSpeech": "adjective", "exampleSk": "Si voľný zajtra?", "exampleEn": "Are you free tomorrow?", "register": "informal", "frequencyRank": 480 },
+        { "id": "v6-mozno", "sk": "možno", "en": "maybe", "partOfSpeech": "adverb", "exampleSk": "Možno prídem.", "exampleEn": "Maybe I'll come.", "register": "neutral", "frequencyRank": 290 },
+        { "id": "v6-plan", "sk": "plán", "en": "plan", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Máš nejaký plán?", "exampleEn": "Do you have any plans?", "register": "neutral", "frequencyRank": 460 }
+      ],
+      "lessons": [
+        {
+          "id": "l6-plany-teach",
+          "title": "Si voľný?",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e6-pt-1",
+              "orderIndex": 0,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Čo robíš večer?",
+              "answer": "What are you doing this evening?",
+              "acceptable": ["what are you doing this evening?", "what are you doing tonight?", "what are you doing in the evening"],
+              "vocabCardId": "v6-robit",
+              "register": "informal"
+            },
+            {
+              "id": "e6-pt-2",
+              "orderIndex": 1,
+              "type": "MCQ",
+              "promptEn": "How do you ask 'Are you free tomorrow?' (informal)?",
+              "answer": "Si voľný zajtra?",
+              "acceptable": ["si voľný zajtra?"],
+              "choices": ["Si voľný zajtra?", "Ste voľný zajtra?", "Máš voľný zajtra?", "Je voľný zajtra?"],
+              "vocabCardId": "v6-volny",
+              "register": "informal"
+            },
+            {
+              "id": "e6-pt-3",
+              "orderIndex": 2,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Listen: what is being suggested?",
+              "answer": "Stretneme sa o päť.",
+              "acceptable": ["stretneme sa o päť."],
+              "choices": ["Stretneme sa o päť.", "Stretneme sa o tri.", "Idem domov.", "Nemám čas."],
+              "audioKey": "stretneme-sa-o-pat",
+              "vocabCardId": "v6-stretnut",
+              "register": "informal"
+            },
+            {
+              "id": "e6-pt-4",
+              "orderIndex": 3,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the word to its meaning.",
+              "answer": "",
+              "pairs": [["voľný", "free"], ["možno", "maybe"], ["plán", "plan"], ["robiť", "to do"], ["stretnúť sa", "to meet"]],
+              "register": "neutral"
+            },
+            {
+              "id": "e6-pt-5",
+              "orderIndex": 4,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "Maybe I'll come.",
+              "answer": "Možno prídem.",
+              "acceptable": ["možno prídem.", "možno prídem"],
+              "vocabCardId": "v6-mozno",
+              "register": "neutral"
+            },
+            {
+              "id": "e6-pt-6",
+              "orderIndex": 5,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Si voľný? — Áno, čo ____ robiť?",
+              "promptSk": "— Si voľný? — Áno, čo ____ robiť?",
+              "answer": "chceš",
+              "acceptable": ["chceš"],
+              "choices": ["chceš", "chcem", "chce", "chcete"],
+              "register": "informal"
+            }
+          ]
+        },
+        {
+          "id": "l6-plany-practice",
+          "title": "Vid: robiť verzus urobiť",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e6-pp-1",
+              "orderIndex": 0,
+              "type": "ASPECT_CHOICE",
+              "promptEn": "Choose the right aspect: 'Every day I do my homework.' (a repeated, ongoing action)",
+              "promptSk": "Každý deň ____ úlohy.",
+              "answer": "robím",
+              "acceptable": ["robím"],
+              "choices": ["robím", "urobím", "robil", "urobil"],
+              "hint": "Repeated action = imperfective robiť.",
+              "vocabCardId": "v6-robit",
+              "register": "neutral",
+              "aspectTag": "imperfective"
+            },
+            {
+              "id": "e6-pp-2",
+              "orderIndex": 1,
+              "type": "ASPECT_CHOICE",
+              "promptEn": "Choose the right aspect: 'I'll get it done tomorrow.' (one completed action)",
+              "promptSk": "Zajtra to ____.",
+              "answer": "urobím",
+              "acceptable": ["urobím"],
+              "choices": ["urobím", "robím", "robiť", "urobiť"],
+              "hint": "Completed result = perfective urobiť.",
+              "vocabCardId": "v6-urobit",
+              "register": "neutral",
+              "aspectTag": "perfective"
+            },
+            {
+              "id": "e6-pp-3",
+              "orderIndex": 2,
+              "type": "ASPECT_CHOICE",
+              "promptEn": "Choose the right aspect: 'What are you doing right now?' (action in progress)",
+              "promptSk": "Čo práve ____?",
+              "answer": "robíš",
+              "acceptable": ["robíš"],
+              "choices": ["robíš", "urobíš", "urobil", "robil"],
+              "hint": "In progress = imperfective.",
+              "vocabCardId": "v6-robit",
+              "register": "informal",
+              "aspectTag": "imperfective"
+            },
+            {
+              "id": "e6-pp-4",
+              "orderIndex": 3,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'We'll meet at five.'",
+              "answer": "Stretneme sa o päť.",
+              "acceptable": ["stretneme sa o päť.", "stretneme sa o päť"],
+              "choices": ["Stretneme", "sa", "o", "päť.", "tri"],
+              "vocabCardId": "v6-stretnut",
+              "register": "informal"
+            },
+            {
+              "id": "e6-pp-5",
+              "orderIndex": 4,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "Do you have any plans for the weekend?",
+              "answer": "Máš nejaké plány na víkend?",
+              "acceptable": ["máš nejaké plány na víkend?", "máš nejaké plány na víkend", "máš plány na víkend?"],
+              "vocabCardId": "v6-plan",
+              "register": "informal"
+            },
+            {
+              "id": "e6-pp-6",
+              "orderIndex": 5,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "Texting: '____ o 5ke pri stanici?' (Shall we meet at 5 by the station?)",
+              "promptSk": "____ o 5ke pri stanici?",
+              "answer": "Stretneme sa",
+              "acceptable": ["stretneme sa"],
+              "choices": ["Stretneme sa", "Robíme", "Idem", "Mám"],
+              "hint": "Casual texting: 'o 5ke' = 'o piatej'.",
+              "register": "informal"
+            },
+            {
+              "id": "e6-pp-7",
+              "orderIndex": 6,
+              "type": "SPEAK",
+              "promptEn": "Ask a friend: 'Are you free this evening?'",
+              "promptSk": "Si voľný dnes večer?",
+              "answer": "Si voľný dnes večer?",
+              "acceptable": ["si voľný dnes večer?", "si voľný dnes večer"],
+              "audioKey": "si-volny-dnes-vecer",
+              "vocabCardId": "v6-volny",
+              "register": "informal"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

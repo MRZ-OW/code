@@ -1,0 +1,387 @@
+{
+  "unit": { "id": "u12", "name": "Píšeme si", "cefr": "A2", "order": 12 },
+  "skills": [
+    {
+      "id": "s12-chat-plany",
+      "unitId": "u12",
+      "title": "Dohodnime sa",
+      "description": "Real WhatsApp-style chats to make plans with friends: čo robíš, kde sa stretneme, o koľkej, dohodnuté. Pulls together time, plans and casual texting.",
+      "iconKey": "phone",
+      "colorKey": "teal",
+      "orderIndex": 0,
+      "cefrLevel": "A2",
+      "vocab": [
+        { "id": "v12-cau", "sk": "čau", "en": "hi / bye (casual)", "partOfSpeech": "interjection", "exampleSk": "Čau, čo robíš?", "exampleEn": "Hey, what are you up to?", "register": "informal", "frequencyRank": 60 },
+        { "id": "v12-co-nove", "sk": "čo nové", "en": "what's new / what's up", "partOfSpeech": "phrase", "exampleSk": "Ahoj, čo nové?", "exampleEn": "Hi, what's new?", "register": "informal", "frequencyRank": 220 },
+        { "id": "v12-ides", "sk": "ideš?", "en": "are you coming / in?", "partOfSpeech": "verb", "exampleSk": "Ideme na pivo, ideš?", "exampleEn": "We're going for a beer, you in?", "register": "informal", "frequencyRank": 150 },
+        { "id": "v12-dohodnute", "sk": "dohodnuté", "en": "deal / agreed", "partOfSpeech": "adjective", "exampleSk": "Super, dohodnuté!", "exampleEn": "Great, it's a deal!", "register": "informal", "frequencyRank": 700 },
+        { "id": "v12-mozem", "sk": "môžem", "en": "I can", "partOfSpeech": "verb", "exampleSk": "Dnes nemôžem.", "exampleEn": "I can't today.", "register": "informal", "frequencyRank": 100 },
+        { "id": "v12-napis", "sk": "napíš", "en": "text me / write", "partOfSpeech": "verb", "exampleSk": "Napíš mi neskôr.", "exampleEn": "Text me later.", "register": "informal", "frequencyRank": 320 },
+        { "id": "v12-neskor", "sk": "neskôr", "en": "later", "partOfSpeech": "adverb", "exampleSk": "Ozvem sa neskôr.", "exampleEn": "I'll get in touch later.", "register": "informal", "frequencyRank": 270 },
+        { "id": "v12-ozvem", "sk": "ozvem sa", "en": "I'll get in touch", "partOfSpeech": "verb", "exampleSk": "Ozvem sa večer.", "exampleEn": "I'll get in touch in the evening.", "register": "informal", "frequencyRank": 350 }
+      ],
+      "lessons": [
+        {
+          "id": "l12-cp-teach",
+          "title": "Čau, čo robíš?",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e12-cpt-1",
+              "orderIndex": 0,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Čau, čo nové?",
+              "answer": "Hey, what's new?",
+              "acceptable": ["hey, what's new?", "hi, what's new?", "hey what's up?", "hi what's new"],
+              "vocabCardId": "v12-co-nove",
+              "register": "informal"
+            },
+            {
+              "id": "e12-cpt-2",
+              "orderIndex": 1,
+              "type": "MCQ",
+              "promptEn": "A friend texts 'Ideme na pivo, ideš?'. What are they asking?",
+              "answer": "We're going for a beer, you in?",
+              "acceptable": ["we're going for a beer, you in?"],
+              "choices": ["We're going for a beer, you in?", "Where's the beer?", "Do you like beer?", "Is the beer good?"],
+              "vocabCardId": "v12-ides",
+              "register": "informal"
+            },
+            {
+              "id": "e12-cpt-3",
+              "orderIndex": 2,
+              "type": "MCQ",
+              "promptEn": "How do you reply 'I can't today.'?",
+              "answer": "Dnes nemôžem.",
+              "acceptable": ["dnes nemôžem."],
+              "choices": ["Dnes nemôžem.", "Dnes môžem.", "Zajtra nemôžem.", "Dnes nechcem."],
+              "vocabCardId": "v12-mozem",
+              "register": "informal"
+            },
+            {
+              "id": "e12-cpt-4",
+              "orderIndex": 3,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Listen: how does the friend confirm?",
+              "answer": "Super, dohodnuté!",
+              "acceptable": ["super, dohodnuté!"],
+              "choices": ["Super, dohodnuté!", "Nie, nemôžem.", "Možno neskôr.", "Neviem."],
+              "audioKey": "super-dohodnute",
+              "vocabCardId": "v12-dohodnute",
+              "register": "informal"
+            },
+            {
+              "id": "e12-cpt-5",
+              "orderIndex": 4,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the chat phrase to its meaning.",
+              "answer": "",
+              "pairs": [["čau", "hi / bye"], ["čo nové", "what's new"], ["dohodnuté", "deal"], ["neskôr", "later"], ["ozvem sa", "I'll get in touch"]],
+              "register": "informal"
+            },
+            {
+              "id": "e12-cpt-6",
+              "orderIndex": 5,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Čau! Ideme dnes von, ____? — Jasné, idem!",
+              "promptSk": "— Čau! Ideme dnes von, ____? — Jasné, idem!",
+              "answer": "ideš",
+              "acceptable": ["ideš"],
+              "choices": ["ideš", "idem", "ide", "ideme"],
+              "hint": "You're asking the other person: 2nd person 'ideš'.",
+              "vocabCardId": "v12-ides",
+              "register": "informal"
+            }
+          ]
+        },
+        {
+          "id": "l12-cp-practice",
+          "title": "Dohodneme sa cez chat",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e12-cpp-1",
+              "orderIndex": 0,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— O koľkej sa stretneme? — ____ siedmej pri kine.",
+              "promptSk": "— O koľkej sa stretneme? — ____ siedmej pri kine.",
+              "answer": "O",
+              "acceptable": ["o"],
+              "choices": ["O", "Na", "Do", "Za"],
+              "hint": "Telling time uses 'o' + locative.",
+              "register": "informal"
+            },
+            {
+              "id": "e12-cpp-2",
+              "orderIndex": 1,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Ideš dnes na kávu? — Dnes ____, mám veľa roboty. (I can't)",
+              "promptSk": "— Ideš dnes na kávu? — Dnes ____, mám veľa roboty.",
+              "answer": "nemôžem",
+              "acceptable": ["nemôžem"],
+              "choices": ["nemôžem", "môžem", "nechcem", "neviem"],
+              "vocabCardId": "v12-mozem",
+              "register": "informal"
+            },
+            {
+              "id": "e12-cpp-3",
+              "orderIndex": 2,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Tak teda zajtra? — Super, ____! (deal)",
+              "promptSk": "— Tak teda zajtra? — Super, ____!",
+              "answer": "dohodnuté",
+              "acceptable": ["dohodnuté"],
+              "choices": ["dohodnuté", "neskôr", "možno", "ahoj"],
+              "vocabCardId": "v12-dohodnute",
+              "register": "informal"
+            },
+            {
+              "id": "e12-cpp-4",
+              "orderIndex": 3,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "Text me later.",
+              "answer": "Napíš mi neskôr.",
+              "acceptable": ["napíš mi neskôr.", "napíš mi neskôr"],
+              "vocabCardId": "v12-napis",
+              "register": "informal"
+            },
+            {
+              "id": "e12-cpp-5",
+              "orderIndex": 4,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I'll get in touch in the evening.",
+              "answer": "Ozvem sa večer.",
+              "acceptable": ["ozvem sa večer.", "ozvem sa večer"],
+              "vocabCardId": "v12-ozvem",
+              "register": "informal"
+            },
+            {
+              "id": "e12-cpp-6",
+              "orderIndex": 5,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'We're going for a beer, you in?'",
+              "answer": "Ideme na pivo, ideš?",
+              "acceptable": ["ideme na pivo, ideš?", "ideme na pivo, ideš"],
+              "choices": ["Ideme", "na", "pivo,", "ideš?", "dnes"],
+              "vocabCardId": "v12-ides",
+              "register": "informal"
+            },
+            {
+              "id": "e12-cpp-7",
+              "orderIndex": 6,
+              "type": "SPEAK",
+              "promptEn": "Reply to a friend: 'Great, it's a deal, see you at seven!'",
+              "promptSk": "Super, dohodnuté, vidíme sa o siedmej!",
+              "answer": "Super, dohodnuté, vidíme sa o siedmej!",
+              "acceptable": ["super, dohodnuté, vidíme sa o siedmej!", "super, dohodnuté, vidíme sa o siedmej"],
+              "audioKey": "super-dohodnute-vidime-sa-o-siedmej",
+              "vocabCardId": "v12-dohodnute",
+              "register": "informal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s12-chat-zivot",
+      "unitId": "u12",
+      "title": "Ako sa máš?",
+      "description": "Longer WhatsApp threads catching up on life: how it's going, work and feelings, past tense (bol som), and reacting naturally. The Chat-with-Friends north star.",
+      "iconKey": "chat",
+      "colorKey": "purple",
+      "orderIndex": 1,
+      "cefrLevel": "A2",
+      "vocab": [
+        { "id": "v12-ako-sa-mas", "sk": "ako sa máš", "en": "how are you", "partOfSpeech": "phrase", "exampleSk": "Ahoj, ako sa máš?", "exampleEn": "Hi, how are you?", "register": "informal", "frequencyRank": 70 },
+        { "id": "v12-celkom", "sk": "celkom dobre", "en": "pretty good", "partOfSpeech": "phrase", "exampleSk": "Mám sa celkom dobre.", "exampleEn": "I'm doing pretty good.", "register": "informal", "frequencyRank": 240 },
+        { "id": "v12-unaveny", "sk": "unavený", "en": "tired", "partOfSpeech": "adjective", "exampleSk": "Som dosť unavený.", "exampleEn": "I'm pretty tired.", "register": "informal", "frequencyRank": 520 },
+        { "id": "v12-skoda", "sk": "škoda", "en": "shame / too bad", "partOfSpeech": "interjection", "exampleSk": "To je škoda.", "exampleEn": "That's a shame.", "register": "informal", "frequencyRank": 460 },
+        { "id": "v12-drz-sa", "sk": "drž sa", "en": "take care / hang in there", "partOfSpeech": "phrase", "exampleSk": "Drž sa, ozvem sa.", "exampleEn": "Take care, I'll be in touch.", "register": "informal", "frequencyRank": 640 },
+        { "id": "v12-vlastne", "sk": "vlastne", "en": "actually", "partOfSpeech": "adverb", "exampleSk": "Vlastne mám dobrú správu.", "exampleEn": "Actually I have good news.", "register": "informal", "frequencyRank": 290 },
+        { "id": "v12-bol-som", "sk": "bol som", "en": "I was", "partOfSpeech": "verb", "exampleSk": "Včera som bol u rodičov.", "exampleEn": "Yesterday I was at my parents'.", "register": "informal", "frequencyRank": 80 },
+        { "id": "v12-tesim-sa", "sk": "teším sa", "en": "I'm looking forward to it", "partOfSpeech": "verb", "exampleSk": "Teším sa na teba.", "exampleEn": "I'm looking forward to seeing you.", "register": "informal", "frequencyRank": 360 }
+      ],
+      "lessons": [
+        {
+          "id": "l12-cz-teach",
+          "title": "Ahoj, ako sa máš?",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e12-czt-1",
+              "orderIndex": 0,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Ahoj, ako sa máš?",
+              "answer": "Hi, how are you?",
+              "acceptable": ["hi, how are you?", "hi how are you", "hello, how are you?"],
+              "vocabCardId": "v12-ako-sa-mas",
+              "register": "informal"
+            },
+            {
+              "id": "e12-czt-2",
+              "orderIndex": 1,
+              "type": "MCQ",
+              "promptEn": "A friend writes 'Mám sa celkom dobre.' What does it mean?",
+              "answer": "I'm doing pretty good.",
+              "acceptable": ["i'm doing pretty good."],
+              "choices": ["I'm doing pretty good.", "I'm not well.", "I'm very busy.", "I'm at home."],
+              "vocabCardId": "v12-celkom",
+              "register": "informal"
+            },
+            {
+              "id": "e12-czt-3",
+              "orderIndex": 2,
+              "type": "MCQ",
+              "promptEn": "Which reply means 'That's a shame.'?",
+              "answer": "To je škoda.",
+              "acceptable": ["to je škoda."],
+              "choices": ["To je škoda.", "To je super.", "To je jedno.", "To je všetko."],
+              "vocabCardId": "v12-skoda",
+              "register": "informal"
+            },
+            {
+              "id": "e12-czt-4",
+              "orderIndex": 3,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Listen: how does the friend sign off?",
+              "answer": "Drž sa, ozvem sa.",
+              "acceptable": ["drž sa, ozvem sa."],
+              "choices": ["Drž sa, ozvem sa.", "Dobrú noc.", "Vidíme sa.", "Ďakujem pekne."],
+              "audioKey": "drz-sa-ozvem-sa",
+              "vocabCardId": "v12-drz-sa",
+              "register": "informal"
+            },
+            {
+              "id": "e12-czt-5",
+              "orderIndex": 4,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the chat reaction to its meaning.",
+              "answer": "",
+              "pairs": [["ako sa máš", "how are you"], ["celkom dobre", "pretty good"], ["škoda", "shame"], ["vlastne", "actually"], ["teším sa", "looking forward"]],
+              "register": "informal"
+            },
+            {
+              "id": "e12-czt-6",
+              "orderIndex": 5,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Ahoj, ako sa máš? — Mám sa ____ dobre, a ty? (pretty)",
+              "promptSk": "— Ako sa máš? — Mám sa ____ dobre, a ty?",
+              "answer": "celkom",
+              "acceptable": ["celkom"],
+              "choices": ["celkom", "veľmi", "vôbec", "stále"],
+              "vocabCardId": "v12-celkom",
+              "register": "informal"
+            }
+          ]
+        },
+        {
+          "id": "l12-cz-practice",
+          "title": "Dlhší rozhovor",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e12-czp-1",
+              "orderIndex": 0,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Čo si robil cez víkend? — ____ som u rodičov. (I was)",
+              "promptSk": "— Čo si robil cez víkend? — ____ som u rodičov.",
+              "answer": "Bol",
+              "acceptable": ["bol"],
+              "choices": ["Bol", "Som", "Budem", "Byť"],
+              "hint": "Past tense (male): bol + som.",
+              "vocabCardId": "v12-bol-som",
+              "register": "informal"
+            },
+            {
+              "id": "e12-czp-2",
+              "orderIndex": 1,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Prídeš zajtra? — Nemôžem, som dosť ____. (tired)",
+              "promptSk": "— Prídeš zajtra? — Nemôžem, som dosť ____.",
+              "answer": "unavený",
+              "acceptable": ["unavený"],
+              "choices": ["unavený", "unavená", "unavené", "unavení"],
+              "hint": "Male speaker: masculine -ý.",
+              "vocabCardId": "v12-unaveny",
+              "register": "informal"
+            },
+            {
+              "id": "e12-czp-3",
+              "orderIndex": 2,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Nestihnem to dnes. — ____, tak zajtra. (too bad)",
+              "promptSk": "— Nestihnem to dnes. — ____, tak zajtra.",
+              "answer": "Škoda",
+              "acceptable": ["škoda"],
+              "choices": ["Škoda", "Super", "Jasné", "Hej"],
+              "vocabCardId": "v12-skoda",
+              "register": "informal"
+            },
+            {
+              "id": "e12-czp-4",
+              "orderIndex": 3,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "Actually I have good news.",
+              "answer": "Vlastne mám dobrú správu.",
+              "acceptable": ["vlastne mám dobrú správu.", "vlastne mám dobrú správu"],
+              "vocabCardId": "v12-vlastne",
+              "register": "informal"
+            },
+            {
+              "id": "e12-czp-5",
+              "orderIndex": 4,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I'm looking forward to seeing you.",
+              "answer": "Teším sa na teba.",
+              "acceptable": ["teším sa na teba.", "teším sa na teba"],
+              "vocabCardId": "v12-tesim-sa",
+              "register": "informal"
+            },
+            {
+              "id": "e12-czp-6",
+              "orderIndex": 5,
+              "type": "WORD_BANK",
+              "promptEn": "Build the past tense: 'Yesterday I was at my parents'.' (male)",
+              "answer": "Včera som bol u rodičov.",
+              "acceptable": ["včera som bol u rodičov.", "včera som bol u rodičov"],
+              "choices": ["Včera", "som", "bol", "u", "rodičov.", "budem"],
+              "hint": "After 'Včera' the clitic 'som' comes second.",
+              "vocabCardId": "v12-bol-som",
+              "register": "informal"
+            },
+            {
+              "id": "e12-czp-7",
+              "orderIndex": 6,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "Take care, I'll be in touch later.",
+              "answer": "Drž sa, ozvem sa neskôr.",
+              "acceptable": ["drž sa, ozvem sa neskôr.", "drž sa, ozvem sa neskôr"],
+              "vocabCardId": "v12-drz-sa",
+              "register": "informal"
+            },
+            {
+              "id": "e12-czp-8",
+              "orderIndex": 7,
+              "type": "SPEAK",
+              "promptEn": "Reply warmly: 'I'm pretty tired, but I'm looking forward to seeing you.'",
+              "promptSk": "Som dosť unavený, ale teším sa na teba.",
+              "answer": "Som dosť unavený, ale teším sa na teba.",
+              "acceptable": ["som dosť unavený, ale teším sa na teba.", "som dosť unavený, ale teším sa na teba"],
+              "audioKey": "som-dost-unaveny-ale-tesim-sa-na-teba",
+              "vocabCardId": "v12-tesim-sa",
+              "register": "informal"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

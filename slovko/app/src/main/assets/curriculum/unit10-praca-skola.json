@@ -1,0 +1,382 @@
+{
+  "unit": { "id": "u10", "name": "Práca a škola", "cefr": "A2", "order": 10 },
+  "skills": [
+    {
+      "id": "s10-co-robis",
+      "unitId": "u10",
+      "title": "Čím si?",
+      "description": "Talking about your job and studies: čím si, kde robíš, čo študuješ, and the instrumental case of professions (som učiteľom) via FILL_CASE.",
+      "iconKey": "work",
+      "colorKey": "blue",
+      "orderIndex": 0,
+      "cefrLevel": "A2",
+      "vocab": [
+        { "id": "v10-praca", "sk": "práca", "en": "work / job", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Idem do práce.", "exampleEn": "I'm going to work.", "register": "neutral", "frequencyRank": 110 },
+        { "id": "v10-robit", "sk": "robiť", "en": "to work / do", "partOfSpeech": "verb", "exampleSk": "Kde robíš?", "exampleEn": "Where do you work?", "register": "informal", "frequencyRank": 90 },
+        { "id": "v10-ucitel", "sk": "učiteľ", "en": "teacher", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Som učiteľom.", "exampleEn": "I'm a teacher.", "register": "neutral", "frequencyRank": 540 },
+        { "id": "v10-lekar", "sk": "lekár", "en": "doctor", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Pracuje ako lekár.", "exampleEn": "He works as a doctor.", "register": "neutral", "frequencyRank": 550 },
+        { "id": "v10-student", "sk": "študent", "en": "student", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Som ešte študent.", "exampleEn": "I'm still a student.", "register": "neutral", "frequencyRank": 470 },
+        { "id": "v10-studovat", "sk": "študovať", "en": "to study", "partOfSpeech": "verb", "exampleSk": "Čo študuješ?", "exampleEn": "What do you study?", "register": "neutral", "frequencyRank": 430 },
+        { "id": "v10-firma", "sk": "firma", "en": "company / firm", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Robím vo veľkej firme.", "exampleEn": "I work at a big company.", "register": "neutral", "frequencyRank": 600 },
+        { "id": "v10-programator", "sk": "programátor", "en": "programmer", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Som programátorom.", "exampleEn": "I'm a programmer.", "register": "neutral", "frequencyRank": 720 }
+      ],
+      "lessons": [
+        {
+          "id": "l10-cr-teach",
+          "title": "Kde robíš?",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e10-crt-1",
+              "orderIndex": 0,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Kde robíš?",
+              "answer": "Where do you work?",
+              "acceptable": ["where do you work?", "where do you work"],
+              "vocabCardId": "v10-robit",
+              "register": "informal"
+            },
+            {
+              "id": "e10-crt-2",
+              "orderIndex": 1,
+              "type": "MCQ",
+              "promptEn": "How do you ask 'What do you study?' (informal)?",
+              "answer": "Čo študuješ?",
+              "acceptable": ["čo študuješ?"],
+              "choices": ["Čo študuješ?", "Čo študujem?", "Kde študuješ?", "Čo robíš?"],
+              "vocabCardId": "v10-studovat",
+              "register": "informal"
+            },
+            {
+              "id": "e10-crt-3",
+              "orderIndex": 2,
+              "type": "MCQ",
+              "promptEn": "Which word means 'company / firm'?",
+              "answer": "firma",
+              "acceptable": ["firma"],
+              "choices": ["firma", "práca", "škola", "mesto"],
+              "vocabCardId": "v10-firma",
+              "register": "neutral"
+            },
+            {
+              "id": "e10-crt-4",
+              "orderIndex": 3,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Listen: what is the person's job?",
+              "answer": "Som lekár.",
+              "acceptable": ["som lekár."],
+              "choices": ["Som lekár.", "Som učiteľ.", "Som študent.", "Som programátor."],
+              "audioKey": "som-lekar",
+              "vocabCardId": "v10-lekar",
+              "register": "neutral"
+            },
+            {
+              "id": "e10-crt-5",
+              "orderIndex": 4,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the profession to its meaning.",
+              "answer": "",
+              "pairs": [["učiteľ", "teacher"], ["lekár", "doctor"], ["študent", "student"], ["programátor", "programmer"], ["práca", "work"]],
+              "register": "neutral"
+            },
+            {
+              "id": "e10-crt-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I'm going to work.",
+              "answer": "Idem do práce.",
+              "acceptable": ["idem do práce.", "idem do práce"],
+              "vocabCardId": "v10-praca",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l10-cr-practice",
+          "title": "Čím si? (inštrumentál)",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e10-crp-1",
+              "orderIndex": 0,
+              "type": "FILL_CASE",
+              "promptEn": "Say your profession: 'I'm a teacher.' Use the instrumental.",
+              "promptSk": "Som ____. (učiteľ)",
+              "answer": "učiteľom",
+              "acceptable": ["učiteľom"],
+              "choices": ["učiteľom", "učiteľ", "učiteľa", "učiteľovi"],
+              "hint": "Profession with 'byť' takes the instrumental: -om for masculine.",
+              "vocabCardId": "v10-ucitel",
+              "register": "neutral",
+              "caseTag": "INS"
+            },
+            {
+              "id": "e10-crp-2",
+              "orderIndex": 1,
+              "type": "FILL_CASE",
+              "promptEn": "'I'm a programmer.' Put the profession in the instrumental.",
+              "promptSk": "Som ____. (programátor)",
+              "answer": "programátorom",
+              "acceptable": ["programátorom"],
+              "choices": ["programátorom", "programátor", "programátora", "programátoru"],
+              "hint": "Masculine instrumental ends in -om.",
+              "vocabCardId": "v10-programator",
+              "register": "neutral",
+              "caseTag": "INS"
+            },
+            {
+              "id": "e10-crp-3",
+              "orderIndex": 2,
+              "type": "FILL_CASE",
+              "promptEn": "'She's a doctor.' Choose the instrumental of 'lekárka'.",
+              "promptSk": "Je ____. (lekárka)",
+              "answer": "lekárkou",
+              "acceptable": ["lekárkou"],
+              "choices": ["lekárkou", "lekárka", "lekárku", "lekárke"],
+              "hint": "Feminine instrumental ends in -ou.",
+              "vocabCardId": "v10-lekar",
+              "register": "neutral",
+              "caseTag": "INS"
+            },
+            {
+              "id": "e10-crp-4",
+              "orderIndex": 3,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'I work at a big company.'",
+              "answer": "Robím vo veľkej firme.",
+              "acceptable": ["robím vo veľkej firme.", "robím vo veľkej firme"],
+              "choices": ["Robím", "vo", "veľkej", "firme.", "do"],
+              "vocabCardId": "v10-firma",
+              "register": "informal"
+            },
+            {
+              "id": "e10-crp-5",
+              "orderIndex": 4,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I'm still a student.",
+              "answer": "Som ešte študent.",
+              "acceptable": ["som ešte študent.", "som ešte študent"],
+              "vocabCardId": "v10-student",
+              "register": "neutral"
+            },
+            {
+              "id": "e10-crp-6",
+              "orderIndex": 5,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Čím si? — Som ____. (I'm a teacher)",
+              "promptSk": "— Čím si? — Som ____.",
+              "answer": "učiteľom",
+              "acceptable": ["učiteľom"],
+              "choices": ["učiteľom", "učiteľ", "učiteľa", "učiteľmi"],
+              "hint": "'Čím si?' literally asks 'what are you (instr.)?'",
+              "vocabCardId": "v10-ucitel",
+              "register": "informal",
+              "caseTag": "INS"
+            },
+            {
+              "id": "e10-crp-7",
+              "orderIndex": 6,
+              "type": "SPEAK",
+              "promptEn": "Say: 'What do you study?'",
+              "promptSk": "Čo študuješ?",
+              "answer": "Čo študuješ?",
+              "acceptable": ["čo študuješ?", "čo študuješ"],
+              "audioKey": "co-studujes",
+              "vocabCardId": "v10-studovat",
+              "register": "informal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s10-v-praci",
+      "unitId": "u10",
+      "title": "V práci a v škole",
+      "description": "Workplace and school vocabulary: meetings, the office, colleagues, the timetable, plus everyday phrases like mám veľa roboty.",
+      "iconKey": "person",
+      "colorKey": "orange",
+      "orderIndex": 1,
+      "cefrLevel": "A2",
+      "vocab": [
+        { "id": "v10-kolega", "sk": "kolega", "en": "colleague", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Môj kolega je fajn.", "exampleEn": "My colleague is nice.", "register": "neutral", "frequencyRank": 650 },
+        { "id": "v10-sef", "sk": "šéf", "en": "boss", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Šéf má dnes dobrú náladu.", "exampleEn": "The boss is in a good mood today.", "register": "informal", "frequencyRank": 680 },
+        { "id": "v10-stretnutie", "sk": "stretnutie", "en": "meeting", "partOfSpeech": "noun", "gender": "n", "exampleSk": "Mám stretnutie o desať.", "exampleEn": "I have a meeting at ten.", "register": "neutral", "frequencyRank": 590 },
+        { "id": "v10-kancelaria", "sk": "kancelária", "en": "office", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Sedím v kancelárii.", "exampleEn": "I sit in the office.", "register": "neutral", "frequencyRank": 700 },
+        { "id": "v10-skola", "sk": "škola", "en": "school", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Idem do školy.", "exampleEn": "I'm going to school.", "register": "neutral", "frequencyRank": 200 },
+        { "id": "v10-skuska", "sk": "skúška", "en": "exam", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Zajtra mám skúšku.", "exampleEn": "I have an exam tomorrow.", "register": "neutral", "frequencyRank": 660 },
+        { "id": "v10-robota", "sk": "robota", "en": "work / loads to do", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Mám veľa roboty.", "exampleEn": "I have a lot of work.", "register": "informal", "frequencyRank": 480 },
+        { "id": "v10-unaveny", "sk": "unavený", "en": "tired", "partOfSpeech": "adjective", "exampleSk": "Som unavený z práce.", "exampleEn": "I'm tired from work.", "register": "neutral", "frequencyRank": 520 }
+      ],
+      "lessons": [
+        {
+          "id": "l10-vp-teach",
+          "title": "Kolegovia a šéf",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e10-vpt-1",
+              "orderIndex": 0,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Mám veľa roboty.",
+              "answer": "I have a lot of work.",
+              "acceptable": ["i have a lot of work.", "i have a lot of work", "i have lots of work"],
+              "vocabCardId": "v10-robota",
+              "register": "informal"
+            },
+            {
+              "id": "e10-vpt-2",
+              "orderIndex": 1,
+              "type": "MCQ",
+              "promptEn": "Which word means 'colleague'?",
+              "answer": "kolega",
+              "acceptable": ["kolega"],
+              "choices": ["kolega", "šéf", "lekár", "sused"],
+              "vocabCardId": "v10-kolega",
+              "register": "neutral"
+            },
+            {
+              "id": "e10-vpt-3",
+              "orderIndex": 2,
+              "type": "MCQ",
+              "promptEn": "'I have a meeting at ten.' is...",
+              "answer": "Mám stretnutie o desať.",
+              "acceptable": ["mám stretnutie o desať."],
+              "choices": ["Mám stretnutie o desať.", "Mám skúšku o desať.", "Idem do práce o desať.", "Som v kancelárii o desať."],
+              "vocabCardId": "v10-stretnutie",
+              "register": "neutral"
+            },
+            {
+              "id": "e10-vpt-4",
+              "orderIndex": 3,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Listen: where is the person?",
+              "answer": "Sedím v kancelárii.",
+              "acceptable": ["sedím v kancelárii."],
+              "choices": ["Sedím v kancelárii.", "Som v škole.", "Idem domov.", "Som na obede."],
+              "audioKey": "sedim-v-kancelarii",
+              "vocabCardId": "v10-kancelaria",
+              "register": "neutral"
+            },
+            {
+              "id": "e10-vpt-5",
+              "orderIndex": 4,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the workplace word to its meaning.",
+              "answer": "",
+              "pairs": [["šéf", "boss"], ["kancelária", "office"], ["stretnutie", "meeting"], ["skúška", "exam"], ["škola", "school"]],
+              "register": "neutral"
+            },
+            {
+              "id": "e10-vpt-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I have an exam tomorrow.",
+              "answer": "Zajtra mám skúšku.",
+              "acceptable": ["zajtra mám skúšku.", "zajtra mám skúšku", "mám zajtra skúšku."],
+              "vocabCardId": "v10-skuska",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l10-vp-practice",
+          "title": "Deň v práci",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e10-vpp-1",
+              "orderIndex": 0,
+              "type": "MCQ",
+              "promptEn": "Which sentence means 'I'm tired from work.'?",
+              "answer": "Som unavený z práce.",
+              "acceptable": ["som unavený z práce."],
+              "choices": ["Som unavený z práce.", "Som unavený zo školy.", "Idem do práce.", "Mám veľa roboty."],
+              "vocabCardId": "v10-unaveny",
+              "register": "neutral"
+            },
+            {
+              "id": "e10-vpp-2",
+              "orderIndex": 1,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'I have a meeting at ten.'",
+              "answer": "Mám stretnutie o desať.",
+              "acceptable": ["mám stretnutie o desať.", "mám stretnutie o desať"],
+              "choices": ["Mám", "stretnutie", "o", "desať.", "skúšku"],
+              "vocabCardId": "v10-stretnutie",
+              "register": "neutral"
+            },
+            {
+              "id": "e10-vpp-3",
+              "orderIndex": 2,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Ako bolo v práci? — Náročné, mám veľa ____.",
+              "promptSk": "— Ako bolo v práci? — Náročné, mám veľa ____.",
+              "answer": "roboty",
+              "acceptable": ["roboty"],
+              "choices": ["roboty", "robota", "robotu", "robote"],
+              "hint": "'veľa' (a lot of) takes the genitive: roboty.",
+              "vocabCardId": "v10-robota",
+              "register": "informal",
+              "caseTag": "GEN"
+            },
+            {
+              "id": "e10-vpp-4",
+              "orderIndex": 3,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "My colleague is nice.",
+              "answer": "Môj kolega je fajn.",
+              "acceptable": ["môj kolega je fajn.", "môj kolega je fajn"],
+              "vocabCardId": "v10-kolega",
+              "register": "informal"
+            },
+            {
+              "id": "e10-vpp-5",
+              "orderIndex": 4,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I'm going to school.",
+              "answer": "Idem do školy.",
+              "acceptable": ["idem do školy.", "idem do školy"],
+              "vocabCardId": "v10-skola",
+              "register": "neutral"
+            },
+            {
+              "id": "e10-vpp-6",
+              "orderIndex": 5,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Kde si? — V ____, mám stretnutie. (office)",
+              "promptSk": "— Kde si? — V ____, mám stretnutie.",
+              "answer": "kancelárii",
+              "acceptable": ["kancelárii"],
+              "choices": ["kancelárii", "kancelária", "kanceláriu", "kanceláriou"],
+              "hint": "'v' + locative: kancelárii.",
+              "vocabCardId": "v10-kancelaria",
+              "register": "informal",
+              "caseTag": "LOC"
+            },
+            {
+              "id": "e10-vpp-7",
+              "orderIndex": 6,
+              "type": "SPEAK",
+              "promptEn": "Say: 'I'm tired from work.'",
+              "promptSk": "Som unavený z práce.",
+              "answer": "Som unavený z práce.",
+              "acceptable": ["som unavený z práce.", "som unavený z práce"],
+              "audioKey": "som-unaveny-z-prace",
+              "vocabCardId": "v10-unaveny",
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
