@@ -1,0 +1,49 @@
+name: Slovko Android CI
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "slovko/**"
+      - ".github/workflows/android-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: slovko
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          build-root-directory: slovko
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Unit tests
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: slovko-debug-apk
+          path: slovko/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
