@@ -1,0 +1,28 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Stylized fox head (Líška Maja) on the adaptive foreground -->
+    <path
+        android:fillColor="#E2603B"
+        android:pathData="M54,30 L40,40 L36,58 C36,72 44,82 54,82 C64,82 72,72 72,58 L68,40 Z" />
+    <path
+        android:fillColor="#E2603B"
+        android:pathData="M40,40 L30,26 L42,34 Z" />
+    <path
+        android:fillColor="#231A14"
+        android:pathData="M68,40 L78,26 L66,34 Z" />
+    <path
+        android:fillColor="#FFF3E6"
+        android:pathData="M54,52 L46,58 L54,74 L62,58 Z" />
+    <path
+        android:fillColor="#231A14"
+        android:pathData="M47,50 m-2.5,0 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0" />
+    <path
+        android:fillColor="#231A14"
+        android:pathData="M61,50 m-2.5,0 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0" />
+    <path
+        android:fillColor="#231A14"
+        android:pathData="M54,64 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0" />
+</vector>
