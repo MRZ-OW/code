@@ -98,7 +98,10 @@ class LessonViewModel @Inject constructor(
     private fun load() {
         viewModelScope.launch {
             val lesson = content.getLesson(lessonId)
-            val exercises = lesson?.exercises.orEmpty().sortedBy { it.orderIndex }
+            val exercises = lesson?.exercises.orEmpty()
+                .sortedBy { it.orderIndex }
+                // Shuffle options so the correct answer isn't always first.
+                .map { if (it.choices.size > 1) it.copy(choices = it.choices.shuffled()) else it }
             if (exercises.isEmpty()) {
                 _state.value = LessonUiState.Error
                 return@launch
