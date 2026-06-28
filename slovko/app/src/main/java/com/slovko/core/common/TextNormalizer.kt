@@ -22,6 +22,12 @@ object TextNormalizer {
     fun normalizeStrict(input: String): String =
         spaces.replace(input.lowercase(Locale.ROOT).trim(), " ")
 
+    private val blanks = "(_+|\\.{3,})".toRegex()
+
+    /** Strip fill-in blanks ("____", "...") so TTS never reads them aloud. */
+    fun forSpeech(input: String): String =
+        spaces.replace(blanks.replace(input, " "), " ").trim()
+
     /** Order-insensitive token comparison (word-bank tolerance). */
     fun sameWords(a: String, b: String): Boolean =
         normalize(a).split(" ").filter { it.isNotEmpty() }.sorted() ==
