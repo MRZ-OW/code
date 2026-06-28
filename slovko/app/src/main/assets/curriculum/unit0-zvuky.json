@@ -44,12 +44,12 @@
             {
               "id": "e0-abc-3",
               "orderIndex": 2,
-              "type": "LISTEN_CHOOSE",
-              "promptEn": "Listen and choose the sound: is it short or long?",
-              "answer": "í",
-              "acceptable": ["í"],
-              "choices": ["í", "i", "y", "ý"],
-              "audioKey": "i-dlhe",
+              "type": "MCQ",
+              "promptEn": "Good to know: Slovak 'i' and 'y' are pronounced exactly the same (and so are 'í' and 'ý'). Which one is just spelled with extra length?",
+              "answer": "í and ý (long ee)",
+              "acceptable": ["í and ý (long ee)"],
+              "choices": ["í and ý (long ee)", "i and y (long ee)", "they are all long", "none are long"],
+              "hint": "The dĺžeň (´) marks length; y vs i is only a spelling rule, never a sound difference.",
               "register": "neutral"
             },
             {
@@ -302,11 +302,12 @@
               "id": "e0-tp-5",
               "orderIndex": 4,
               "type": "LISTEN_CHOOSE",
-              "promptEn": "Where is the stress in 'ahoj'?",
-              "answer": "A-hoj",
-              "acceptable": ["a-hoj", "first"],
-              "choices": ["A-hoj", "a-HOJ"],
-              "audioKey": "ahoj",
+              "promptEn": "Which word do you hear?",
+              "answer": "mäso",
+              "acceptable": ["mäso"],
+              "choices": ["mäso", "stôl"],
+              "audioKey": "maso",
+              "hint": "mäso = meat, stôl = table.",
               "register": "neutral"
             },
             {
