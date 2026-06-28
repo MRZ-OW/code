@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -103,7 +104,9 @@ private fun ActiveState(
     viewModel: LessonViewModel,
     onExit: () -> Unit,
 ) {
-    Column(Modifier.fillMaxSize()) {
+    // imePadding lifts the whole layout — including the bottom Check/Continue
+    // button — above the on-screen keyboard so it's always reachable.
+    Column(Modifier.fillMaxSize().imePadding()) {
         // Top bar: close + progress.
         Row(
             Modifier
