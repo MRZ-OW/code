@@ -15,10 +15,21 @@ android {
         applicationId = "com.slovko"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
+    }
+
+    // Stable shared signing key (committed) so every CI build is signed
+    // identically and installs as an in-place update — no uninstall needed.
+    signingConfigs {
+        create("shared") {
+            storeFile = file("../keystore/slovko.jks")
+            storePassword = "slovko123"
+            keyAlias = "slovko"
+            keyPassword = "slovko123"
+        }
     }
 
     buildTypes {
@@ -28,9 +39,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            signingConfig = signingConfigs.getByName("shared")
         }
         debug {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("shared")
         }
     }
 
