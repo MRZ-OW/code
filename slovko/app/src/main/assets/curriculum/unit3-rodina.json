@@ -1,0 +1,358 @@
+{
+  "unit": { "id": "u3", "name": "Rodina", "cefr": "A1", "order": 3 },
+  "skills": [
+    {
+      "id": "s3-rodina-zdrobneniny",
+      "unitId": "u3",
+      "title": "Rodina a zdrobneniny",
+      "description": "Family members and diminutives like mama to mamka, otec to ocko.",
+      "iconKey": "family",
+      "colorKey": "pink",
+      "orderIndex": 0,
+      "cefrLevel": "A1",
+      "vocab": [
+        { "id": "v3-mama", "sk": "mama", "en": "mom", "partOfSpeech": "noun", "gender": "feminine", "exampleSk": "Moja mama varí.", "exampleEn": "My mom is cooking.", "register": "neutral", "frequencyRank": 60 },
+        { "id": "v3-mamka", "sk": "mamka", "en": "mommy", "partOfSpeech": "noun", "gender": "feminine", "exampleSk": "Mamka, kde si?", "exampleEn": "Mommy, where are you?", "register": "informal", "frequencyRank": 210 },
+        { "id": "v3-otec", "sk": "otec", "en": "father", "partOfSpeech": "noun", "gender": "masculine", "exampleSk": "Môj otec pracuje.", "exampleEn": "My father works.", "register": "neutral", "frequencyRank": 65 },
+        { "id": "v3-ocko", "sk": "ocko", "en": "daddy", "partOfSpeech": "noun", "gender": "masculine", "exampleSk": "Ocko, poď sem.", "exampleEn": "Daddy, come here.", "register": "informal", "frequencyRank": 220 },
+        { "id": "v3-brat", "sk": "brat", "en": "brother", "partOfSpeech": "noun", "gender": "masculine", "exampleSk": "Mám jedného brata.", "exampleEn": "I have one brother.", "register": "neutral", "frequencyRank": 90 },
+        { "id": "v3-sestra", "sk": "sestra", "en": "sister", "partOfSpeech": "noun", "gender": "feminine", "exampleSk": "Moja sestra je doma.", "exampleEn": "My sister is at home.", "register": "neutral", "frequencyRank": 95 },
+        { "id": "v3-babka", "sk": "babka", "en": "grandma", "partOfSpeech": "noun", "gender": "feminine", "exampleSk": "Babka pečie koláče.", "exampleEn": "Grandma bakes cakes.", "register": "informal", "frequencyRank": 230 },
+        { "id": "v3-dedko", "sk": "dedko", "en": "grandpa", "partOfSpeech": "noun", "gender": "masculine", "exampleSk": "Dedko číta noviny.", "exampleEn": "Grandpa reads the newspaper.", "register": "informal", "frequencyRank": 240 }
+      ],
+      "lessons": [
+        {
+          "id": "l3-rodina-teach",
+          "title": "Mama, otec, súrodenci",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e3-rt-1",
+              "orderIndex": 0,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the family members.",
+              "answer": "",
+              "acceptable": [],
+              "pairs": [
+                ["mama", "mom"],
+                ["otec", "father"],
+                ["brat", "brother"],
+                ["sestra", "sister"]
+              ],
+              "register": "neutral"
+            },
+            {
+              "id": "e3-rt-2",
+              "orderIndex": 1,
+              "type": "MCQ",
+              "promptEn": "Which word is the affectionate 'mommy'?",
+              "answer": "mamka",
+              "acceptable": ["mamka"],
+              "choices": ["mamka", "mama", "sestra", "babka"],
+              "vocabCardId": "v3-mamka",
+              "hint": "Diminutive of mama.",
+              "register": "informal"
+            },
+            {
+              "id": "e3-rt-3",
+              "orderIndex": 2,
+              "type": "MCQ",
+              "promptEn": "What is the diminutive of 'otec'?",
+              "answer": "ocko",
+              "acceptable": ["ocko"],
+              "choices": ["ocko", "dedko", "brat", "mamka"],
+              "vocabCardId": "v3-ocko",
+              "register": "informal"
+            },
+            {
+              "id": "e3-rt-4",
+              "orderIndex": 3,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Which word do you hear?",
+              "answer": "babka",
+              "acceptable": ["babka"],
+              "choices": ["babka", "dedko", "mamka", "sestra"],
+              "vocabCardId": "v3-babka",
+              "audioKey": "babka",
+              "register": "informal"
+            },
+            {
+              "id": "e3-rt-5",
+              "orderIndex": 4,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Moja sestra je doma.",
+              "answer": "My sister is at home.",
+              "acceptable": ["my sister is at home", "my sister is home"],
+              "vocabCardId": "v3-sestra",
+              "register": "neutral"
+            },
+            {
+              "id": "e3-rt-6",
+              "orderIndex": 5,
+              "type": "SPEAK",
+              "promptEn": "Say: 'My father works.'",
+              "promptSk": "Môj otec pracuje.",
+              "answer": "Môj otec pracuje.",
+              "acceptable": ["môj otec pracuje", "môj otec pracuje."],
+              "audioKey": "moj-otec-pracuje",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l3-posesiva-practice",
+          "title": "Môj, moja, moje",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e3-pp-1",
+              "orderIndex": 0,
+              "type": "FILL_CASE",
+              "promptEn": "Fill the possessive (masculine): '___ brat' (my brother)",
+              "promptSk": "___ brat",
+              "answer": "môj",
+              "acceptable": ["môj"],
+              "choices": ["môj", "moja", "moje", "moji"],
+              "hint": "Masculine noun takes môj.",
+              "caseTag": "nominative",
+              "register": "neutral"
+            },
+            {
+              "id": "e3-pp-2",
+              "orderIndex": 1,
+              "type": "FILL_CASE",
+              "promptEn": "Fill the possessive (feminine): '___ sestra' (my sister)",
+              "promptSk": "___ sestra",
+              "answer": "moja",
+              "acceptable": ["moja"],
+              "choices": ["moja", "môj", "moje", "moji"],
+              "hint": "Feminine noun takes moja.",
+              "caseTag": "nominative",
+              "register": "neutral"
+            },
+            {
+              "id": "e3-pp-3",
+              "orderIndex": 2,
+              "type": "FILL_CASE",
+              "promptEn": "Fill the possessive (neuter): '___ dieťa' (my child)",
+              "promptSk": "___ dieťa",
+              "answer": "moje",
+              "acceptable": ["moje"],
+              "choices": ["moje", "môj", "moja", "moji"],
+              "hint": "Neuter noun takes moje.",
+              "caseTag": "nominative",
+              "register": "neutral"
+            },
+            {
+              "id": "e3-pp-4",
+              "orderIndex": 3,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "My mom is cooking.",
+              "answer": "Moja mama varí.",
+              "acceptable": ["moja mama varí", "moja mama varí."],
+              "vocabCardId": "v3-mama",
+              "register": "neutral"
+            },
+            {
+              "id": "e3-pp-5",
+              "orderIndex": 4,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'My father works.'",
+              "answer": "Môj otec pracuje.",
+              "acceptable": ["môj otec pracuje", "môj otec pracuje."],
+              "choices": ["pracuje.", "Môj", "otec"],
+              "register": "neutral"
+            },
+            {
+              "id": "e3-pp-6",
+              "orderIndex": 5,
+              "type": "MCQ",
+              "promptEn": "Which is correct: 'moja / môj' with 'babka'?",
+              "answer": "moja babka",
+              "acceptable": ["moja babka", "moja"],
+              "choices": ["moja babka", "môj babka", "moje babka", "moji babka"],
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s3-mam-vek",
+      "unitId": "u3",
+      "title": "Mám... vek a zvieratá",
+      "description": "Using mám (I have) with the accusative case, telling age, and pets.",
+      "iconKey": "pet",
+      "colorKey": "yellow",
+      "orderIndex": 1,
+      "cefrLevel": "A1",
+      "vocab": [
+        { "id": "v3-mam", "sk": "mám", "en": "I have", "partOfSpeech": "verb", "exampleSk": "Mám psa.", "exampleEn": "I have a dog.", "register": "neutral", "frequencyRank": 30 },
+        { "id": "v3-pes", "sk": "pes", "en": "dog", "partOfSpeech": "noun", "gender": "masculine", "exampleSk": "Pes spí.", "exampleEn": "The dog is sleeping.", "register": "neutral", "frequencyRank": 140 },
+        { "id": "v3-macka", "sk": "mačka", "en": "cat", "partOfSpeech": "noun", "gender": "feminine", "exampleSk": "Mačka je malá.", "exampleEn": "The cat is small.", "register": "neutral", "frequencyRank": 150 },
+        { "id": "v3-rokov", "sk": "rokov", "en": "years (old)", "partOfSpeech": "noun", "gender": "masculine", "exampleSk": "Mám tridsať rokov.", "exampleEn": "I'm thirty years old.", "register": "neutral", "frequencyRank": 250 },
+        { "id": "v3-kolko", "sk": "koľko máš rokov", "en": "how old are you", "partOfSpeech": "phrase", "exampleSk": "Koľko máš rokov?", "exampleEn": "How old are you?", "register": "informal", "frequencyRank": 260 }
+      ],
+      "lessons": [
+        {
+          "id": "l3-mam-teach",
+          "title": "Mám psa, mám mačku",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e3-mt-1",
+              "orderIndex": 0,
+              "type": "MCQ",
+              "promptEn": "How do you say 'I have'?",
+              "answer": "mám",
+              "acceptable": ["mám"],
+              "choices": ["mám", "som", "je", "si"],
+              "vocabCardId": "v3-mam",
+              "register": "neutral"
+            },
+            {
+              "id": "e3-mt-2",
+              "orderIndex": 1,
+              "type": "FILL_CASE",
+              "promptEn": "Accusative: 'Mám ___.' (a dog — pes becomes accusative)",
+              "promptSk": "Mám ___.",
+              "answer": "psa",
+              "acceptable": ["psa"],
+              "choices": ["psa", "pes", "psu", "psom"],
+              "hint": "Masculine animate accusative ends in -a.",
+              "caseTag": "accusative",
+              "register": "neutral"
+            },
+            {
+              "id": "e3-mt-3",
+              "orderIndex": 2,
+              "type": "FILL_CASE",
+              "promptEn": "Accusative: 'Mám ___.' (a cat — mačka becomes accusative)",
+              "promptSk": "Mám ___.",
+              "answer": "mačku",
+              "acceptable": ["mačku"],
+              "choices": ["mačku", "mačka", "mačke", "mačkou"],
+              "hint": "Feminine accusative ends in -u.",
+              "caseTag": "accusative",
+              "register": "neutral"
+            },
+            {
+              "id": "e3-mt-4",
+              "orderIndex": 3,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Mám psa.",
+              "answer": "I have a dog.",
+              "acceptable": ["i have a dog", "i have a dog."],
+              "vocabCardId": "v3-mam",
+              "audioKey": "mam-psa",
+              "register": "neutral"
+            },
+            {
+              "id": "e3-mt-5",
+              "orderIndex": 4,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Which animal do you hear?",
+              "answer": "mačka",
+              "acceptable": ["mačka"],
+              "choices": ["mačka", "pes", "babka", "brat"],
+              "vocabCardId": "v3-macka",
+              "audioKey": "macka",
+              "register": "neutral"
+            },
+            {
+              "id": "e3-mt-6",
+              "orderIndex": 5,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'I have a cat.'",
+              "answer": "Mám mačku.",
+              "acceptable": ["mám mačku", "mám mačku."],
+              "choices": ["mačku.", "Mám"],
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l3-vek-practice",
+          "title": "Koľko máš rokov?",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e3-vp-1",
+              "orderIndex": 0,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Koľko máš rokov?",
+              "answer": "How old are you?",
+              "acceptable": ["how old are you", "how old are you?"],
+              "vocabCardId": "v3-kolko",
+              "audioKey": "kolko-mas-rokov",
+              "register": "informal"
+            },
+            {
+              "id": "e3-vp-2",
+              "orderIndex": 1,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "Fill: 'Mám dvadsať ___.' (I'm twenty years old.)",
+              "promptSk": "Mám dvadsať ___.",
+              "answer": "rokov",
+              "acceptable": ["rokov"],
+              "choices": ["rokov", "roky", "rok", "roka"],
+              "vocabCardId": "v3-rokov",
+              "hint": "After numbers 5+ use 'rokov'.",
+              "register": "neutral"
+            },
+            {
+              "id": "e3-vp-3",
+              "orderIndex": 2,
+              "type": "MCQ",
+              "promptEn": "Choose the right age phrase: 'I have one year' uses:",
+              "answer": "rok",
+              "acceptable": ["rok"],
+              "choices": ["rok", "roky", "rokov", "roka"],
+              "hint": "One = jeden rok.",
+              "register": "neutral"
+            },
+            {
+              "id": "e3-vp-4",
+              "orderIndex": 3,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I'm thirty years old.",
+              "answer": "Mám tridsať rokov.",
+              "acceptable": ["mám tridsať rokov", "mám tridsať rokov."],
+              "vocabCardId": "v3-rokov",
+              "register": "neutral"
+            },
+            {
+              "id": "e3-vp-5",
+              "orderIndex": 4,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'How old are you?'",
+              "answer": "Koľko máš rokov?",
+              "acceptable": ["koľko máš rokov?", "koľko máš rokov"],
+              "choices": ["máš", "Koľko", "rokov?"],
+              "register": "informal"
+            },
+            {
+              "id": "e3-vp-6",
+              "orderIndex": 5,
+              "type": "SPEAK",
+              "promptEn": "Say: 'I have a dog and a cat.'",
+              "promptSk": "Mám psa a mačku.",
+              "answer": "Mám psa a mačku.",
+              "acceptable": ["mám psa a mačku", "mám psa a mačku."],
+              "audioKey": "mam-psa-a-macku",
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

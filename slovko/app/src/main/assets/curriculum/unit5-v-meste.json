@@ -1,0 +1,394 @@
+{
+  "unit": { "id": "u5", "name": "V meste", "cefr": "A1", "order": 5 },
+  "skills": [
+    {
+      "id": "s5-miesta",
+      "unitId": "u5",
+      "title": "Miesta a kde je...?",
+      "description": "Places in town and asking where things are, using the locative case with v and na.",
+      "iconKey": "city",
+      "colorKey": "blue",
+      "orderIndex": 0,
+      "cefrLevel": "A1",
+      "vocab": [
+        { "id": "v5-mesto", "sk": "mesto", "en": "town / city", "partOfSpeech": "noun", "gender": "n", "exampleSk": "Bývam v meste.", "exampleEn": "I live in the city.", "register": "neutral", "frequencyRank": 260 },
+        { "id": "v5-obchod", "sk": "obchod", "en": "shop / store", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Idem do obchodu.", "exampleEn": "I'm going to the shop.", "register": "neutral", "frequencyRank": 430 },
+        { "id": "v5-namestie", "sk": "námestie", "en": "square", "partOfSpeech": "noun", "gender": "n", "exampleSk": "Kaviareň je na námestí.", "exampleEn": "The café is on the square.", "register": "neutral", "frequencyRank": 650 },
+        { "id": "v5-stanica", "sk": "stanica", "en": "station", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Stanica je vľavo.", "exampleEn": "The station is on the left.", "register": "neutral", "frequencyRank": 700 },
+        { "id": "v5-kaviaren", "sk": "kaviareň", "en": "café", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Sedíme v kaviarni.", "exampleEn": "We're sitting in the café.", "register": "neutral", "frequencyRank": 760 },
+        { "id": "v5-kdeje", "sk": "kde je", "en": "where is", "partOfSpeech": "phrase", "exampleSk": "Kde je stanica?", "exampleEn": "Where is the station?", "register": "neutral", "frequencyRank": 180 },
+        { "id": "v5-vlavo", "sk": "vľavo", "en": "on the left", "partOfSpeech": "adverb", "exampleSk": "Zaboč vľavo.", "exampleEn": "Turn left.", "register": "neutral", "frequencyRank": 880 },
+        { "id": "v5-vpravo", "sk": "vpravo", "en": "on the right", "partOfSpeech": "adverb", "exampleSk": "Obchod je vpravo.", "exampleEn": "The shop is on the right.", "register": "neutral", "frequencyRank": 890 },
+        { "id": "v5-rovno", "sk": "rovno", "en": "straight ahead", "partOfSpeech": "adverb", "exampleSk": "Choď rovno.", "exampleEn": "Go straight.", "register": "neutral", "frequencyRank": 920 }
+      ],
+      "lessons": [
+        {
+          "id": "l5-miesta-teach",
+          "title": "Miesta v meste",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e5-mt-1",
+              "orderIndex": 0,
+              "type": "MCQ",
+              "promptEn": "What does 'stanica' mean?",
+              "answer": "station",
+              "acceptable": ["station"],
+              "choices": ["station", "shop", "square", "café"],
+              "audioKey": "stanica",
+              "vocabCardId": "v5-stanica",
+              "register": "neutral"
+            },
+            {
+              "id": "e5-mt-2",
+              "orderIndex": 1,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Listen and choose the place.",
+              "answer": "obchod",
+              "acceptable": ["obchod"],
+              "choices": ["obchod", "mesto", "stanica", "námestie"],
+              "audioKey": "obchod",
+              "vocabCardId": "v5-obchod",
+              "register": "neutral"
+            },
+            {
+              "id": "e5-mt-3",
+              "orderIndex": 2,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Kde je kaviareň?",
+              "answer": "Where is the café?",
+              "acceptable": ["where is the café?", "where is the cafe?", "where is the café"],
+              "vocabCardId": "v5-kaviaren",
+              "register": "neutral"
+            },
+            {
+              "id": "e5-mt-4",
+              "orderIndex": 3,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the place to its meaning.",
+              "answer": "",
+              "pairs": [["mesto", "city"], ["obchod", "shop"], ["stanica", "station"], ["námestie", "square"], ["kaviareň", "café"]],
+              "register": "neutral"
+            },
+            {
+              "id": "e5-mt-5",
+              "orderIndex": 4,
+              "type": "MCQ",
+              "promptEn": "Which word means 'on the left'?",
+              "answer": "vľavo",
+              "acceptable": ["vľavo"],
+              "choices": ["vľavo", "vpravo", "rovno", "tu"],
+              "vocabCardId": "v5-vlavo",
+              "register": "neutral"
+            },
+            {
+              "id": "e5-mt-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "Where is the station?",
+              "answer": "Kde je stanica?",
+              "acceptable": ["kde je stanica?", "kde je stanica"],
+              "vocabCardId": "v5-kdeje",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l5-miesta-practice",
+          "title": "Lokál: v a na",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e5-mp-1",
+              "orderIndex": 0,
+              "type": "FILL_CASE",
+              "promptEn": "Bývam v ____ (the noun 'mesto' in locative).",
+              "promptSk": "Bývam v ____.",
+              "answer": "meste",
+              "acceptable": ["meste"],
+              "choices": ["meste", "mesto", "mesta", "mestom"],
+              "hint": "Locative after 'v': mesto → meste.",
+              "vocabCardId": "v5-mesto",
+              "register": "neutral",
+              "caseTag": "locative"
+            },
+            {
+              "id": "e5-mp-2",
+              "orderIndex": 1,
+              "type": "FILL_CASE",
+              "promptEn": "Sedíme v ____ (the noun 'kaviareň' in locative).",
+              "promptSk": "Sedíme v ____.",
+              "answer": "kaviarni",
+              "acceptable": ["kaviarni"],
+              "choices": ["kaviarni", "kaviareň", "kaviarne", "kaviarňou"],
+              "hint": "kaviareň → kaviarni.",
+              "vocabCardId": "v5-kaviaren",
+              "register": "neutral",
+              "caseTag": "locative"
+            },
+            {
+              "id": "e5-mp-3",
+              "orderIndex": 2,
+              "type": "FILL_CASE",
+              "promptEn": "Kaviareň je na ____ (the noun 'námestie' in locative).",
+              "promptSk": "Kaviareň je na ____.",
+              "answer": "námestí",
+              "acceptable": ["námestí"],
+              "choices": ["námestí", "námestie", "námestia", "námestím"],
+              "hint": "Use 'na' for open spaces: námestie → námestí.",
+              "vocabCardId": "v5-namestie",
+              "register": "neutral",
+              "caseTag": "locative"
+            },
+            {
+              "id": "e5-mp-4",
+              "orderIndex": 3,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Kde si? — Som ____ stanici.",
+              "promptSk": "— Kde si? — Som ____ stanici.",
+              "answer": "na",
+              "acceptable": ["na"],
+              "choices": ["na", "v", "do", "z"],
+              "hint": "Use 'na' with stanica.",
+              "register": "informal"
+            },
+            {
+              "id": "e5-mp-5",
+              "orderIndex": 4,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'The shop is on the right.'",
+              "answer": "Obchod je vpravo.",
+              "acceptable": ["obchod je vpravo.", "obchod je vpravo"],
+              "choices": ["Obchod", "je", "vpravo.", "vľavo"],
+              "register": "neutral"
+            },
+            {
+              "id": "e5-mp-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "Go straight, then turn left.",
+              "answer": "Choď rovno, potom zaboč vľavo.",
+              "acceptable": ["choď rovno, potom zaboč vľavo.", "choď rovno potom zaboč vľavo", "chod rovno, potom zaboc vlavo"],
+              "vocabCardId": "v5-rovno",
+              "register": "informal"
+            },
+            {
+              "id": "e5-mp-7",
+              "orderIndex": 6,
+              "type": "SPEAK",
+              "promptEn": "Ask: 'Where is the café?'",
+              "promptSk": "Kde je kaviareň?",
+              "answer": "Kde je kaviareň?",
+              "acceptable": ["kde je kaviareň?", "kde je kaviareň"],
+              "audioKey": "kde-je-kaviaren",
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s5-doprava",
+      "unitId": "u5",
+      "title": "Doprava: idem autobusom",
+      "description": "Getting around: transport with the instrumental case (idem autobusom) and going somewhere with idem do / na.",
+      "iconKey": "travel",
+      "colorKey": "green",
+      "orderIndex": 1,
+      "cefrLevel": "A1",
+      "vocab": [
+        { "id": "v5-autobus", "sk": "autobus", "en": "bus", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Idem autobusom.", "exampleEn": "I go by bus.", "register": "neutral", "frequencyRank": 560 },
+        { "id": "v5-auto", "sk": "auto", "en": "car", "partOfSpeech": "noun", "gender": "n", "exampleSk": "Idem autom do práce.", "exampleEn": "I go to work by car.", "register": "neutral", "frequencyRank": 300 },
+        { "id": "v5-vlak", "sk": "vlak", "en": "train", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Cestujem vlakom.", "exampleEn": "I travel by train.", "register": "neutral", "frequencyRank": 580 },
+        { "id": "v5-idem", "sk": "idem", "en": "I go / I'm going", "partOfSpeech": "verb", "exampleSk": "Idem do mesta.", "exampleEn": "I'm going to town.", "register": "neutral", "frequencyRank": 110 },
+        { "id": "v5-pesi", "sk": "peši", "en": "on foot", "partOfSpeech": "adverb", "exampleSk": "Idem peši.", "exampleEn": "I'm walking.", "register": "neutral", "frequencyRank": 940 },
+        { "id": "v5-zastavka", "sk": "zastávka", "en": "bus stop", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Zastávka je tam.", "exampleEn": "The bus stop is over there.", "register": "neutral", "frequencyRank": 830 }
+      ],
+      "lessons": [
+        {
+          "id": "l5-doprava-teach",
+          "title": "Čím ideš?",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e5-dt-1",
+              "orderIndex": 0,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Idem autobusom.",
+              "answer": "I go by bus.",
+              "acceptable": ["i go by bus", "i go by bus.", "i'm going by bus"],
+              "vocabCardId": "v5-autobus",
+              "register": "neutral"
+            },
+            {
+              "id": "e5-dt-2",
+              "orderIndex": 1,
+              "type": "MCQ",
+              "promptEn": "What does 'vlak' mean?",
+              "answer": "train",
+              "acceptable": ["train"],
+              "choices": ["train", "bus", "car", "tram"],
+              "audioKey": "vlak",
+              "vocabCardId": "v5-vlak",
+              "register": "neutral"
+            },
+            {
+              "id": "e5-dt-3",
+              "orderIndex": 2,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Listen: how is the person travelling?",
+              "answer": "autom",
+              "acceptable": ["autom"],
+              "choices": ["autom", "vlakom", "autobusom", "peši"],
+              "audioKey": "autom",
+              "register": "neutral"
+            },
+            {
+              "id": "e5-dt-4",
+              "orderIndex": 3,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the transport word to its meaning.",
+              "answer": "",
+              "pairs": [["autobus", "bus"], ["vlak", "train"], ["auto", "car"], ["peši", "on foot"], ["zastávka", "bus stop"]],
+              "register": "neutral"
+            },
+            {
+              "id": "e5-dt-5",
+              "orderIndex": 4,
+              "type": "MCQ",
+              "promptEn": "Which means 'I'm walking / on foot'?",
+              "answer": "Idem peši.",
+              "acceptable": ["idem peši."],
+              "choices": ["Idem peši.", "Idem autom.", "Idem vlakom.", "Idem domov."],
+              "vocabCardId": "v5-pesi",
+              "register": "neutral"
+            },
+            {
+              "id": "e5-dt-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I travel by train.",
+              "answer": "Cestujem vlakom.",
+              "acceptable": ["cestujem vlakom.", "cestujem vlakom"],
+              "vocabCardId": "v5-vlak",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l5-doprava-practice",
+          "title": "Inštrumentál a idem do / na",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e5-dp-1",
+              "orderIndex": 0,
+              "type": "FILL_CASE",
+              "promptEn": "Idem ____ (the noun 'autobus' in instrumental).",
+              "promptSk": "Idem ____.",
+              "answer": "autobusom",
+              "acceptable": ["autobusom"],
+              "choices": ["autobusom", "autobus", "autobuse", "autobusu"],
+              "hint": "Instrumental masculine adds -om.",
+              "vocabCardId": "v5-autobus",
+              "register": "neutral",
+              "caseTag": "instrumental"
+            },
+            {
+              "id": "e5-dp-2",
+              "orderIndex": 1,
+              "type": "FILL_CASE",
+              "promptEn": "Cestujem ____ (the noun 'vlak' in instrumental).",
+              "promptSk": "Cestujem ____.",
+              "answer": "vlakom",
+              "acceptable": ["vlakom"],
+              "choices": ["vlakom", "vlak", "vlaku", "vlaky"],
+              "hint": "vlak → vlakom.",
+              "vocabCardId": "v5-vlak",
+              "register": "neutral",
+              "caseTag": "instrumental"
+            },
+            {
+              "id": "e5-dp-3",
+              "orderIndex": 2,
+              "type": "FILL_CASE",
+              "promptEn": "Idem do práce ____ (the noun 'auto' in instrumental).",
+              "promptSk": "Idem do práce ____.",
+              "answer": "autom",
+              "acceptable": ["autom"],
+              "choices": ["autom", "auto", "aute", "auta"],
+              "hint": "Neuter auto → autom.",
+              "vocabCardId": "v5-auto",
+              "register": "neutral",
+              "caseTag": "instrumental"
+            },
+            {
+              "id": "e5-dp-4",
+              "orderIndex": 3,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Kam ideš? — Idem ____ obchodu.",
+              "promptSk": "— Kam ideš? — Idem ____ obchodu.",
+              "answer": "do",
+              "acceptable": ["do"],
+              "choices": ["do", "na", "v", "z"],
+              "hint": "Use 'do' + genitive for entering a place.",
+              "register": "informal",
+              "caseTag": "genitive"
+            },
+            {
+              "id": "e5-dp-5",
+              "orderIndex": 4,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Kam ideš? — Idem ____ stanicu.",
+              "promptSk": "— Kam ideš? — Idem ____ stanicu.",
+              "answer": "na",
+              "acceptable": ["na"],
+              "choices": ["na", "do", "v", "po"],
+              "hint": "Use 'na' for the station.",
+              "register": "informal"
+            },
+            {
+              "id": "e5-dp-6",
+              "orderIndex": 5,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'I'm going to town by bus.'",
+              "answer": "Idem do mesta autobusom.",
+              "acceptable": ["idem do mesta autobusom.", "idem do mesta autobusom"],
+              "choices": ["Idem", "do", "mesta", "autobusom.", "na"],
+              "register": "neutral"
+            },
+            {
+              "id": "e5-dp-7",
+              "orderIndex": 6,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I'm going to the café.",
+              "answer": "Idem do kaviarne.",
+              "acceptable": ["idem do kaviarne.", "idem do kaviarne"],
+              "vocabCardId": "v5-idem",
+              "register": "neutral"
+            },
+            {
+              "id": "e5-dp-8",
+              "orderIndex": 7,
+              "type": "SPEAK",
+              "promptEn": "Say: 'I go to work by car.'",
+              "promptSk": "Idem do práce autom.",
+              "answer": "Idem do práce autom.",
+              "acceptable": ["idem do práce autom.", "idem do práce autom"],
+              "audioKey": "idem-do-prace-autom",
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

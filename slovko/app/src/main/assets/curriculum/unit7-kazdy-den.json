@@ -1,0 +1,380 @@
+{
+  "unit": { "id": "u7", "name": "Každý deň", "cefr": "A1", "order": 7 },
+  "skills": [
+    {
+      "id": "s7-rutina",
+      "unitId": "u7",
+      "title": "Moja rutina",
+      "description": "Daily routine verbs and reflexives (umývam sa, obliekam sa) plus frequency adverbs like vždy and niekedy.",
+      "iconKey": "clock",
+      "colorKey": "blue",
+      "orderIndex": 0,
+      "cefrLevel": "A1",
+      "vocab": [
+        { "id": "v7-vstavat", "sk": "vstávať", "en": "to get up", "partOfSpeech": "verb", "exampleSk": "Vstávam o siedmej.", "exampleEn": "I get up at seven.", "register": "neutral", "frequencyRank": 520 },
+        { "id": "v7-umyvat-sa", "sk": "umývať sa", "en": "to wash (oneself)", "partOfSpeech": "verb", "exampleSk": "Ráno sa umývam.", "exampleEn": "I wash in the morning.", "register": "neutral", "frequencyRank": 1100 },
+        { "id": "v7-obliekat-sa", "sk": "obliekať sa", "en": "to get dressed", "partOfSpeech": "verb", "exampleSk": "Rýchlo sa obliekam.", "exampleEn": "I get dressed quickly.", "register": "neutral", "frequencyRank": 1300 },
+        { "id": "v7-ranajkovat", "sk": "raňajkovať", "en": "to have breakfast", "partOfSpeech": "verb", "exampleSk": "Raňajkujem doma.", "exampleEn": "I have breakfast at home.", "register": "neutral", "frequencyRank": 1400 },
+        { "id": "v7-spat", "sk": "spať", "en": "to sleep", "partOfSpeech": "verb", "exampleSk": "Spím osem hodín.", "exampleEn": "I sleep eight hours.", "register": "neutral", "frequencyRank": 360 },
+        { "id": "v7-vzdy", "sk": "vždy", "en": "always", "partOfSpeech": "adverb", "exampleSk": "Vždy raňajkujem.", "exampleEn": "I always have breakfast.", "register": "neutral", "frequencyRank": 240 },
+        { "id": "v7-casto", "sk": "často", "en": "often", "partOfSpeech": "adverb", "exampleSk": "Často chodím peši.", "exampleEn": "I often walk.", "register": "neutral", "frequencyRank": 300 },
+        { "id": "v7-niekedy", "sk": "niekedy", "en": "sometimes", "partOfSpeech": "adverb", "exampleSk": "Niekedy spím dlho.", "exampleEn": "Sometimes I sleep in.", "register": "neutral", "frequencyRank": 410 },
+        { "id": "v7-nikdy", "sk": "nikdy", "en": "never", "partOfSpeech": "adverb", "exampleSk": "Nikdy nevstávam skoro.", "exampleEn": "I never get up early.", "register": "neutral", "frequencyRank": 350 }
+      ],
+      "lessons": [
+        {
+          "id": "l7-rutina-teach",
+          "title": "Ráno a večer",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e7-rt-1",
+              "orderIndex": 0,
+              "type": "MCQ",
+              "promptEn": "What does 'vstávať' mean?",
+              "answer": "to get up",
+              "acceptable": ["to get up"],
+              "choices": ["to get up", "to sleep", "to wash", "to eat"],
+              "audioKey": "vstavat",
+              "vocabCardId": "v7-vstavat",
+              "register": "neutral"
+            },
+            {
+              "id": "e7-rt-2",
+              "orderIndex": 1,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Listen and choose the verb.",
+              "answer": "spať",
+              "acceptable": ["spať"],
+              "choices": ["spať", "vstávať", "raňajkovať", "umývať sa"],
+              "audioKey": "spat",
+              "vocabCardId": "v7-spat",
+              "register": "neutral"
+            },
+            {
+              "id": "e7-rt-3",
+              "orderIndex": 2,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Ráno sa umývam.",
+              "answer": "I wash in the morning.",
+              "acceptable": ["i wash in the morning.", "i wash in the morning", "i wash myself in the morning"],
+              "vocabCardId": "v7-umyvat-sa",
+              "register": "neutral"
+            },
+            {
+              "id": "e7-rt-4",
+              "orderIndex": 3,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the routine verb to its meaning.",
+              "answer": "",
+              "pairs": [["vstávať", "to get up"], ["umývať sa", "to wash"], ["obliekať sa", "to get dressed"], ["raňajkovať", "to have breakfast"], ["spať", "to sleep"]],
+              "register": "neutral"
+            },
+            {
+              "id": "e7-rt-5",
+              "orderIndex": 4,
+              "type": "MCQ",
+              "promptEn": "Which word means 'often'?",
+              "answer": "často",
+              "acceptable": ["často"],
+              "choices": ["často", "vždy", "nikdy", "niekedy"],
+              "vocabCardId": "v7-casto",
+              "register": "neutral"
+            },
+            {
+              "id": "e7-rt-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I always have breakfast.",
+              "answer": "Vždy raňajkujem.",
+              "acceptable": ["vždy raňajkujem.", "vždy raňajkujem"],
+              "vocabCardId": "v7-vzdy",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l7-rutina-practice",
+          "title": "Zvratné sloveso: umývam sa",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e7-rp-1",
+              "orderIndex": 0,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "Complete: 'Ráno ____ umývam.' (reflexive particle)",
+              "promptSk": "Ráno ____ umývam.",
+              "answer": "sa",
+              "acceptable": ["sa"],
+              "choices": ["sa", "si", "ma", "som"],
+              "hint": "umývať sa uses the reflexive 'sa'.",
+              "vocabCardId": "v7-umyvat-sa",
+              "register": "neutral"
+            },
+            {
+              "id": "e7-rp-2",
+              "orderIndex": 1,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "Complete: 'Rýchlo ____ obliekam.'",
+              "promptSk": "Rýchlo ____ obliekam.",
+              "answer": "sa",
+              "acceptable": ["sa"],
+              "choices": ["sa", "si", "ťa", "ma"],
+              "hint": "obliekať sa also takes 'sa'.",
+              "vocabCardId": "v7-obliekat-sa",
+              "register": "neutral"
+            },
+            {
+              "id": "e7-rp-3",
+              "orderIndex": 2,
+              "type": "MCQ",
+              "promptEn": "Which sentence means 'I never get up early'?",
+              "answer": "Nikdy nevstávam skoro.",
+              "acceptable": ["nikdy nevstávam skoro."],
+              "choices": ["Nikdy nevstávam skoro.", "Vždy vstávam skoro.", "Často vstávam skoro.", "Niekedy vstávam skoro."],
+              "hint": "Slovak uses a double negative: nikdy + ne-.",
+              "vocabCardId": "v7-nikdy",
+              "register": "neutral"
+            },
+            {
+              "id": "e7-rp-4",
+              "orderIndex": 3,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'I wash in the morning.'",
+              "answer": "Ráno sa umývam.",
+              "acceptable": ["ráno sa umývam.", "ráno sa umývam"],
+              "choices": ["Ráno", "sa", "umývam.", "si"],
+              "register": "neutral"
+            },
+            {
+              "id": "e7-rp-5",
+              "orderIndex": 4,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "Sometimes I sleep in.",
+              "answer": "Niekedy spím dlho.",
+              "acceptable": ["niekedy spím dlho.", "niekedy spím dlho"],
+              "vocabCardId": "v7-niekedy",
+              "register": "neutral"
+            },
+            {
+              "id": "e7-rp-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I get dressed quickly.",
+              "answer": "Rýchlo sa obliekam.",
+              "acceptable": ["rýchlo sa obliekam.", "rýchlo sa obliekam", "obliekam sa rýchlo"],
+              "vocabCardId": "v7-obliekat-sa",
+              "register": "neutral"
+            },
+            {
+              "id": "e7-rp-7",
+              "orderIndex": 6,
+              "type": "SPEAK",
+              "promptEn": "Say: 'I always have breakfast at home.'",
+              "promptSk": "Vždy raňajkujem doma.",
+              "answer": "Vždy raňajkujem doma.",
+              "acceptable": ["vždy raňajkujem doma.", "vždy raňajkujem doma"],
+              "audioKey": "vzdy-ranajkujem-doma",
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s7-modaly",
+      "unitId": "u7",
+      "title": "Musím, chcem, môžem",
+      "description": "Modal verbs musieť, chcieť and môcť with the infinitive, plus drilling imperfective vs perfective aspect.",
+      "iconKey": "work",
+      "colorKey": "purple",
+      "orderIndex": 1,
+      "cefrLevel": "A1",
+      "vocab": [
+        { "id": "v7-musim", "sk": "musím", "en": "I must / I have to", "partOfSpeech": "verb", "exampleSk": "Musím ísť do práce.", "exampleEn": "I have to go to work.", "register": "neutral", "frequencyRank": 130 },
+        { "id": "v7-chcem", "sk": "chcem", "en": "I want", "partOfSpeech": "verb", "exampleSk": "Chcem spať.", "exampleEn": "I want to sleep.", "register": "neutral", "frequencyRank": 90 },
+        { "id": "v7-mozem", "sk": "môžem", "en": "I can / I may", "partOfSpeech": "verb", "exampleSk": "Môžem ti pomôcť.", "exampleEn": "I can help you.", "register": "neutral", "frequencyRank": 100 },
+        { "id": "v7-robit", "sk": "robiť", "en": "to do / to make (imperfective)", "partOfSpeech": "verb", "exampleSk": "Každý deň robím to isté.", "exampleEn": "Every day I do the same thing.", "register": "neutral", "frequencyRank": 70 },
+        { "id": "v7-urobit", "sk": "urobiť", "en": "to do / to make (perfective)", "partOfSpeech": "verb", "exampleSk": "Dnes to urobím.", "exampleEn": "I'll do it today.", "register": "neutral", "frequencyRank": 200 },
+        { "id": "v7-upratovat", "sk": "upratovať", "en": "to tidy up (imperfective)", "partOfSpeech": "verb", "exampleSk": "Cez víkend upratujem.", "exampleEn": "I tidy up at the weekend.", "register": "neutral", "frequencyRank": 1500 },
+        { "id": "v7-pomoct", "sk": "pomôcť", "en": "to help (perfective)", "partOfSpeech": "verb", "exampleSk": "Môžem ti pomôcť.", "exampleEn": "I can help you.", "register": "neutral", "frequencyRank": 320 }
+      ],
+      "lessons": [
+        {
+          "id": "l7-modaly-teach",
+          "title": "Modálne slovesá",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e7-mt-1",
+              "orderIndex": 0,
+              "type": "MCQ",
+              "promptEn": "What does 'musím' mean?",
+              "answer": "I must / I have to",
+              "acceptable": ["i must / i have to"],
+              "choices": ["I must / I have to", "I want", "I can", "I know"],
+              "audioKey": "musim",
+              "vocabCardId": "v7-musim",
+              "register": "neutral"
+            },
+            {
+              "id": "e7-mt-2",
+              "orderIndex": 1,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Listen and choose the modal verb.",
+              "answer": "chcem",
+              "acceptable": ["chcem"],
+              "choices": ["chcem", "musím", "môžem", "viem"],
+              "audioKey": "chcem",
+              "vocabCardId": "v7-chcem",
+              "register": "neutral"
+            },
+            {
+              "id": "e7-mt-3",
+              "orderIndex": 2,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Môžem ti pomôcť.",
+              "answer": "I can help you.",
+              "acceptable": ["i can help you.", "i can help you", "i can help you out"],
+              "vocabCardId": "v7-mozem",
+              "register": "informal"
+            },
+            {
+              "id": "e7-mt-4",
+              "orderIndex": 3,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the modal verb to its meaning.",
+              "answer": "",
+              "pairs": [["musím", "I must"], ["chcem", "I want"], ["môžem", "I can"], ["pomôcť", "to help"]],
+              "register": "neutral"
+            },
+            {
+              "id": "e7-mt-5",
+              "orderIndex": 4,
+              "type": "MCQ",
+              "promptEn": "Which sentence means 'I want to sleep'?",
+              "answer": "Chcem spať.",
+              "acceptable": ["chcem spať."],
+              "choices": ["Chcem spať.", "Musím spať.", "Môžem spať.", "Idem spať."],
+              "hint": "Modal + infinitive: chcem + spať.",
+              "vocabCardId": "v7-chcem",
+              "register": "neutral"
+            },
+            {
+              "id": "e7-mt-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I have to go to work.",
+              "answer": "Musím ísť do práce.",
+              "acceptable": ["musím ísť do práce.", "musím ísť do práce", "musim ist do prace"],
+              "vocabCardId": "v7-musim",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l7-modaly-practice",
+          "title": "Vid: robím alebo urobím?",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e7-mp-1",
+              "orderIndex": 0,
+              "type": "ASPECT_CHOICE",
+              "promptEn": "Choose the right aspect: 'Every day I do the same thing.' (a repeated action)",
+              "promptSk": "Každý deň ____ to isté.",
+              "answer": "robím",
+              "acceptable": ["robím"],
+              "choices": ["robím", "urobím", "robil", "urobil"],
+              "hint": "Repeated, habitual action = imperfective robiť.",
+              "vocabCardId": "v7-robit",
+              "register": "neutral",
+              "aspectTag": "imperfective"
+            },
+            {
+              "id": "e7-mp-2",
+              "orderIndex": 1,
+              "type": "ASPECT_CHOICE",
+              "promptEn": "Choose the right aspect: 'I'll do it today.' (one completed action)",
+              "promptSk": "Dnes to ____.",
+              "answer": "urobím",
+              "acceptable": ["urobím"],
+              "choices": ["urobím", "robím", "robil", "robievam"],
+              "hint": "A single finished result = perfective urobiť.",
+              "vocabCardId": "v7-urobit",
+              "register": "neutral",
+              "aspectTag": "perfective"
+            },
+            {
+              "id": "e7-mp-3",
+              "orderIndex": 2,
+              "type": "ASPECT_CHOICE",
+              "promptEn": "Choose the right aspect: 'I tidy up every weekend.' (a regular activity)",
+              "promptSk": "Každý víkend ____.",
+              "answer": "upratujem",
+              "acceptable": ["upratujem"],
+              "choices": ["upratujem", "upracem", "upratal", "upratať"],
+              "hint": "Regular activity = imperfective upratovať → upratujem.",
+              "vocabCardId": "v7-upratovat",
+              "register": "neutral",
+              "aspectTag": "imperfective"
+            },
+            {
+              "id": "e7-mp-4",
+              "orderIndex": 3,
+              "type": "ASPECT_CHOICE",
+              "promptEn": "Choose the right aspect: 'I can help you.' (a single completed act of helping)",
+              "promptSk": "Môžem ti ____.",
+              "answer": "pomôcť",
+              "acceptable": ["pomôcť"],
+              "choices": ["pomôcť", "pomáhať", "pomáham", "pomôžem"],
+              "hint": "After môžem use the infinitive; one act = perfective pomôcť.",
+              "vocabCardId": "v7-pomoct",
+              "register": "informal",
+              "aspectTag": "perfective"
+            },
+            {
+              "id": "e7-mp-5",
+              "orderIndex": 4,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'I have to tidy up today.'",
+              "answer": "Dnes musím upratovať.",
+              "acceptable": ["dnes musím upratovať.", "dnes musím upratovať"],
+              "choices": ["Dnes", "musím", "upratovať.", "chcem"],
+              "register": "neutral"
+            },
+            {
+              "id": "e7-mp-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I want to help you.",
+              "answer": "Chcem ti pomôcť.",
+              "acceptable": ["chcem ti pomôcť.", "chcem ti pomôcť", "chcem ti pomoct"],
+              "vocabCardId": "v7-chcem",
+              "register": "informal"
+            },
+            {
+              "id": "e7-mp-7",
+              "orderIndex": 6,
+              "type": "SPEAK",
+              "promptEn": "Say: 'I can do it today.'",
+              "promptSk": "Dnes to môžem urobiť.",
+              "answer": "Dnes to môžem urobiť.",
+              "acceptable": ["dnes to môžem urobiť.", "dnes to môžem urobiť"],
+              "audioKey": "dnes-to-mozem-urobit",
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

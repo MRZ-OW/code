@@ -1,0 +1,383 @@
+{
+  "unit": { "id": "u9", "name": "Počasie a pocity", "cefr": "A1", "order": 9 },
+  "skills": [
+    {
+      "id": "s9-pocasie",
+      "unitId": "u9",
+      "title": "Aké je počasie?",
+      "description": "Talking about the weather and the dative of state (je mi zima) for how you feel physically.",
+      "iconKey": "weather",
+      "colorKey": "blue",
+      "orderIndex": 0,
+      "cefrLevel": "A1",
+      "vocab": [
+        { "id": "v9-pocasie", "sk": "počasie", "en": "weather", "partOfSpeech": "noun", "gender": "n", "exampleSk": "Aké je dnes počasie?", "exampleEn": "What's the weather like today?", "register": "neutral", "frequencyRank": 480 },
+        { "id": "v9-slnko", "sk": "slnko", "en": "sun", "partOfSpeech": "noun", "gender": "n", "exampleSk": "Svieti slnko.", "exampleEn": "The sun is shining.", "register": "neutral", "frequencyRank": 600 },
+        { "id": "v9-prsi", "sk": "prší", "en": "it's raining", "partOfSpeech": "verb", "exampleSk": "Vonku prší.", "exampleEn": "It's raining outside.", "register": "neutral", "frequencyRank": 720 },
+        { "id": "v9-snezi", "sk": "sneží", "en": "it's snowing", "partOfSpeech": "verb", "exampleSk": "V zime sneží.", "exampleEn": "It snows in winter.", "register": "neutral", "frequencyRank": 980 },
+        { "id": "v9-teplo", "sk": "teplo", "en": "warm", "partOfSpeech": "adverb", "exampleSk": "Dnes je teplo.", "exampleEn": "It's warm today.", "register": "neutral", "frequencyRank": 540 },
+        { "id": "v9-zima", "sk": "zima", "en": "cold / winter", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Je mi zima.", "exampleEn": "I'm cold.", "register": "neutral", "frequencyRank": 430 },
+        { "id": "v9-horuco", "sk": "horúco", "en": "hot", "partOfSpeech": "adverb", "exampleSk": "Je mi horúco.", "exampleEn": "I'm hot.", "register": "neutral", "frequencyRank": 880 },
+        { "id": "v9-oblacno", "sk": "oblačno", "en": "cloudy", "partOfSpeech": "adverb", "exampleSk": "Dnes je oblačno.", "exampleEn": "It's cloudy today.", "register": "neutral", "frequencyRank": 1100 }
+      ],
+      "lessons": [
+        {
+          "id": "l9-pocasie-teach",
+          "title": "Počasie vonku",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e9-pt-1",
+              "orderIndex": 0,
+              "type": "MCQ",
+              "promptEn": "What does 'prší' mean?",
+              "answer": "it's raining",
+              "acceptable": ["it's raining", "its raining"],
+              "choices": ["it's raining", "it's snowing", "the sun is shining", "it's warm"],
+              "audioKey": "prsi",
+              "vocabCardId": "v9-prsi",
+              "register": "neutral"
+            },
+            {
+              "id": "e9-pt-2",
+              "orderIndex": 1,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Listen and choose the weather word.",
+              "answer": "sneží",
+              "acceptable": ["sneží"],
+              "choices": ["sneží", "prší", "slnko", "teplo"],
+              "audioKey": "snezi",
+              "vocabCardId": "v9-snezi",
+              "register": "neutral"
+            },
+            {
+              "id": "e9-pt-3",
+              "orderIndex": 2,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Aké je dnes počasie?",
+              "answer": "What's the weather like today?",
+              "acceptable": ["what's the weather like today?", "what is the weather like today?", "whats the weather like today"],
+              "vocabCardId": "v9-pocasie",
+              "register": "neutral"
+            },
+            {
+              "id": "e9-pt-4",
+              "orderIndex": 3,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the weather word to its meaning.",
+              "answer": "",
+              "pairs": [["slnko", "sun"], ["prší", "it's raining"], ["sneží", "it's snowing"], ["teplo", "warm"], ["oblačno", "cloudy"]],
+              "register": "neutral"
+            },
+            {
+              "id": "e9-pt-5",
+              "orderIndex": 4,
+              "type": "MCQ",
+              "promptEn": "Which means 'The sun is shining.'?",
+              "answer": "Svieti slnko.",
+              "acceptable": ["svieti slnko."],
+              "choices": ["Svieti slnko.", "Prší.", "Sneží.", "Je oblačno."],
+              "vocabCardId": "v9-slnko",
+              "register": "neutral"
+            },
+            {
+              "id": "e9-pt-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "It's warm today.",
+              "answer": "Dnes je teplo.",
+              "acceptable": ["dnes je teplo.", "dnes je teplo"],
+              "vocabCardId": "v9-teplo",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l9-pocasie-practice",
+          "title": "Datív stavu: je mi zima",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e9-pp-1",
+              "orderIndex": 0,
+              "type": "FILL_CASE",
+              "promptEn": "Je ____ zima. (the pronoun 'ja' in dative = to me)",
+              "promptSk": "Je ____ zima.",
+              "answer": "mi",
+              "acceptable": ["mi"],
+              "choices": ["mi", "ma", "mňa", "som"],
+              "hint": "Feelings use the dative: je mi zima = I'm cold.",
+              "vocabCardId": "v9-zima",
+              "register": "neutral",
+              "caseTag": "dative"
+            },
+            {
+              "id": "e9-pp-2",
+              "orderIndex": 1,
+              "type": "FILL_CASE",
+              "promptEn": "Je ____ horúco. (the pronoun 'ja' in dative)",
+              "promptSk": "Je ____ horúco.",
+              "answer": "mi",
+              "acceptable": ["mi"],
+              "choices": ["mi", "ma", "ja", "mne"],
+              "hint": "je mi horúco = I'm hot (dative of state).",
+              "vocabCardId": "v9-horuco",
+              "register": "neutral",
+              "caseTag": "dative"
+            },
+            {
+              "id": "e9-pp-3",
+              "orderIndex": 2,
+              "type": "FILL_CASE",
+              "promptEn": "Je ____ teplo? (the pronoun 'ty' in dative = to you)",
+              "promptSk": "Je ____ teplo?",
+              "answer": "ti",
+              "acceptable": ["ti"],
+              "choices": ["ti", "ťa", "ty", "tebe"],
+              "hint": "Are you warm? = Je ti teplo? (dative 'ti').",
+              "vocabCardId": "v9-teplo",
+              "register": "informal",
+              "caseTag": "dative"
+            },
+            {
+              "id": "e9-pp-4",
+              "orderIndex": 3,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Je ti zima? — Áno, je ____ zima.",
+              "promptSk": "— Je ti zima? — Áno, je ____ zima.",
+              "answer": "mi",
+              "acceptable": ["mi"],
+              "choices": ["mi", "ti", "ma", "som"],
+              "hint": "Answer about yourself: je mi zima.",
+              "vocabCardId": "v9-zima",
+              "register": "informal",
+              "caseTag": "dative"
+            },
+            {
+              "id": "e9-pp-5",
+              "orderIndex": 4,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'It's raining outside.'",
+              "answer": "Vonku prší.",
+              "acceptable": ["vonku prší.", "vonku prší"],
+              "choices": ["Vonku", "prší.", "sneží", "je"],
+              "register": "neutral"
+            },
+            {
+              "id": "e9-pp-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I'm cold.",
+              "answer": "Je mi zima.",
+              "acceptable": ["je mi zima.", "je mi zima"],
+              "vocabCardId": "v9-zima",
+              "register": "neutral"
+            },
+            {
+              "id": "e9-pp-7",
+              "orderIndex": 6,
+              "type": "SPEAK",
+              "promptEn": "Say: 'I'm hot.'",
+              "promptSk": "Je mi horúco.",
+              "answer": "Je mi horúco.",
+              "acceptable": ["je mi horúco.", "je mi horúco"],
+              "audioKey": "je-mi-horuco",
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s9-pocity",
+      "unitId": "u9",
+      "title": "Pocity a small talk",
+      "description": "Emotions, reacting to news, and light small talk with natural everyday reactions.",
+      "iconKey": "chat",
+      "colorKey": "pink",
+      "orderIndex": 1,
+      "cefrLevel": "A1",
+      "vocab": [
+        { "id": "v9-stastny", "sk": "šťastný", "en": "happy", "partOfSpeech": "adjective", "exampleSk": "Som veľmi šťastný.", "exampleEn": "I'm very happy.", "register": "neutral", "frequencyRank": 700 },
+        { "id": "v9-smutny", "sk": "smutný", "en": "sad", "partOfSpeech": "adjective", "exampleSk": "Dnes som smutná.", "exampleEn": "I'm sad today.", "register": "neutral", "frequencyRank": 820 },
+        { "id": "v9-unaveny", "sk": "unavený", "en": "tired", "partOfSpeech": "adjective", "exampleSk": "Som veľmi unavený.", "exampleEn": "I'm very tired.", "register": "neutral", "frequencyRank": 760 },
+        { "id": "v9-nahnevany", "sk": "nahnevaný", "en": "angry", "partOfSpeech": "adjective", "exampleSk": "Prečo si nahnevaný?", "exampleEn": "Why are you angry?", "register": "neutral", "frequencyRank": 1100 },
+        { "id": "v9-skvele", "sk": "skvelé", "en": "great", "partOfSpeech": "adjective", "exampleSk": "To je skvelé!", "exampleEn": "That's great!", "register": "informal", "frequencyRank": 400 },
+        { "id": "v9-skoda", "sk": "škoda", "en": "what a pity", "partOfSpeech": "phrase", "exampleSk": "To je škoda.", "exampleEn": "That's a pity.", "register": "informal", "frequencyRank": 520 },
+        { "id": "v9-ako-sa-mas", "sk": "ako sa máš", "en": "how are you", "partOfSpeech": "phrase", "exampleSk": "Ahoj, ako sa máš?", "exampleEn": "Hi, how are you?", "register": "informal", "frequencyRank": 60 },
+        { "id": "v9-mam-sa-dobre", "sk": "mám sa dobre", "en": "I'm doing well", "partOfSpeech": "phrase", "exampleSk": "Ďakujem, mám sa dobre.", "exampleEn": "Thanks, I'm doing well.", "register": "informal", "frequencyRank": 110 }
+      ],
+      "lessons": [
+        {
+          "id": "l9-pocity-teach",
+          "title": "Ako sa cítiš?",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e9-ft-1",
+              "orderIndex": 0,
+              "type": "MCQ",
+              "promptEn": "What does 'unavený' mean?",
+              "answer": "tired",
+              "acceptable": ["tired"],
+              "choices": ["tired", "happy", "sad", "angry"],
+              "audioKey": "unaveny",
+              "vocabCardId": "v9-unaveny",
+              "register": "neutral"
+            },
+            {
+              "id": "e9-ft-2",
+              "orderIndex": 1,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Listen and choose the emotion.",
+              "answer": "šťastný",
+              "acceptable": ["šťastný"],
+              "choices": ["šťastný", "smutný", "unavený", "nahnevaný"],
+              "audioKey": "stastny",
+              "vocabCardId": "v9-stastny",
+              "register": "neutral"
+            },
+            {
+              "id": "e9-ft-3",
+              "orderIndex": 2,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Ahoj, ako sa máš?",
+              "answer": "Hi, how are you?",
+              "acceptable": ["hi, how are you?", "hi how are you", "hello, how are you?"],
+              "vocabCardId": "v9-ako-sa-mas",
+              "register": "informal"
+            },
+            {
+              "id": "e9-ft-4",
+              "orderIndex": 3,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the feeling to its meaning.",
+              "answer": "",
+              "pairs": [["šťastný", "happy"], ["smutný", "sad"], ["unavený", "tired"], ["nahnevaný", "angry"], ["skvelé", "great"]],
+              "register": "neutral"
+            },
+            {
+              "id": "e9-ft-5",
+              "orderIndex": 4,
+              "type": "MCQ",
+              "promptEn": "Which reply means 'Thanks, I'm doing well.'?",
+              "answer": "Ďakujem, mám sa dobre.",
+              "acceptable": ["ďakujem, mám sa dobre."],
+              "choices": ["Ďakujem, mám sa dobre.", "Prepáč, nerozumiem.", "Nie, ďakujem.", "Ako sa voláš?"],
+              "vocabCardId": "v9-mam-sa-dobre",
+              "register": "informal"
+            },
+            {
+              "id": "e9-ft-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I'm very tired.",
+              "answer": "Som veľmi unavený.",
+              "acceptable": ["som veľmi unavený.", "som veľmi unavený", "som veľmi unavená"],
+              "vocabCardId": "v9-unaveny",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l9-pocity-practice",
+          "title": "Reakcie a small talk",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e9-fp-1",
+              "orderIndex": 0,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Ahoj, ako sa ____? — Mám sa dobre, ďakujem.",
+              "promptSk": "— Ahoj, ako sa ____?",
+              "answer": "máš",
+              "acceptable": ["máš"],
+              "choices": ["máš", "voláš", "máte", "cítiš"],
+              "hint": "How are you? (informal) = Ako sa máš?",
+              "vocabCardId": "v9-ako-sa-mas",
+              "register": "informal"
+            },
+            {
+              "id": "e9-fp-2",
+              "orderIndex": 1,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Dostal som novú prácu! — To je ____!",
+              "promptSk": "— Dostal som novú prácu! — To je ____!",
+              "answer": "skvelé",
+              "acceptable": ["skvelé"],
+              "choices": ["skvelé", "škoda", "smutné", "zima"],
+              "hint": "React to good news: To je skvelé!",
+              "vocabCardId": "v9-skvele",
+              "register": "informal"
+            },
+            {
+              "id": "e9-fp-3",
+              "orderIndex": 2,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Dnes nemôžem prísť. — To je ____.",
+              "promptSk": "— Dnes nemôžem prísť. — To je ____.",
+              "answer": "škoda",
+              "acceptable": ["škoda"],
+              "choices": ["škoda", "skvelé", "dobre", "fajn"],
+              "hint": "React to bad news: To je škoda.",
+              "vocabCardId": "v9-skoda",
+              "register": "informal"
+            },
+            {
+              "id": "e9-fp-4",
+              "orderIndex": 3,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Prečo si ____? — Lebo som unavený.",
+              "promptSk": "— Prečo si ____? — Lebo som unavený.",
+              "answer": "nahnevaný",
+              "acceptable": ["nahnevaný"],
+              "choices": ["nahnevaný", "šťastný", "skvelý", "teplý"],
+              "hint": "Why are you angry? = Prečo si nahnevaný?",
+              "vocabCardId": "v9-nahnevany",
+              "register": "informal"
+            },
+            {
+              "id": "e9-fp-5",
+              "orderIndex": 4,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'Thanks, I'm doing well.'",
+              "answer": "Ďakujem, mám sa dobre.",
+              "acceptable": ["ďakujem, mám sa dobre.", "ďakujem, mám sa dobre", "ďakujem mám sa dobre"],
+              "choices": ["Ďakujem,", "mám", "sa", "dobre.", "máš"],
+              "register": "informal"
+            },
+            {
+              "id": "e9-fp-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I'm sad today.",
+              "answer": "Dnes som smutná.",
+              "acceptable": ["dnes som smutná.", "dnes som smutná", "dnes som smutný"],
+              "vocabCardId": "v9-smutny",
+              "register": "neutral"
+            },
+            {
+              "id": "e9-fp-7",
+              "orderIndex": 6,
+              "type": "SPEAK",
+              "promptEn": "Ask a friend: 'Hi, how are you?'",
+              "promptSk": "Ahoj, ako sa máš?",
+              "answer": "Ahoj, ako sa máš?",
+              "acceptable": ["ahoj, ako sa máš?", "ahoj, ako sa máš"],
+              "audioKey": "ahoj-ako-sa-mas",
+              "register": "informal"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

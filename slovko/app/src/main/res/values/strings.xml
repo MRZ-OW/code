@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">Slovko</string>
+    <string name="app_tagline">Po našom.</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_learn">Learn</string>
+    <string name="nav_practice">Practice</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_league">League</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Notification channels -->
+    <string name="channel_daily_name">Daily practice</string>
+    <string name="channel_daily_desc">Your gentle daily Slovak nudge.</string>
+    <string name="channel_streak_name">Streak reminders</string>
+    <string name="channel_streak_desc">A heads-up when your streak is at risk.</string>
+    <string name="channel_reviews_name">Reviews due</string>
+    <string name="channel_reviews_desc">When cards are ready for review.</string>
+    <string name="channel_reengage_name">Come back</string>
+    <string name="channel_reengage_desc">Friendly check-ins if you drift away.</string>
+    <string name="channel_achievements_name">Achievements</string>
+    <string name="channel_achievements_desc">Celebrate what you unlock.</string>
+    <string name="channel_group">Slovko</string>
+
+    <!-- Widget -->
+    <string name="widget_practice_now">Practice now</string>
+    <string name="widget_cards_due">%1$d cards due</string>
+    <string name="widget_word_of_day">Word of the day</string>
+</resources>

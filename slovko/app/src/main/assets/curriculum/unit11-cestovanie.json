@@ -1,0 +1,361 @@
+{
+  "unit": { "id": "u11", "name": "Cestovanie", "cefr": "A2", "order": 11 },
+  "skills": [
+    {
+      "id": "s11-doprava",
+      "unitId": "u11",
+      "title": "Vlak a autobus",
+      "description": "Trains and buses, buying tickets and booking: lístok, nástupište, kedy ide, koľko stojí. Travel verbs and platform vocabulary.",
+      "iconKey": "travel",
+      "colorKey": "blue",
+      "orderIndex": 0,
+      "cefrLevel": "A2",
+      "vocab": [
+        { "id": "v11-vlak", "sk": "vlak", "en": "train", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Vlak ide o piatej.", "exampleEn": "The train leaves at five.", "register": "neutral", "frequencyRank": 420 },
+        { "id": "v11-autobus", "sk": "autobus", "en": "bus", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Autobus meška.", "exampleEn": "The bus is late.", "register": "neutral", "frequencyRank": 440 },
+        { "id": "v11-listok", "sk": "lístok", "en": "ticket", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Jeden lístok, prosím.", "exampleEn": "One ticket, please.", "register": "neutral", "frequencyRank": 560 },
+        { "id": "v11-nastupiste", "sk": "nástupište", "en": "platform", "partOfSpeech": "noun", "gender": "n", "exampleSk": "Vlak ide z nástupišťa tri.", "exampleEn": "The train leaves from platform three.", "register": "neutral", "frequencyRank": 740 },
+        { "id": "v11-stanica", "sk": "stanica", "en": "station", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Stretneme sa na stanici.", "exampleEn": "We'll meet at the station.", "register": "neutral", "frequencyRank": 500 },
+        { "id": "v11-rezervovat", "sk": "rezervovať", "en": "to book / reserve", "partOfSpeech": "verb", "exampleSk": "Chcem si rezervovať miesto.", "exampleEn": "I want to book a seat.", "register": "neutral", "frequencyRank": 690 },
+        { "id": "v11-odchadza", "sk": "odchádzať", "en": "to depart / leave", "partOfSpeech": "verb", "exampleSk": "Kedy odchádza vlak?", "exampleEn": "When does the train leave?", "register": "neutral", "frequencyRank": 710 },
+        { "id": "v11-mesto-cieľ", "sk": "Bratislava", "en": "Bratislava", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Idem do Bratislavy.", "exampleEn": "I'm going to Bratislava.", "register": "neutral", "frequencyRank": 300 }
+      ],
+      "lessons": [
+        {
+          "id": "l11-dop-teach",
+          "title": "Na stanici",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e11-dt-1",
+              "orderIndex": 0,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Kedy odchádza vlak?",
+              "answer": "When does the train leave?",
+              "acceptable": ["when does the train leave?", "when does the train leave", "when does the train depart?"],
+              "vocabCardId": "v11-odchadza",
+              "register": "neutral"
+            },
+            {
+              "id": "e11-dt-2",
+              "orderIndex": 1,
+              "type": "MCQ",
+              "promptEn": "How do you say 'One ticket, please.'?",
+              "answer": "Jeden lístok, prosím.",
+              "acceptable": ["jeden lístok, prosím."],
+              "choices": ["Jeden lístok, prosím.", "Jeden vlak, prosím.", "Jedna stanica, prosím.", "Jeden autobus, prosím."],
+              "vocabCardId": "v11-listok",
+              "register": "neutral"
+            },
+            {
+              "id": "e11-dt-3",
+              "orderIndex": 2,
+              "type": "MCQ",
+              "promptEn": "Which word means 'platform'?",
+              "answer": "nástupište",
+              "acceptable": ["nástupište"],
+              "choices": ["nástupište", "stanica", "lístok", "autobus"],
+              "vocabCardId": "v11-nastupiste",
+              "register": "neutral"
+            },
+            {
+              "id": "e11-dt-4",
+              "orderIndex": 3,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Listen: what's the problem?",
+              "answer": "Autobus meška.",
+              "acceptable": ["autobus meška."],
+              "choices": ["Autobus meška.", "Vlak ide o piatej.", "Nemám lístok.", "Stanica je ďaleko."],
+              "audioKey": "autobus-meska",
+              "vocabCardId": "v11-autobus",
+              "register": "neutral"
+            },
+            {
+              "id": "e11-dt-5",
+              "orderIndex": 4,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the travel word to its meaning.",
+              "answer": "",
+              "pairs": [["vlak", "train"], ["autobus", "bus"], ["lístok", "ticket"], ["stanica", "station"], ["nástupište", "platform"]],
+              "register": "neutral"
+            },
+            {
+              "id": "e11-dt-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "We'll meet at the station.",
+              "answer": "Stretneme sa na stanici.",
+              "acceptable": ["stretneme sa na stanici.", "stretneme sa na stanici"],
+              "vocabCardId": "v11-stanica",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l11-dop-practice",
+          "title": "Kúpa lístka",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e11-dp-1",
+              "orderIndex": 0,
+              "type": "MCQ",
+              "promptEn": "Ask 'How much does a ticket cost?'",
+              "answer": "Koľko stojí lístok?",
+              "acceptable": ["koľko stojí lístok?"],
+              "choices": ["Koľko stojí lístok?", "Kedy ide lístok?", "Kde je lístok?", "Aký je lístok?"],
+              "vocabCardId": "v11-listok",
+              "register": "neutral"
+            },
+            {
+              "id": "e11-dp-2",
+              "orderIndex": 1,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Dobrý deň, jeden lístok do Bratislavy. — Z ____ tri, prosím.",
+              "promptSk": "— Jeden lístok do Bratislavy. — Z ____ tri, prosím.",
+              "answer": "nástupišťa",
+              "acceptable": ["nástupišťa"],
+              "choices": ["nástupišťa", "nástupište", "nástupišťu", "nástupištia"],
+              "hint": "'z' (from) takes the genitive: nástupišťa.",
+              "vocabCardId": "v11-nastupiste",
+              "register": "formal",
+              "caseTag": "GEN"
+            },
+            {
+              "id": "e11-dp-3",
+              "orderIndex": 2,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'I want to book a seat.'",
+              "answer": "Chcem si rezervovať miesto.",
+              "acceptable": ["chcem si rezervovať miesto.", "chcem si rezervovať miesto"],
+              "choices": ["Chcem", "si", "rezervovať", "miesto.", "lístok"],
+              "vocabCardId": "v11-rezervovat",
+              "register": "neutral"
+            },
+            {
+              "id": "e11-dp-4",
+              "orderIndex": 3,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I'm going to Bratislava.",
+              "answer": "Idem do Bratislavy.",
+              "acceptable": ["idem do bratislavy.", "idem do bratislavy"],
+              "vocabCardId": "v11-mesto-cieľ",
+              "register": "neutral"
+            },
+            {
+              "id": "e11-dp-5",
+              "orderIndex": 4,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "When does the bus leave?",
+              "answer": "Kedy odchádza autobus?",
+              "acceptable": ["kedy odchádza autobus?", "kedy odchádza autobus"],
+              "vocabCardId": "v11-odchadza",
+              "register": "neutral"
+            },
+            {
+              "id": "e11-dp-6",
+              "orderIndex": 5,
+              "type": "SPEAK",
+              "promptEn": "Say: 'One ticket to Bratislava, please.'",
+              "promptSk": "Jeden lístok do Bratislavy, prosím.",
+              "answer": "Jeden lístok do Bratislavy, prosím.",
+              "acceptable": ["jeden lístok do bratislavy, prosím.", "jeden lístok do bratislavy, prosím"],
+              "audioKey": "jeden-listok-do-bratislavy-prosim",
+              "vocabCardId": "v11-listok",
+              "register": "formal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s11-ubytovanie",
+      "unitId": "u11",
+      "title": "Ubytovanie a pomoc",
+      "description": "Hotels and accommodation, asking for help and handling emergencies. Plus a first taste of the PAST tense (bol som, kúpil som) built with WORD_BANK.",
+      "iconKey": "city",
+      "colorKey": "green",
+      "orderIndex": 1,
+      "cefrLevel": "A2",
+      "vocab": [
+        { "id": "v11-hotel", "sk": "hotel", "en": "hotel", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Máte voľnú izbu?", "exampleEn": "Do you have a free room?", "register": "neutral", "frequencyRank": 580 },
+        { "id": "v11-izba", "sk": "izba", "en": "room", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Rezervoval som izbu.", "exampleEn": "I booked a room.", "register": "neutral", "frequencyRank": 410 },
+        { "id": "v11-noc", "sk": "noc", "en": "night", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Na dve noci.", "exampleEn": "For two nights.", "register": "neutral", "frequencyRank": 380 },
+        { "id": "v11-pomoc", "sk": "pomoc", "en": "help", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Potrebujem pomoc.", "exampleEn": "I need help.", "register": "neutral", "frequencyRank": 330 },
+        { "id": "v11-stratit", "sk": "stratiť", "en": "to lose", "partOfSpeech": "verb", "exampleSk": "Stratil som pas.", "exampleEn": "I lost my passport.", "register": "neutral", "frequencyRank": 670 },
+        { "id": "v11-policia", "sk": "polícia", "en": "police", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Zavolajte políciu!", "exampleEn": "Call the police!", "register": "neutral", "frequencyRank": 540 },
+        { "id": "v11-byt-past", "sk": "bol som", "en": "I was", "partOfSpeech": "verb", "exampleSk": "Bol som v hoteli.", "exampleEn": "I was at the hotel.", "register": "neutral", "frequencyRank": 80 },
+        { "id": "v11-kupit-past", "sk": "kúpil som", "en": "I bought", "partOfSpeech": "verb", "exampleSk": "Kúpil som lístok.", "exampleEn": "I bought a ticket.", "register": "neutral", "frequencyRank": 260 }
+      ],
+      "lessons": [
+        {
+          "id": "l11-ub-teach",
+          "title": "V hoteli",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e11-ut-1",
+              "orderIndex": 0,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Máte voľnú izbu?",
+              "answer": "Do you have a free room?",
+              "acceptable": ["do you have a free room?", "do you have a free room", "do you have a room available?"],
+              "vocabCardId": "v11-hotel",
+              "register": "formal"
+            },
+            {
+              "id": "e11-ut-2",
+              "orderIndex": 1,
+              "type": "MCQ",
+              "promptEn": "How do you say 'For two nights.'?",
+              "answer": "Na dve noci.",
+              "acceptable": ["na dve noci."],
+              "choices": ["Na dve noci.", "Na dva dni.", "Na dve izby.", "Dve noci sú."],
+              "vocabCardId": "v11-noc",
+              "register": "neutral"
+            },
+            {
+              "id": "e11-ut-3",
+              "orderIndex": 2,
+              "type": "MCQ",
+              "promptEn": "Which word means 'help'?",
+              "answer": "pomoc",
+              "acceptable": ["pomoc"],
+              "choices": ["pomoc", "izba", "noc", "hotel"],
+              "vocabCardId": "v11-pomoc",
+              "register": "neutral"
+            },
+            {
+              "id": "e11-ut-4",
+              "orderIndex": 3,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Listen: what does the person need?",
+              "answer": "Potrebujem pomoc.",
+              "acceptable": ["potrebujem pomoc."],
+              "choices": ["Potrebujem pomoc.", "Potrebujem izbu.", "Potrebujem lístok.", "Potrebujem taxík."],
+              "audioKey": "potrebujem-pomoc",
+              "vocabCardId": "v11-pomoc",
+              "register": "neutral"
+            },
+            {
+              "id": "e11-ut-5",
+              "orderIndex": 4,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the word to its meaning.",
+              "answer": "",
+              "pairs": [["hotel", "hotel"], ["izba", "room"], ["noc", "night"], ["pomoc", "help"], ["polícia", "police"]],
+              "register": "neutral"
+            },
+            {
+              "id": "e11-ut-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "Call the police!",
+              "answer": "Zavolajte políciu!",
+              "acceptable": ["zavolajte políciu!", "zavolajte políciu", "zavolajte policiu!"],
+              "vocabCardId": "v11-policia",
+              "register": "formal"
+            }
+          ]
+        },
+        {
+          "id": "l11-ub-practice",
+          "title": "Minulý čas: bol som, kúpil som",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e11-up-1",
+              "orderIndex": 0,
+              "type": "MCQ",
+              "promptEn": "How do you say 'I was at the hotel.' (male speaker)?",
+              "answer": "Bol som v hoteli.",
+              "acceptable": ["bol som v hoteli."],
+              "choices": ["Bol som v hoteli.", "Som v hoteli.", "Budem v hoteli.", "Bola som v hoteli."],
+              "hint": "Past = past participle (bol) + present 'som'.",
+              "vocabCardId": "v11-byt-past",
+              "register": "neutral"
+            },
+            {
+              "id": "e11-up-2",
+              "orderIndex": 1,
+              "type": "WORD_BANK",
+              "promptEn": "Build the past tense: 'I was at the hotel.' (male)",
+              "answer": "Bol som v hoteli.",
+              "acceptable": ["bol som v hoteli.", "bol som v hoteli"],
+              "choices": ["Bol", "som", "v", "hoteli.", "budem"],
+              "hint": "Word order: participle + som.",
+              "vocabCardId": "v11-byt-past",
+              "register": "neutral"
+            },
+            {
+              "id": "e11-up-3",
+              "orderIndex": 2,
+              "type": "WORD_BANK",
+              "promptEn": "Build the past tense: 'I bought a ticket.' (male)",
+              "answer": "Kúpil som lístok.",
+              "acceptable": ["kúpil som lístok.", "kúpil som lístok"],
+              "choices": ["Kúpil", "som", "lístok.", "kupujem", "budem"],
+              "hint": "kúpil (bought) + som.",
+              "vocabCardId": "v11-kupit-past",
+              "register": "neutral"
+            },
+            {
+              "id": "e11-up-4",
+              "orderIndex": 3,
+              "type": "WORD_BANK",
+              "promptEn": "Build the past tense: 'I lost my passport.' (male)",
+              "answer": "Stratil som pas.",
+              "acceptable": ["stratil som pas.", "stratil som pas"],
+              "choices": ["Stratil", "som", "pas.", "strácam", "stratím"],
+              "vocabCardId": "v11-stratit",
+              "register": "neutral"
+            },
+            {
+              "id": "e11-up-5",
+              "orderIndex": 4,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Čo sa stalo? — ____ som pas! (I lost)",
+              "promptSk": "— Čo sa stalo? — ____ som pas!",
+              "answer": "Stratil",
+              "acceptable": ["stratil"],
+              "choices": ["Stratil", "Strácam", "Stratím", "Stratiť"],
+              "hint": "Past participle, male speaker: stratil.",
+              "vocabCardId": "v11-stratit",
+              "register": "informal"
+            },
+            {
+              "id": "e11-up-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I booked a room for two nights.",
+              "answer": "Rezervoval som izbu na dve noci.",
+              "acceptable": ["rezervoval som izbu na dve noci.", "rezervoval som izbu na dve noci"],
+              "vocabCardId": "v11-izba",
+              "register": "neutral"
+            },
+            {
+              "id": "e11-up-7",
+              "orderIndex": 6,
+              "type": "SPEAK",
+              "promptEn": "Say (emergency): 'I lost my passport, I need help.'",
+              "promptSk": "Stratil som pas, potrebujem pomoc.",
+              "answer": "Stratil som pas, potrebujem pomoc.",
+              "acceptable": ["stratil som pas, potrebujem pomoc.", "stratil som pas, potrebujem pomoc"],
+              "audioKey": "stratil-som-pas-potrebujem-pomoc",
+              "vocabCardId": "v11-stratit",
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

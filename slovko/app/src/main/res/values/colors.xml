@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="folk_red">#C0392B</color>
+    <color name="gold">#F2A900</color>
+    <color name="pine">#2E6E4E</color>
+    <color name="cream">#FFFBF5</color>
+    <color name="charcoal">#231A14</color>
+    <color name="ic_launcher_background">#C0392B</color>
+    <color name="widget_bg">#F7EFE3</color>
+    <color name="widget_bg_dark">#271E18</color>
+</resources>

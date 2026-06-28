@@ -1,0 +1,563 @@
+{
+  "scenarios": [
+    {
+      "id": "coffee-with-friend",
+      "title": "Coffee with a friend",
+      "description": "Catch up with a friend over coffee. Order a drink and chat about how you're doing.",
+      "cefrLevel": "A1",
+      "starterLineSk": "Čau! Tak čo, dáš si kávu?",
+      "iconKey": "coffee",
+      "locked": false,
+      "orderIndex": 0,
+      "turns": [
+        {
+          "role": "partner",
+          "sk": "Čau! Tak čo, dáš si kávu?",
+          "enGloss": "Hi! So, will you have a coffee?",
+          "replies": [
+            { "sk": "Jasné, dám si kávu.", "enGloss": "Sure, I'll have a coffee.", "natural": true },
+            { "sk": "Hej, prosím si kapučíno.", "enGloss": "Yeah, I'd like a cappuccino.", "natural": true },
+            { "sk": "Nie, ja som strom.", "enGloss": "No, I am a tree.", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Super. A ako sa máš? Dlho sme sa nevideli.",
+          "enGloss": "Great. And how are you? We haven't seen each other in a while.",
+          "replies": [
+            { "sk": "Mám sa dobre, vďaka. A ty?", "enGloss": "I'm good, thanks. And you?", "natural": true },
+            { "sk": "Ujde to, dosť veľa roboty.", "enGloss": "Not bad, quite a lot of work.", "natural": true },
+            { "sk": "Mám sa modrý.", "enGloss": "I am blue (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Ja tiež veľa makám. Čo je u teba nové?",
+          "enGloss": "I also work a lot. What's new with you?",
+          "replies": [
+            { "sk": "Nič moc, všetko po starom.", "enGloss": "Not much, everything's the same.", "natural": true },
+            { "sk": "Začal som chodiť do fitka.", "enGloss": "I started going to the gym.", "natural": true },
+            { "sk": "Áno deväť.", "enGloss": "Yes nine.", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "To je super! Ja by som tiež mal viac cvičiť.",
+          "enGloss": "That's great! I should exercise more too.",
+          "replies": [
+            { "sk": "Poď so mnou niekedy!", "enGloss": "Come with me sometime!", "natural": true },
+            { "sk": "Hej, treba sa hýbať.", "enGloss": "Yeah, you've got to move.", "natural": true }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Dobrý nápad. Mimochodom, máš plány na víkend?",
+          "enGloss": "Good idea. By the way, do you have plans for the weekend?",
+          "replies": [
+            { "sk": "Zatiaľ nič, uvidíme.", "enGloss": "Nothing yet, we'll see.", "natural": true },
+            { "sk": "Idem na chalupu k rodičom.", "enGloss": "I'm going to the cottage to my parents'.", "natural": true },
+            { "sk": "Víkend je kameň.", "enGloss": "The weekend is a stone.", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Tak fajn. Už musím ísť, mám stretnutie. Maj sa!",
+          "enGloss": "Alright then. I have to go, I have a meeting. Take care!",
+          "replies": [
+            { "sk": "Maj sa, ozvi sa!", "enGloss": "Take care, get in touch!", "natural": true },
+            { "sk": "Čau, vidíme sa!", "enGloss": "Bye, see you!", "natural": true },
+            { "sk": "Maj sa dom.", "enGloss": "Have a house (nonsense).", "natural": false }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "texting-plans",
+      "title": "Texting plans",
+      "description": "Make plans to meet up over text. Pick a time and place.",
+      "cefrLevel": "A1",
+      "starterLineSk": "Ahoj, čo robíš večer?",
+      "iconKey": "phone",
+      "locked": false,
+      "orderIndex": 1,
+      "turns": [
+        {
+          "role": "partner",
+          "sk": "Ahoj, čo robíš večer?",
+          "enGloss": "Hi, what are you doing tonight?",
+          "replies": [
+            { "sk": "Nič extra, prečo?", "enGloss": "Nothing special, why?", "natural": true },
+            { "sk": "Zatiaľ nemám plán.", "enGloss": "No plan yet.", "natural": true },
+            { "sk": "Robím auto.", "enGloss": "I'm doing a car (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Nedáme si niekde pivo?",
+          "enGloss": "Shall we grab a beer somewhere?",
+          "replies": [
+            { "sk": "Jasné, kam pôjdeme?", "enGloss": "Sure, where shall we go?", "natural": true },
+            { "sk": "Hej, super nápad!", "enGloss": "Yeah, great idea!", "natural": true },
+            { "sk": "Pivo je smutné.", "enGloss": "Beer is sad (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Čo tak ten bar na námestí? O siedmej?",
+          "enGloss": "How about that bar on the square? At seven?",
+          "replies": [
+            { "sk": "Dohodnuté, o siedmej tam som.", "enGloss": "Deal, I'll be there at seven.", "natural": true },
+            { "sk": "Môže byť skôr? Tak o šiestej?", "enGloss": "Can it be earlier? Around six?", "natural": true },
+            { "sk": "Siedma je zelená.", "enGloss": "Seven is green (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "O šiestej mi to vyhovuje. Tak o šiestej.",
+          "enGloss": "Six works for me. So at six then.",
+          "replies": [
+            { "sk": "Super, teším sa!", "enGloss": "Great, looking forward to it!", "natural": true },
+            { "sk": "Dobre, dám ti vedieť, ak budem meškať.", "enGloss": "Okay, I'll let you know if I'm late.", "natural": true }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Vezmi aj Petra, ak chce prísť.",
+          "enGloss": "Bring Peter too, if he wants to come.",
+          "replies": [
+            { "sk": "Dobre, napíšem mu.", "enGloss": "Okay, I'll text him.", "natural": true },
+            { "sk": "Jasné, spýtam sa ho.", "enGloss": "Sure, I'll ask him.", "natural": true },
+            { "sk": "Peter je dvere.", "enGloss": "Peter is a door (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Paráda. Tak sa vidíme večer!",
+          "enGloss": "Awesome. So see you tonight!",
+          "replies": [
+            { "sk": "Vidíme sa, čau!", "enGloss": "See you, bye!", "natural": true },
+            { "sk": "Tak zatiaľ, maj sa!", "enGloss": "See you later, take care!", "natural": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "running-late",
+      "title": "Running late",
+      "description": "You're late to meet someone. Apologize and explain.",
+      "cefrLevel": "A1",
+      "starterLineSk": "Si už na ceste? Čakám pred kinom.",
+      "iconKey": "clock",
+      "locked": false,
+      "orderIndex": 2,
+      "turns": [
+        {
+          "role": "partner",
+          "sk": "Si už na ceste? Čakám pred kinom.",
+          "enGloss": "Are you on your way? I'm waiting in front of the cinema.",
+          "replies": [
+            { "sk": "Sorry, trochu meškám.", "enGloss": "Sorry, I'm a bit late.", "natural": true },
+            { "sk": "Už idem, prepáč!", "enGloss": "I'm coming, sorry!", "natural": true },
+            { "sk": "Som v kine doma.", "enGloss": "I'm in the cinema at home (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Aha, a kedy tu zhruba budeš?",
+          "enGloss": "Oh, and roughly when will you be here?",
+          "replies": [
+            { "sk": "Asi o desať minút.", "enGloss": "In about ten minutes.", "natural": true },
+            { "sk": "Hneď som tam, fakt sorry.", "enGloss": "I'll be there right away, really sorry.", "natural": true },
+            { "sk": "Budem tam včera.", "enGloss": "I'll be there yesterday (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Čo sa stalo? Zaspal si?",
+          "enGloss": "What happened? Did you oversleep?",
+          "replies": [
+            { "sk": "Meškal mi autobus.", "enGloss": "My bus was late.", "natural": true },
+            { "sk": "Bola zápcha, hrozné.", "enGloss": "There was traffic, terrible.", "natural": true },
+            { "sk": "Autobus je polievka.", "enGloss": "The bus is soup (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Nevadí, počkám. Film aj tak začína o pol.",
+          "enGloss": "No worries, I'll wait. The film starts at half past anyway.",
+          "replies": [
+            { "sk": "Super, ešte to stihneme.", "enGloss": "Great, we'll still make it.", "natural": true },
+            { "sk": "Vďaka, že čakáš!", "enGloss": "Thanks for waiting!", "natural": true }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Daj vedieť, keď budeš blízko.",
+          "enGloss": "Let me know when you're close.",
+          "replies": [
+            { "sk": "Jasné, napíšem ti.", "enGloss": "Sure, I'll text you.", "natural": true },
+            { "sk": "Dobre, už zabáčam.", "enGloss": "Okay, I'm turning the corner now.", "natural": true },
+            { "sk": "Blízko je ďaleko.", "enGloss": "Close is far (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Vidím ťa! Konečne. Poď, ideme dnu.",
+          "enGloss": "I see you! Finally. Come on, let's go in.",
+          "replies": [
+            { "sk": "Ešte raz prepáč za meškanie.", "enGloss": "Sorry again for being late.", "natural": true },
+            { "sk": "Som tu, poďme!", "enGloss": "I'm here, let's go!", "natural": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "weekend-recap",
+      "title": "Weekend recap",
+      "description": "Tell a friend how your weekend went and ask about theirs.",
+      "cefrLevel": "A2",
+      "starterLineSk": "Ahoj, ako bolo cez víkend?",
+      "iconKey": "calendar",
+      "locked": false,
+      "orderIndex": 3,
+      "turns": [
+        {
+          "role": "partner",
+          "sk": "Ahoj, ako bolo cez víkend?",
+          "enGloss": "Hi, how was the weekend?",
+          "replies": [
+            { "sk": "Bolo super, oddýchol som si.", "enGloss": "It was great, I had a rest.", "natural": true },
+            { "sk": "Celkom fajn, a u teba?", "enGloss": "Pretty good, and you?", "natural": true },
+            { "sk": "Víkend bol stôl.", "enGloss": "The weekend was a table (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Aj mne ušlo to dobre. Čo si robil?",
+          "enGloss": "Mine went well too. What did you do?",
+          "replies": [
+            { "sk": "Boli sme s rodinou na výlete.", "enGloss": "We went on a trip with the family.", "natural": true },
+            { "sk": "Hlavne som spal a pozeral seriály.", "enGloss": "Mostly I slept and watched shows.", "natural": true },
+            { "sk": "Robil som oblak.", "enGloss": "I made a cloud (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Pekné! A kam ste šli na ten výlet?",
+          "enGloss": "Nice! And where did you go on that trip?",
+          "replies": [
+            { "sk": "Do Tatier, bolo tam krásne.", "enGloss": "To the Tatras, it was beautiful there.", "natural": true },
+            { "sk": "K babke na dedinu.", "enGloss": "To grandma's in the village.", "natural": true },
+            { "sk": "Šli sme do vidličky.", "enGloss": "We went into a fork (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Tatry milujem. Aké bolo počasie?",
+          "enGloss": "I love the Tatras. What was the weather like?",
+          "replies": [
+            { "sk": "Slnečno, ale dosť zima.", "enGloss": "Sunny, but quite cold.", "natural": true },
+            { "sk": "Pršalo, takže sme veľa nešli.", "enGloss": "It rained, so we didn't walk much.", "natural": true }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Škoda toho dažďa. Aspoň ste si oddýchli, nie?",
+          "enGloss": "Shame about the rain. At least you rested, right?",
+          "replies": [
+            { "sk": "Hej, to hej. Stálo to za to.", "enGloss": "Yeah, that's true. It was worth it.", "natural": true },
+            { "sk": "Presne, potrebovali sme to.", "enGloss": "Exactly, we needed it.", "natural": true },
+            { "sk": "Dážď je rýchly.", "enGloss": "Rain is fast (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Tak nabudúce poďme spolu niekam.",
+          "enGloss": "So next time let's go somewhere together.",
+          "replies": [
+            { "sk": "Jasné, rád pôjdem!", "enGloss": "Sure, I'll gladly go!", "natural": true },
+            { "sk": "Dohodnuté, naplánujeme to.", "enGloss": "Deal, we'll plan it.", "natural": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "at-the-pub",
+      "title": "At the pub",
+      "description": "Order drinks and food at a pub and chat with the waiter.",
+      "cefrLevel": "A2",
+      "starterLineSk": "Dobrý deň, čo si dáte?",
+      "iconKey": "pub",
+      "locked": true,
+      "orderIndex": 4,
+      "turns": [
+        {
+          "role": "partner",
+          "sk": "Dobrý deň, čo si dáte?",
+          "enGloss": "Hello, what would you like?",
+          "replies": [
+            { "sk": "Dám si jedno veľké pivo, prosím.", "enGloss": "I'll have one large beer, please.", "natural": true },
+            { "sk": "Prosím si kofolu.", "enGloss": "I'd like a Kofola.", "natural": true },
+            { "sk": "Dám si stoličku.", "enGloss": "I'll have a chair (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Jasné. A dáte si aj niečo pod zub?",
+          "enGloss": "Sure. And will you have something to eat too?",
+          "replies": [
+            { "sk": "Áno, máte syrové prsty?", "enGloss": "Yes, do you have cheese sticks?", "natural": true },
+            { "sk": "Dám si bryndzové halušky.", "enGloss": "I'll have bryndza halušky.", "natural": true },
+            { "sk": "Zjem ten stôl.", "enGloss": "I'll eat that table (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Výborná voľba. Niečo na pitie ešte?",
+          "enGloss": "Excellent choice. Anything else to drink?",
+          "replies": [
+            { "sk": "Nie, zatiaľ stačí, vďaka.", "enGloss": "No, that's enough for now, thanks.", "natural": true },
+            { "sk": "Ešte vodu, prosím.", "enGloss": "Some water too, please.", "natural": true }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Nech sa páči, vaše pivo. Dobrú chuť!",
+          "enGloss": "Here you go, your beer. Enjoy!",
+          "replies": [
+            { "sk": "Ďakujem pekne!", "enGloss": "Thank you very much!", "natural": true },
+            { "sk": "Vďaka, na zdravie!", "enGloss": "Thanks, cheers!", "natural": true },
+            { "sk": "Pivo je sused.", "enGloss": "The beer is a neighbour (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Chutilo vám? Môžem doniesť účet?",
+          "enGloss": "Did you enjoy it? Can I bring the bill?",
+          "replies": [
+            { "sk": "Áno, výborné. Účet, prosím.", "enGloss": "Yes, excellent. The bill, please.", "natural": true },
+            { "sk": "Zaplatím kartou.", "enGloss": "I'll pay by card.", "natural": true },
+            { "sk": "Účet je modrý.", "enGloss": "The bill is blue (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Bude to dvanásť eur. Ďakujem a dovidenia!",
+          "enGloss": "That'll be twelve euros. Thank you and goodbye!",
+          "replies": [
+            { "sk": "Nech sa páči, zvyšok je váš.", "enGloss": "Here you go, keep the change.", "natural": true },
+            { "sk": "Ďakujem, dovidenia!", "enGloss": "Thank you, goodbye!", "natural": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "asking-a-favor",
+      "title": "Asking a favor",
+      "description": "Ask a friend for a small favor and arrange the details.",
+      "cefrLevel": "A2",
+      "starterLineSk": "Čau, môžem ťa o niečo poprosiť?",
+      "iconKey": "chat",
+      "locked": true,
+      "orderIndex": 5,
+      "turns": [
+        {
+          "role": "partner",
+          "sk": "Čau, môžem ťa o niečo poprosiť?",
+          "enGloss": "Hi, can I ask you for something?",
+          "replies": [
+            { "sk": "Jasné, čo potrebuješ?", "enGloss": "Sure, what do you need?", "natural": true },
+            { "sk": "Hovor, počúvam.", "enGloss": "Go ahead, I'm listening.", "natural": true },
+            { "sk": "Nie, som lampa.", "enGloss": "No, I'm a lamp (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Mohol by si ma zajtra odviezť na stanicu?",
+          "enGloss": "Could you give me a ride to the station tomorrow?",
+          "replies": [
+            { "sk": "Jasné, o koľkej?", "enGloss": "Sure, at what time?", "natural": true },
+            { "sk": "Hej, žiaden problém.", "enGloss": "Yeah, no problem.", "natural": true },
+            { "sk": "Stanica je mokrá.", "enGloss": "The station is wet (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Vlak mi ide o ôsmej, takže tak o pol ôsmej?",
+          "enGloss": "My train leaves at eight, so around half past seven?",
+          "replies": [
+            { "sk": "V pohode, vyzdvihnem ťa o pol ôsmej.", "enGloss": "No problem, I'll pick you up at half past seven.", "natural": true },
+            { "sk": "Dobre, budem pred domom.", "enGloss": "Okay, I'll be in front of the house.", "natural": true }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Si zlatý, fakt vďaka. Dlžím ti kávu.",
+          "enGloss": "You're a star, thanks a lot. I owe you a coffee.",
+          "replies": [
+            { "sk": "Niet za čo, kľudne.", "enGloss": "Don't mention it, no worries.", "natural": true },
+            { "sk": "Tak na tú kávu sa teším!", "enGloss": "I'm looking forward to that coffee then!", "natural": true },
+            { "sk": "Káva je pondelok.", "enGloss": "Coffee is Monday (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Ešte raz vďaka. Tak zajtra ráno?",
+          "enGloss": "Thanks again. So tomorrow morning?",
+          "replies": [
+            { "sk": "Áno, ráno o pol ôsmej.", "enGloss": "Yes, in the morning at half past seven.", "natural": true },
+            { "sk": "Platí, daj vedieť, ak sa niečo zmení.", "enGloss": "Deal, let me know if anything changes.", "natural": true }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Super. Tak sa maj, dobrú noc!",
+          "enGloss": "Great. Take care then, good night!",
+          "replies": [
+            { "sk": "Dobrú noc, vidíme sa ráno!", "enGloss": "Good night, see you in the morning!", "natural": true },
+            { "sk": "Pa, dobre sa vyspi!", "enGloss": "Bye, sleep well!", "natural": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "meeting-the-family",
+      "title": "Meeting the family",
+      "description": "Meet your partner's family for the first time. Be polite and friendly.",
+      "cefrLevel": "A2",
+      "starterLineSk": "Dobrý deň, teší ma. Konečne sa stretávame!",
+      "iconKey": "family",
+      "locked": true,
+      "orderIndex": 6,
+      "turns": [
+        {
+          "role": "partner",
+          "sk": "Dobrý deň, teší ma. Konečne sa stretávame!",
+          "enGloss": "Hello, nice to meet you. We finally meet!",
+          "replies": [
+            { "sk": "Teší ma, veľa som o vás počul.", "enGloss": "Nice to meet you, I've heard a lot about you.", "natural": true },
+            { "sk": "Dobrý deň, aj mňa teší.", "enGloss": "Hello, the pleasure is mine.", "natural": true },
+            { "sk": "Ahoj, som hladný stôl.", "enGloss": "Hi, I'm a hungry table (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Poďte ďalej, nech sa páči. Dáte si kávu alebo čaj?",
+          "enGloss": "Come in, please. Will you have coffee or tea?",
+          "replies": [
+            { "sk": "Kávu, ak môžem. Ďakujem.", "enGloss": "Coffee, if I may. Thank you.", "natural": true },
+            { "sk": "Čaj by bol super, vďaka.", "enGloss": "Tea would be great, thanks.", "natural": true },
+            { "sk": "Dám si vašu mačku.", "enGloss": "I'll have your cat (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "A čo robíte? Kde pracujete?",
+          "enGloss": "And what do you do? Where do you work?",
+          "replies": [
+            { "sk": "Pracujem ako učiteľ na základnej škole.", "enGloss": "I work as a teacher at an elementary school.", "natural": true },
+            { "sk": "Robím v IT, programujem.", "enGloss": "I work in IT, I program.", "natural": true },
+            { "sk": "Pracujem ako oblak.", "enGloss": "I work as a cloud (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "To je pekné povolanie. A odkiaľ pochádzate?",
+          "enGloss": "That's a nice profession. And where are you from?",
+          "replies": [
+            { "sk": "Som z Košíc, ale bývam v Bratislave.", "enGloss": "I'm from Košice, but I live in Bratislava.", "natural": true },
+            { "sk": "Pochádzam z malej dediny pri Žiline.", "enGloss": "I come from a small village near Žilina.", "natural": true }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Krásne. Tak si sadnite, obed je takmer hotový.",
+          "enGloss": "Lovely. So sit down, lunch is almost ready.",
+          "replies": [
+            { "sk": "Ďakujem, vonia to skvele!", "enGloss": "Thank you, it smells amazing!", "natural": true },
+            { "sk": "Veľmi pekné, nemuseli ste sa toľko trápiť.", "enGloss": "Very kind, you shouldn't have gone to such trouble.", "natural": true },
+            { "sk": "Obed je smutný.", "enGloss": "Lunch is sad (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Ale prosím vás, je to radosť. Dobrú chuť!",
+          "enGloss": "Oh please, it's a pleasure. Enjoy your meal!",
+          "replies": [
+            { "sk": "Ďakujem pekne, dobrú chuť aj vám.", "enGloss": "Thank you very much, enjoy your meal too.", "natural": true },
+            { "sk": "Vyzerá to výborne, ďakujem!", "enGloss": "It looks excellent, thank you!", "natural": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "group-chat-reactions",
+      "title": "Group-chat reactions",
+      "description": "React in a lively group chat. Keep it short and casual.",
+      "cefrLevel": "A2",
+      "starterLineSk": "Ľudia, idem dnes na grilovačku. Kto príde?",
+      "iconKey": "phone",
+      "locked": true,
+      "orderIndex": 7,
+      "turns": [
+        {
+          "role": "partner",
+          "sk": "Ľudia, idem dnes na grilovačku. Kto príde?",
+          "enGloss": "Guys, I'm having a barbecue today. Who's coming?",
+          "replies": [
+            { "sk": "Ja idem! O koľkej?", "enGloss": "I'm in! At what time?", "natural": true },
+            { "sk": "Jasné, počítaj so mnou.", "enGloss": "Sure, count me in.", "natural": true },
+            { "sk": "Gril je pondelok.", "enGloss": "The grill is Monday (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Super! Začíname o piatej u mňa na záhrade.",
+          "enGloss": "Great! We start at five at my place in the garden.",
+          "replies": [
+            { "sk": "Top, prinesiem pivo.", "enGloss": "Awesome, I'll bring beer.", "natural": true },
+            { "sk": "Mám priniesť niečo?", "enGloss": "Should I bring something?", "natural": true },
+            { "sk": "Záhrada je hlasná.", "enGloss": "The garden is loud (nonsense, misspelled).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Mäso mám, doneste hlavne chlast a dobrú náladu :D",
+          "enGloss": "I've got the meat, mainly bring booze and good vibes :D",
+          "replies": [
+            { "sk": "Haha jasné, nálada bude!", "enGloss": "Haha sure, the vibes will be there!", "natural": true },
+            { "sk": "V pohode, ja kúpim šaláty.", "enGloss": "No problem, I'll buy salads.", "natural": true }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Niekto vie, či bude pršať? Pozeral som a vraj nie.",
+          "enGloss": "Does anyone know if it'll rain? I checked and apparently not.",
+          "replies": [
+            { "sk": "Aj ja pozeral, malo by byť super počasie.", "enGloss": "I checked too, the weather should be great.", "natural": true },
+            { "sk": "Dúfajme, že nie!", "enGloss": "Let's hope not!", "natural": true },
+            { "sk": "Dážď je rýchly stôl.", "enGloss": "Rain is a fast table (nonsense).", "natural": false }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Tak fajn, čakám vás. Kto vie, nech vezme aj reproák.",
+          "enGloss": "Alright, I'll be expecting you. Whoever can, bring a speaker too.",
+          "replies": [
+            { "sk": "Reproák beriem ja!", "enGloss": "I'll bring the speaker!", "natural": true },
+            { "sk": "Mám doma, dovlečiem ho.", "enGloss": "I have one at home, I'll drag it over.", "natural": true }
+          ]
+        },
+        {
+          "role": "partner",
+          "sk": "Paráda, ste najlepší. Vidíme sa o piatej! 🔥",
+          "enGloss": "Awesome, you're the best. See you at five! 🔥",
+          "replies": [
+            { "sk": "Tešíme sa, vidíme sa!", "enGloss": "Looking forward to it, see you!", "natural": true },
+            { "sk": "Idemeee! 🔥", "enGloss": "Let's gooo! 🔥", "natural": true }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,329 @@
+{
+  "unit": { "id": "u0", "name": "Zvuky", "cefr": "A1", "order": 0 },
+  "skills": [
+    {
+      "id": "s0-abeceda",
+      "unitId": "u0",
+      "title": "Abeceda a diakritika",
+      "description": "Slovak alphabet and the diacritical marks: dĺžeň (á é í ...), mäkčeň (š č ž ...), and dve bodky (ä).",
+      "iconKey": "sound",
+      "colorKey": "blue",
+      "orderIndex": 0,
+      "cefrLevel": "A1",
+      "vocab": [],
+      "lessons": [
+        {
+          "id": "l0-abeceda-teach",
+          "title": "Hlásky a dĺžne",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e0-abc-1",
+              "orderIndex": 0,
+              "type": "LISTEN_TYPE",
+              "promptEn": "Type the letter you hear (long a).",
+              "answer": "á",
+              "acceptable": ["á", "a"],
+              "audioKey": "a-dlhe",
+              "hint": "Dĺžeň makes a vowel long.",
+              "register": "neutral"
+            },
+            {
+              "id": "e0-abc-2",
+              "orderIndex": 1,
+              "type": "MCQ",
+              "promptEn": "Which letter has a mäkčeň (softening mark)?",
+              "answer": "š",
+              "acceptable": ["š"],
+              "choices": ["š", "a", "o", "e"],
+              "hint": "The little v-shape on top.",
+              "register": "neutral"
+            },
+            {
+              "id": "e0-abc-3",
+              "orderIndex": 2,
+              "type": "MCQ",
+              "promptEn": "Good to know: Slovak 'i' and 'y' are pronounced exactly the same (and so are 'í' and 'ý'). Which one is just spelled with extra length?",
+              "answer": "í and ý (long ee)",
+              "acceptable": ["í and ý (long ee)"],
+              "choices": ["í and ý (long ee)", "i and y (long ee)", "they are all long", "none are long"],
+              "hint": "The dĺžeň (´) marks length; y vs i is only a spelling rule, never a sound difference.",
+              "register": "neutral"
+            },
+            {
+              "id": "e0-abc-4",
+              "orderIndex": 3,
+              "type": "MCQ",
+              "promptEn": "Which mark is the dĺžeň?",
+              "answer": "the line: á",
+              "acceptable": ["the line: á", "á"],
+              "choices": ["the line: á", "the hook: š", "the two dots: ä", "no mark: a"],
+              "register": "neutral"
+            },
+            {
+              "id": "e0-abc-5",
+              "orderIndex": 4,
+              "type": "LISTEN_TYPE",
+              "promptEn": "Type the sound you hear: the 'ch' digraph.",
+              "answer": "ch",
+              "acceptable": ["ch"],
+              "audioKey": "ch",
+              "hint": "Like clearing your throat softly.",
+              "register": "neutral"
+            },
+            {
+              "id": "e0-abc-6",
+              "orderIndex": 5,
+              "type": "SPEAK",
+              "promptEn": "Say the vowels: a á e é i í o ó u ú.",
+              "promptSk": "a á e é i í o ó u ú",
+              "answer": "a á e é i í o ó u ú",
+              "acceptable": ["a á e é i í o ó u ú"],
+              "audioKey": "vokaly",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l0-abeceda-practice",
+          "title": "Krátke verzus dlhé",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e0-abp-1",
+              "orderIndex": 0,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Which word do you hear? (sud = barrel / súd = court)",
+              "answer": "súd",
+              "acceptable": ["súd"],
+              "choices": ["súd", "sud"],
+              "audioKey": "sud-sud",
+              "hint": "Listen for the long ú.",
+              "register": "neutral"
+            },
+            {
+              "id": "e0-abp-2",
+              "orderIndex": 1,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Which word do you hear? (pas = passport / pás = belt)",
+              "answer": "pás",
+              "acceptable": ["pás"],
+              "choices": ["pás", "pas"],
+              "audioKey": "pas-pas",
+              "register": "neutral"
+            },
+            {
+              "id": "e0-abp-3",
+              "orderIndex": 2,
+              "type": "MCQ",
+              "promptEn": "Which has a long vowel?",
+              "answer": "mám",
+              "acceptable": ["mám"],
+              "choices": ["mám", "mam", "man", "mat"],
+              "register": "neutral"
+            },
+            {
+              "id": "e0-abp-4",
+              "orderIndex": 3,
+              "type": "LISTEN_TYPE",
+              "promptEn": "Type what you hear (a short word).",
+              "answer": "dom",
+              "acceptable": ["dom"],
+              "audioKey": "dom",
+              "hint": "It means 'house'.",
+              "register": "neutral"
+            },
+            {
+              "id": "e0-abp-5",
+              "orderIndex": 4,
+              "type": "LISTEN_TYPE",
+              "promptEn": "Type what you hear (with a long vowel).",
+              "answer": "káva",
+              "acceptable": ["káva"],
+              "audioKey": "kava",
+              "hint": "It means 'coffee'.",
+              "register": "neutral"
+            },
+            {
+              "id": "e0-abp-6",
+              "orderIndex": 5,
+              "type": "SPEAK",
+              "promptEn": "Say both: 'sud' (short) then 'súd' (long).",
+              "promptSk": "sud, súd",
+              "answer": "sud súd",
+              "acceptable": ["sud súd", "sud, súd"],
+              "audioKey": "sud-sud",
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s0-tvrde-zvuky",
+      "unitId": "u0",
+      "title": "Ťažké zvuky: ä ô ľ ď ť ň",
+      "description": "The tricky Slovak sounds: ä, the diphthong ô, and the soft consonants ľ ď ť ň.",
+      "iconKey": "sound",
+      "colorKey": "purple",
+      "orderIndex": 1,
+      "cefrLevel": "A1",
+      "vocab": [],
+      "lessons": [
+        {
+          "id": "l0-tvrde-teach",
+          "title": "Mäkké spoluhlásky",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e0-tt-1",
+              "orderIndex": 0,
+              "type": "LISTEN_TYPE",
+              "promptEn": "Type the soft sound you hear (ľ).",
+              "answer": "ľ",
+              "acceptable": ["ľ", "l"],
+              "audioKey": "lmakke",
+              "hint": "Tongue presses the palate: 'ly'.",
+              "register": "neutral"
+            },
+            {
+              "id": "e0-tt-2",
+              "orderIndex": 1,
+              "type": "MCQ",
+              "promptEn": "Which is the soft 'n'?",
+              "answer": "ň",
+              "acceptable": ["ň"],
+              "choices": ["ň", "n", "m", "ñ"],
+              "register": "neutral"
+            },
+            {
+              "id": "e0-tt-3",
+              "orderIndex": 2,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Soft or hard? Choose what you hear.",
+              "answer": "ď",
+              "acceptable": ["ď"],
+              "choices": ["ď", "d", "t", "ť"],
+              "audioKey": "dmakke",
+              "hint": "Like 'dy'.",
+              "register": "neutral"
+            },
+            {
+              "id": "e0-tt-4",
+              "orderIndex": 3,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Which sound do you hear?",
+              "answer": "ť",
+              "acceptable": ["ť"],
+              "choices": ["ť", "t", "č", "ć"],
+              "audioKey": "tmakke",
+              "register": "neutral"
+            },
+            {
+              "id": "e0-tt-5",
+              "orderIndex": 4,
+              "type": "SPEAK",
+              "promptEn": "Say the soft consonants: ľ ď ť ň.",
+              "promptSk": "ľ ď ť ň",
+              "answer": "ľ ď ť ň",
+              "acceptable": ["ľ ď ť ň"],
+              "audioKey": "makke-spoluhlasky",
+              "register": "neutral"
+            },
+            {
+              "id": "e0-tt-6",
+              "orderIndex": 5,
+              "type": "LISTEN_TYPE",
+              "promptEn": "Type the word you hear (deň = day).",
+              "answer": "deň",
+              "acceptable": ["deň"],
+              "audioKey": "den",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l0-tvrde-practice",
+          "title": "ä, ô a prízvuk",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e0-tp-1",
+              "orderIndex": 0,
+              "type": "LISTEN_TYPE",
+              "promptEn": "Type the word you hear (mäso = meat).",
+              "answer": "mäso",
+              "acceptable": ["mäso"],
+              "audioKey": "maso",
+              "hint": "ä in modern speech sounds like 'e'.",
+              "register": "neutral"
+            },
+            {
+              "id": "e0-tp-2",
+              "orderIndex": 1,
+              "type": "LISTEN_TYPE",
+              "promptEn": "Type the word you hear (stôl = table).",
+              "answer": "stôl",
+              "acceptable": ["stôl"],
+              "audioKey": "stol",
+              "hint": "ô sounds like 'uo'.",
+              "register": "neutral"
+            },
+            {
+              "id": "e0-tp-3",
+              "orderIndex": 2,
+              "type": "MCQ",
+              "promptEn": "How does the diphthong ô sound?",
+              "answer": "uo",
+              "acceptable": ["uo"],
+              "choices": ["uo", "oo", "ow", "aw"],
+              "register": "neutral"
+            },
+            {
+              "id": "e0-tp-4",
+              "orderIndex": 3,
+              "type": "MCQ",
+              "promptEn": "In Slovak, which syllable is stressed?",
+              "answer": "the first syllable",
+              "acceptable": ["the first syllable", "first"],
+              "choices": ["the first syllable", "the last syllable", "the middle syllable", "it varies"],
+              "hint": "Always the first.",
+              "register": "neutral"
+            },
+            {
+              "id": "e0-tp-5",
+              "orderIndex": 4,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Which word do you hear?",
+              "answer": "mäso",
+              "acceptable": ["mäso"],
+              "choices": ["mäso", "stôl"],
+              "audioKey": "maso",
+              "hint": "mäso = meat, stôl = table.",
+              "register": "neutral"
+            },
+            {
+              "id": "e0-tp-6",
+              "orderIndex": 5,
+              "type": "SPEAK",
+              "promptEn": "Say 'kôň' (horse) with the uo sound.",
+              "promptSk": "kôň",
+              "answer": "kôň",
+              "acceptable": ["kôň"],
+              "audioKey": "kon",
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "skillFiles": [
+    "unit0-zvuky.json",
+    "unit1-ahoj.json",
+    "unit2-ja-a-ty.json",
+    "unit3-rodina.json",
+    "unit4-jedlo-kava.json",
+    "unit5-v-meste.json",
+    "unit6-cas-plany.json",
+    "unit7-kazdy-den.json",
+    "unit8-nakupovanie.json",
+    "unit9-pocasie-pocity.json",
+    "unit10-praca-skola.json",
+    "unit11-cestovanie.json",
+    "unit12-piseme-si.json"
+  ],
+  "scenarioFile": "scenarios.json",
+  "phrasebookFile": "phrasebook.json"
+}

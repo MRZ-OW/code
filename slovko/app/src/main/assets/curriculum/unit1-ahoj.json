@@ -1,0 +1,356 @@
+{
+  "unit": { "id": "u1", "name": "Ahoj", "cefr": "A1", "order": 1 },
+  "skills": [
+    {
+      "id": "s1-pozdravy",
+      "unitId": "u1",
+      "title": "Pozdravy",
+      "description": "Greetings: informal ahoj/čau versus formal dobrý deň, plus how are you.",
+      "iconKey": "wave",
+      "colorKey": "green",
+      "orderIndex": 0,
+      "cefrLevel": "A1",
+      "vocab": [
+        { "id": "v1-ahoj", "sk": "ahoj", "en": "hi / bye", "partOfSpeech": "interjection", "exampleSk": "Ahoj, ako sa máš?", "exampleEn": "Hi, how are you?", "register": "informal", "frequencyRank": 20 },
+        { "id": "v1-cau", "sk": "čau", "en": "hi / bye (casual)", "partOfSpeech": "interjection", "exampleSk": "Čau, vidíme sa zajtra.", "exampleEn": "Bye, see you tomorrow.", "register": "informal", "frequencyRank": 60 },
+        { "id": "v1-dobry-den", "sk": "dobrý deň", "en": "good day / hello", "partOfSpeech": "phrase", "exampleSk": "Dobrý deň, pán Novák.", "exampleEn": "Hello, Mr. Novák.", "register": "formal", "frequencyRank": 50 },
+        { "id": "v1-dovidenia", "sk": "dovidenia", "en": "goodbye", "partOfSpeech": "interjection", "exampleSk": "Dovidenia, pekný deň.", "exampleEn": "Goodbye, have a nice day.", "register": "formal", "frequencyRank": 120 },
+        { "id": "v1-ako-sa-mas", "sk": "ako sa máš", "en": "how are you (informal)", "partOfSpeech": "phrase", "exampleSk": "Ahoj, ako sa máš?", "exampleEn": "Hi, how are you?", "register": "informal", "frequencyRank": 90 },
+        { "id": "v1-mam-sa-dobre", "sk": "mám sa dobre", "en": "I'm doing well", "partOfSpeech": "phrase", "exampleSk": "Mám sa dobre, ďakujem.", "exampleEn": "I'm doing well, thanks.", "register": "neutral", "frequencyRank": 130 }
+      ],
+      "lessons": [
+        {
+          "id": "l1-pozdravy-teach",
+          "title": "Ahoj a dobrý deň",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e1-pt-1",
+              "orderIndex": 0,
+              "type": "MCQ",
+              "promptEn": "What does 'ahoj' mean?",
+              "answer": "hi / bye",
+              "acceptable": ["hi / bye", "hi", "hello"],
+              "choices": ["hi / bye", "thank you", "sorry", "please"],
+              "vocabCardId": "v1-ahoj",
+              "audioKey": "ahoj",
+              "register": "informal"
+            },
+            {
+              "id": "e1-pt-2",
+              "orderIndex": 1,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Which formal greeting do you hear?",
+              "answer": "dobrý deň",
+              "acceptable": ["dobrý deň"],
+              "choices": ["dobrý deň", "ahoj", "čau", "dovidenia"],
+              "vocabCardId": "v1-dobry-den",
+              "audioKey": "dobry-den",
+              "register": "formal"
+            },
+            {
+              "id": "e1-pt-3",
+              "orderIndex": 2,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the greetings.",
+              "answer": "",
+              "acceptable": [],
+              "pairs": [
+                ["ahoj", "hi"],
+                ["dobrý deň", "good day"],
+                ["dovidenia", "goodbye"],
+                ["čau", "bye (casual)"]
+              ],
+              "register": "neutral"
+            },
+            {
+              "id": "e1-pt-4",
+              "orderIndex": 3,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Ako sa máš?",
+              "answer": "How are you?",
+              "acceptable": ["how are you", "how are you?"],
+              "vocabCardId": "v1-ako-sa-mas",
+              "audioKey": "ako-sa-mas",
+              "register": "informal"
+            },
+            {
+              "id": "e1-pt-5",
+              "orderIndex": 4,
+              "type": "MCQ",
+              "promptEn": "You meet your boss in the morning. What do you say?",
+              "answer": "dobrý deň",
+              "acceptable": ["dobrý deň"],
+              "choices": ["dobrý deň", "čau", "ahoj", "no"],
+              "hint": "Formal situation.",
+              "register": "formal"
+            },
+            {
+              "id": "e1-pt-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I'm doing well, thanks.",
+              "answer": "Mám sa dobre, ďakujem.",
+              "acceptable": ["mám sa dobre, ďakujem", "mám sa dobre ďakujem", "mám sa dobre"],
+              "vocabCardId": "v1-mam-sa-dobre",
+              "audioKey": "mam-sa-dobre-dakujem",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l1-pozdravy-practice",
+          "title": "Ako sa máš?",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e1-pp-1",
+              "orderIndex": 0,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Which casual goodbye do you hear?",
+              "answer": "čau",
+              "acceptable": ["čau"],
+              "choices": ["čau", "dobrý deň", "prosím", "prepáč"],
+              "vocabCardId": "v1-cau",
+              "audioKey": "cau",
+              "register": "informal"
+            },
+            {
+              "id": "e1-pp-2",
+              "orderIndex": 1,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Mám sa dobre.",
+              "answer": "I'm doing well.",
+              "acceptable": ["i'm doing well", "i am doing well", "i'm fine", "i'm good"],
+              "vocabCardId": "v1-mam-sa-dobre",
+              "register": "neutral"
+            },
+            {
+              "id": "e1-pp-3",
+              "orderIndex": 2,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'Hi, how are you?'",
+              "answer": "Ahoj, ako sa máš?",
+              "acceptable": ["ahoj, ako sa máš?", "ahoj ako sa máš"],
+              "choices": ["ako", "Ahoj,", "máš?", "sa"],
+              "register": "informal"
+            },
+            {
+              "id": "e1-pp-4",
+              "orderIndex": 3,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "Goodbye, have a nice day.",
+              "answer": "Dovidenia, pekný deň.",
+              "acceptable": ["dovidenia, pekný deň", "dovidenia pekný deň", "dovidenia"],
+              "vocabCardId": "v1-dovidenia",
+              "audioKey": "dovidenia-pekny-den",
+              "register": "formal"
+            },
+            {
+              "id": "e1-pp-5",
+              "orderIndex": 4,
+              "type": "MCQ",
+              "promptEn": "A friend says 'Ako sa máš?'. A natural reply is:",
+              "answer": "Dobre, a ty?",
+              "acceptable": ["dobre, a ty?", "dobre a ty"],
+              "choices": ["Dobre, a ty?", "Dovidenia.", "Prepáč.", "Nech sa páči."],
+              "register": "informal"
+            },
+            {
+              "id": "e1-pp-6",
+              "orderIndex": 5,
+              "type": "SPEAK",
+              "promptEn": "Say: 'Hi, how are you?'",
+              "promptSk": "Ahoj, ako sa máš?",
+              "answer": "Ahoj, ako sa máš?",
+              "acceptable": ["ahoj, ako sa máš?", "ahoj ako sa máš"],
+              "audioKey": "ahoj-ako-sa-mas",
+              "register": "informal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s1-zdvorilost",
+      "unitId": "u1",
+      "title": "Volám sa a zdvorilosť",
+      "description": "Introducing yourself, please/thank you/sorry, texting openers, and tykať vs vykať.",
+      "iconKey": "chat",
+      "colorKey": "orange",
+      "orderIndex": 1,
+      "cefrLevel": "A1",
+      "vocab": [
+        { "id": "v1-volam-sa", "sk": "volám sa", "en": "my name is", "partOfSpeech": "phrase", "exampleSk": "Volám sa Petra.", "exampleEn": "My name is Petra.", "register": "neutral", "frequencyRank": 110 },
+        { "id": "v1-dakujem", "sk": "ďakujem", "en": "thank you", "partOfSpeech": "interjection", "exampleSk": "Ďakujem za pomoc.", "exampleEn": "Thanks for the help.", "register": "neutral", "frequencyRank": 70 },
+        { "id": "v1-prosim", "sk": "prosím", "en": "please / you're welcome", "partOfSpeech": "interjection", "exampleSk": "Kávu, prosím.", "exampleEn": "A coffee, please.", "register": "neutral", "frequencyRank": 80 },
+        { "id": "v1-prepac", "sk": "prepáč", "en": "sorry (informal)", "partOfSpeech": "interjection", "exampleSk": "Prepáč, meškám.", "exampleEn": "Sorry, I'm late.", "register": "informal", "frequencyRank": 140 },
+        { "id": "v1-prepacte", "sk": "prepáčte", "en": "excuse me / sorry (formal)", "partOfSpeech": "interjection", "exampleSk": "Prepáčte, kde je stanica?", "exampleEn": "Excuse me, where is the station?", "register": "formal", "frequencyRank": 150 },
+        { "id": "v1-tesi-ma", "sk": "teší ma", "en": "nice to meet you", "partOfSpeech": "phrase", "exampleSk": "Teší ma, ja som Ján.", "exampleEn": "Nice to meet you, I'm Ján.", "register": "neutral", "frequencyRank": 200 }
+      ],
+      "lessons": [
+        {
+          "id": "l1-zdvor-teach",
+          "title": "Volám sa...",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e1-zt-1",
+              "orderIndex": 0,
+              "type": "MCQ",
+              "promptEn": "How do you say 'my name is'?",
+              "answer": "volám sa",
+              "acceptable": ["volám sa"],
+              "choices": ["volám sa", "mám sa", "teší ma", "prosím"],
+              "vocabCardId": "v1-volam-sa",
+              "audioKey": "volam-sa",
+              "register": "neutral"
+            },
+            {
+              "id": "e1-zt-2",
+              "orderIndex": 1,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the polite words.",
+              "answer": "",
+              "acceptable": [],
+              "pairs": [
+                ["ďakujem", "thank you"],
+                ["prosím", "please"],
+                ["prepáč", "sorry"],
+                ["teší ma", "nice to meet you"]
+              ],
+              "register": "neutral"
+            },
+            {
+              "id": "e1-zt-3",
+              "orderIndex": 2,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Teší ma.",
+              "answer": "Nice to meet you.",
+              "acceptable": ["nice to meet you", "pleased to meet you"],
+              "vocabCardId": "v1-tesi-ma",
+              "register": "neutral"
+            },
+            {
+              "id": "e1-zt-4",
+              "orderIndex": 3,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Which word means 'thank you'?",
+              "answer": "ďakujem",
+              "acceptable": ["ďakujem"],
+              "choices": ["ďakujem", "prosím", "prepáč", "ahoj"],
+              "vocabCardId": "v1-dakujem",
+              "audioKey": "dakujem",
+              "register": "neutral"
+            },
+            {
+              "id": "e1-zt-5",
+              "orderIndex": 4,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'My name is Petra.'",
+              "answer": "Volám sa Petra.",
+              "acceptable": ["volám sa petra", "volám sa petra."],
+              "choices": ["Petra", "Volám", "sa"],
+              "register": "neutral"
+            },
+            {
+              "id": "e1-zt-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "Thanks for the help.",
+              "answer": "Ďakujem za pomoc.",
+              "acceptable": ["ďakujem za pomoc", "ďakujem za pomoc."],
+              "vocabCardId": "v1-dakujem",
+              "audioKey": "dakujem-za-pomoc",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l1-zdvor-practice",
+          "title": "Tykať alebo vykať?",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e1-zp-1",
+              "orderIndex": 0,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "At a shop, the clerk asks formally. Fill: 'Dobrý deň, ___ pomôcť?' (can I help you - formal)",
+              "promptSk": "Dobrý deň, ___ vám pomôcť?",
+              "answer": "môžem",
+              "acceptable": ["môžem"],
+              "choices": ["môžem", "môžeš", "máš", "si"],
+              "hint": "Formal vykanie uses 'vám'.",
+              "register": "formal"
+            },
+            {
+              "id": "e1-zp-2",
+              "orderIndex": 1,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "Talking to a friend, fill the informal question: 'Ahoj, ako ___ máš?'",
+              "promptSk": "Ahoj, ako ___ máš?",
+              "answer": "sa",
+              "acceptable": ["sa"],
+              "choices": ["sa", "si", "ste", "vám"],
+              "hint": "Informal tykanie.",
+              "register": "informal"
+            },
+            {
+              "id": "e1-zp-3",
+              "orderIndex": 2,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "Formal: 'Ako sa ___?' (How are you, to a stranger)",
+              "promptSk": "Ako sa ___?",
+              "answer": "máte",
+              "acceptable": ["máte"],
+              "choices": ["máte", "máš", "mám", "majú"],
+              "hint": "Vykanie uses the plural verb form.",
+              "register": "formal"
+            },
+            {
+              "id": "e1-zp-4",
+              "orderIndex": 3,
+              "type": "MCQ",
+              "promptEn": "Which is the formal 'sorry / excuse me'?",
+              "answer": "prepáčte",
+              "acceptable": ["prepáčte"],
+              "choices": ["prepáčte", "prepáč", "prosím", "ďakujem"],
+              "vocabCardId": "v1-prepacte",
+              "audioKey": "prepacte",
+              "register": "formal"
+            },
+            {
+              "id": "e1-zp-5",
+              "orderIndex": 4,
+              "type": "WORD_BANK",
+              "promptEn": "Build (texting a friend): 'Hi, sorry, I'm late.'",
+              "answer": "Čau, prepáč, meškám.",
+              "acceptable": ["čau, prepáč, meškám", "čau prepáč meškám"],
+              "choices": ["meškám.", "Čau,", "prepáč,"],
+              "register": "informal"
+            },
+            {
+              "id": "e1-zp-6",
+              "orderIndex": 5,
+              "type": "SPEAK",
+              "promptEn": "Say: 'Nice to meet you, I'm Ján.'",
+              "promptSk": "Teší ma, ja som Ján.",
+              "answer": "Teší ma, ja som Ján.",
+              "acceptable": ["teší ma, ja som ján", "teší ma ja som ján"],
+              "audioKey": "tesi-ma-ja-som-jan",
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

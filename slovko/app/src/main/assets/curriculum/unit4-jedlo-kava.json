@@ -1,0 +1,392 @@
+{
+  "unit": { "id": "u4", "name": "Jedlo a káva", "cefr": "A1", "order": 4 },
+  "skills": [
+    {
+      "id": "s4-jedlo",
+      "unitId": "u4",
+      "title": "Jedlo a pitie",
+      "description": "Food and drink basics: naming common items and saying what you have and like.",
+      "iconKey": "food",
+      "colorKey": "orange",
+      "orderIndex": 0,
+      "cefrLevel": "A1",
+      "vocab": [
+        { "id": "v4-jedlo", "sk": "jedlo", "en": "food / meal", "partOfSpeech": "noun", "gender": "n", "exampleSk": "To jedlo je veľmi dobré.", "exampleEn": "This food is very good.", "register": "neutral", "frequencyRank": 320 },
+        { "id": "v4-voda", "sk": "voda", "en": "water", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Dám si pohár vody.", "exampleEn": "I'll have a glass of water.", "register": "neutral", "frequencyRank": 280 },
+        { "id": "v4-kava", "sk": "káva", "en": "coffee", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Ráno pijem kávu.", "exampleEn": "I drink coffee in the morning.", "register": "neutral", "frequencyRank": 410 },
+        { "id": "v4-caj", "sk": "čaj", "en": "tea", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Daj si čaj.", "exampleEn": "Have some tea.", "register": "neutral", "frequencyRank": 600 },
+        { "id": "v4-chlieb", "sk": "chlieb", "en": "bread", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Kupujem chlieb.", "exampleEn": "I'm buying bread.", "register": "neutral", "frequencyRank": 540 },
+        { "id": "v4-pivo", "sk": "pivo", "en": "beer", "partOfSpeech": "noun", "gender": "n", "exampleSk": "Jedno pivo, prosím.", "exampleEn": "One beer, please.", "register": "neutral", "frequencyRank": 470 },
+        { "id": "v4-polievka", "sk": "polievka", "en": "soup", "partOfSpeech": "noun", "gender": "f", "exampleSk": "Polievka je teplá.", "exampleEn": "The soup is warm.", "register": "neutral", "frequencyRank": 720 },
+        { "id": "v4-syr", "sk": "syr", "en": "cheese", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Mám rád syr.", "exampleEn": "I like cheese.", "register": "neutral", "frequencyRank": 810 }
+      ],
+      "lessons": [
+        {
+          "id": "l4-jedlo-teach",
+          "title": "Čo je čo",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e4-jt-1",
+              "orderIndex": 0,
+              "type": "MCQ",
+              "promptEn": "What does 'káva' mean?",
+              "answer": "coffee",
+              "acceptable": ["coffee"],
+              "choices": ["coffee", "tea", "water", "beer"],
+              "audioKey": "kava",
+              "vocabCardId": "v4-kava",
+              "register": "neutral"
+            },
+            {
+              "id": "e4-jt-2",
+              "orderIndex": 1,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Listen and choose the word.",
+              "answer": "voda",
+              "acceptable": ["voda"],
+              "choices": ["voda", "káva", "pivo", "čaj"],
+              "audioKey": "voda",
+              "vocabCardId": "v4-voda",
+              "register": "neutral"
+            },
+            {
+              "id": "e4-jt-3",
+              "orderIndex": 2,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "chlieb",
+              "answer": "bread",
+              "acceptable": ["bread"],
+              "vocabCardId": "v4-chlieb",
+              "register": "neutral"
+            },
+            {
+              "id": "e4-jt-4",
+              "orderIndex": 3,
+              "type": "MCQ",
+              "promptEn": "Which word means 'soup'?",
+              "answer": "polievka",
+              "acceptable": ["polievka"],
+              "choices": ["polievka", "syr", "chlieb", "pivo"],
+              "vocabCardId": "v4-polievka",
+              "register": "neutral"
+            },
+            {
+              "id": "e4-jt-5",
+              "orderIndex": 4,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the food to its meaning.",
+              "answer": "",
+              "pairs": [["káva", "coffee"], ["voda", "water"], ["chlieb", "bread"], ["syr", "cheese"], ["pivo", "beer"]],
+              "register": "neutral"
+            },
+            {
+              "id": "e4-jt-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "tea",
+              "answer": "čaj",
+              "acceptable": ["čaj", "caj"],
+              "vocabCardId": "v4-caj",
+              "register": "neutral"
+            },
+            {
+              "id": "e4-jt-7",
+              "orderIndex": 6,
+              "type": "SPEAK",
+              "promptEn": "Say 'coffee' in Slovak.",
+              "promptSk": "káva",
+              "answer": "káva",
+              "acceptable": ["káva", "kava"],
+              "audioKey": "kava",
+              "vocabCardId": "v4-kava",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l4-jedlo-practice",
+          "title": "Mám rád / mám rada",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e4-jp-1",
+              "orderIndex": 0,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Mám rád syr.",
+              "answer": "I like cheese.",
+              "acceptable": ["i like cheese", "i like cheese."],
+              "vocabCardId": "v4-syr",
+              "register": "neutral"
+            },
+            {
+              "id": "e4-jp-2",
+              "orderIndex": 1,
+              "type": "MCQ",
+              "promptEn": "A woman says she likes coffee. Which is correct?",
+              "answer": "Mám rada kávu.",
+              "acceptable": ["mám rada kávu."],
+              "choices": ["Mám rada kávu.", "Mám rád kávu.", "Mám radi kávu.", "Som rada kávu."],
+              "hint": "rada = feminine speaker.",
+              "register": "neutral"
+            },
+            {
+              "id": "e4-jp-3",
+              "orderIndex": 2,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Máš rád pivo? — Áno, ____ rád pivo.",
+              "promptSk": "— Máš rád pivo? — Áno, ____ rád pivo.",
+              "answer": "mám",
+              "acceptable": ["mám", "mam"],
+              "choices": ["mám", "máš", "má", "máte"],
+              "register": "informal"
+            },
+            {
+              "id": "e4-jp-4",
+              "orderIndex": 3,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'I like tea.' (male speaker)",
+              "answer": "Mám rád čaj.",
+              "acceptable": ["mám rád čaj.", "mám rád čaj"],
+              "choices": ["Mám", "rád", "čaj.", "rada"],
+              "register": "neutral"
+            },
+            {
+              "id": "e4-jp-5",
+              "orderIndex": 4,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "I like bread. (female speaker)",
+              "answer": "Mám rada chlieb.",
+              "acceptable": ["mám rada chlieb.", "mám rada chlieb", "mam rada chlieb"],
+              "vocabCardId": "v4-chlieb",
+              "register": "neutral"
+            },
+            {
+              "id": "e4-jp-6",
+              "orderIndex": 5,
+              "type": "FILL_CASE",
+              "promptEn": "Mám rád ____ (the noun 'syr' in accusative).",
+              "promptSk": "Mám rád ____.",
+              "answer": "syr",
+              "acceptable": ["syr"],
+              "choices": ["syr", "syru", "syrom", "syre"],
+              "hint": "Inanimate masculine accusative = nominative.",
+              "vocabCardId": "v4-syr",
+              "register": "neutral",
+              "caseTag": "accusative"
+            },
+            {
+              "id": "e4-jp-7",
+              "orderIndex": 6,
+              "type": "SPEAK",
+              "promptEn": "Say 'I like coffee.' (female speaker)",
+              "promptSk": "Mám rada kávu.",
+              "answer": "Mám rada kávu.",
+              "acceptable": ["mám rada kávu.", "mám rada kávu"],
+              "audioKey": "mam-rada-kavu",
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s4-objednavanie",
+      "unitId": "u4",
+      "title": "V kaviarni a krčme",
+      "description": "Ordering in a café or pub: chcem / dám si, máte...?, and the accusative case for food and drink.",
+      "iconKey": "coffee",
+      "colorKey": "red",
+      "orderIndex": 1,
+      "cefrLevel": "A1",
+      "vocab": [
+        { "id": "v4-chcem", "sk": "chcem", "en": "I want", "partOfSpeech": "verb", "exampleSk": "Chcem kávu.", "exampleEn": "I want a coffee.", "register": "neutral", "frequencyRank": 150 },
+        { "id": "v4-damsi", "sk": "dám si", "en": "I'll have", "partOfSpeech": "phrase", "exampleSk": "Dám si pivo.", "exampleEn": "I'll have a beer.", "register": "neutral", "frequencyRank": 900 },
+        { "id": "v4-mate", "sk": "máte", "en": "do you have (formal)", "partOfSpeech": "verb", "exampleSk": "Máte čaj?", "exampleEn": "Do you have tea?", "register": "formal", "frequencyRank": 210 },
+        { "id": "v4-prosim", "sk": "prosím", "en": "please / here you go", "partOfSpeech": "phrase", "exampleSk": "Kávu, prosím.", "exampleEn": "A coffee, please.", "register": "neutral", "frequencyRank": 120 },
+        { "id": "v4-ucet", "sk": "účet", "en": "bill / check", "partOfSpeech": "noun", "gender": "m", "exampleSk": "Zaplatím, účet prosím.", "exampleEn": "I'll pay, the bill please.", "register": "neutral", "frequencyRank": 850 },
+        { "id": "v4-zaplatim", "sk": "zaplatím", "en": "I'll pay", "partOfSpeech": "verb", "exampleSk": "Zaplatím kartou.", "exampleEn": "I'll pay by card.", "register": "neutral", "frequencyRank": 870 }
+      ],
+      "lessons": [
+        {
+          "id": "l4-obj-teach",
+          "title": "Chcem a dám si",
+          "orderIndex": 0,
+          "type": "teach",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e4-ot-1",
+              "orderIndex": 0,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Chcem kávu.",
+              "answer": "I want a coffee.",
+              "acceptable": ["i want a coffee", "i want a coffee.", "i want coffee"],
+              "vocabCardId": "v4-chcem",
+              "register": "neutral"
+            },
+            {
+              "id": "e4-ot-2",
+              "orderIndex": 1,
+              "type": "MCQ",
+              "promptEn": "How do you say 'I'll have a beer.'?",
+              "answer": "Dám si pivo.",
+              "acceptable": ["dám si pivo."],
+              "choices": ["Dám si pivo.", "Máte pivo?", "Som pivo.", "Pijem pivo si."],
+              "audioKey": "dam-si-pivo",
+              "vocabCardId": "v4-damsi",
+              "register": "neutral"
+            },
+            {
+              "id": "e4-ot-3",
+              "orderIndex": 2,
+              "type": "LISTEN_CHOOSE",
+              "promptEn": "Listen: what is the customer ordering?",
+              "answer": "Dám si čaj.",
+              "acceptable": ["dám si čaj."],
+              "choices": ["Dám si čaj.", "Dám si kávu.", "Dám si pivo.", "Dám si vodu."],
+              "audioKey": "dam-si-caj",
+              "register": "neutral"
+            },
+            {
+              "id": "e4-ot-4",
+              "orderIndex": 3,
+              "type": "MCQ",
+              "promptEn": "Which means 'Do you have tea?' (formal)?",
+              "answer": "Máte čaj?",
+              "acceptable": ["máte čaj?"],
+              "choices": ["Máte čaj?", "Máš čaj?", "Mám čaj.", "Chcem čaj."],
+              "vocabCardId": "v4-mate",
+              "register": "formal"
+            },
+            {
+              "id": "e4-ot-5",
+              "orderIndex": 4,
+              "type": "MATCH_PAIRS",
+              "promptEn": "Match the phrase to its meaning.",
+              "answer": "",
+              "pairs": [["Chcem", "I want"], ["Dám si", "I'll have"], ["Máte?", "Do you have?"], ["účet", "the bill"], ["zaplatím", "I'll pay"]],
+              "register": "neutral"
+            },
+            {
+              "id": "e4-ot-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "A coffee, please.",
+              "answer": "Kávu, prosím.",
+              "acceptable": ["kávu, prosím.", "kávu prosím", "kávu, prosím"],
+              "vocabCardId": "v4-prosim",
+              "register": "neutral"
+            }
+          ]
+        },
+        {
+          "id": "l4-obj-practice",
+          "title": "Akuzatív: čo si dáš?",
+          "orderIndex": 1,
+          "type": "practice",
+          "xpReward": 15,
+          "exercises": [
+            {
+              "id": "e4-op-1",
+              "orderIndex": 0,
+              "type": "FILL_CASE",
+              "promptEn": "Dám si ____ (the drink 'káva' in accusative).",
+              "promptSk": "Dám si ____.",
+              "answer": "kávu",
+              "acceptable": ["kávu"],
+              "choices": ["kávu", "káva", "káve", "kávou"],
+              "hint": "Feminine -a becomes -u in the accusative.",
+              "vocabCardId": "v4-kava",
+              "register": "neutral",
+              "caseTag": "accusative"
+            },
+            {
+              "id": "e4-op-2",
+              "orderIndex": 1,
+              "type": "FILL_CASE",
+              "promptEn": "Chcem ____ (the noun 'voda' in accusative).",
+              "promptSk": "Chcem ____.",
+              "answer": "vodu",
+              "acceptable": ["vodu"],
+              "choices": ["vodu", "voda", "vode", "vodou"],
+              "hint": "voda → vodu.",
+              "vocabCardId": "v4-voda",
+              "register": "neutral",
+              "caseTag": "accusative"
+            },
+            {
+              "id": "e4-op-3",
+              "orderIndex": 2,
+              "type": "FILL_CASE",
+              "promptEn": "Dám si ____ (the noun 'polievka' in accusative).",
+              "promptSk": "Dám si ____.",
+              "answer": "polievku",
+              "acceptable": ["polievku"],
+              "choices": ["polievku", "polievka", "polievke", "polievkou"],
+              "vocabCardId": "v4-polievka",
+              "register": "neutral",
+              "caseTag": "accusative"
+            },
+            {
+              "id": "e4-op-4",
+              "orderIndex": 3,
+              "type": "WORD_BANK",
+              "promptEn": "Build: 'Do you have beer?' (formal)",
+              "answer": "Máte pivo?",
+              "acceptable": ["máte pivo?", "máte pivo"],
+              "choices": ["Máte", "pivo?", "Máš", "chcem"],
+              "register": "formal"
+            },
+            {
+              "id": "e4-op-5",
+              "orderIndex": 4,
+              "type": "DIALOGUE_FILL",
+              "promptEn": "— Čo si dáte? — ____ si kávu a vodu.",
+              "promptSk": "— Čo si dáte? — ____ si kávu a vodu.",
+              "answer": "Dám",
+              "acceptable": ["dám", "dam"],
+              "choices": ["Dám", "Dáš", "Máte", "Chce"],
+              "register": "neutral"
+            },
+            {
+              "id": "e4-op-6",
+              "orderIndex": 5,
+              "type": "TRANSLATE_EN_SK",
+              "promptEn": "The bill, please.",
+              "answer": "Účet, prosím.",
+              "acceptable": ["účet, prosím.", "účet prosím", "ucet prosim"],
+              "vocabCardId": "v4-ucet",
+              "register": "neutral"
+            },
+            {
+              "id": "e4-op-7",
+              "orderIndex": 6,
+              "type": "SPEAK",
+              "promptEn": "Order: 'I'll have a coffee, please.'",
+              "promptSk": "Dám si kávu, prosím.",
+              "answer": "Dám si kávu, prosím.",
+              "acceptable": ["dám si kávu, prosím.", "dám si kávu prosím"],
+              "audioKey": "dam-si-kavu-prosim",
+              "register": "neutral"
+            },
+            {
+              "id": "e4-op-8",
+              "orderIndex": 7,
+              "type": "TRANSLATE_SK_EN",
+              "promptSk": "Zaplatím kartou.",
+              "answer": "I'll pay by card.",
+              "acceptable": ["i'll pay by card", "i'll pay by card.", "i will pay by card"],
+              "vocabCardId": "v4-zaplatim",
+              "register": "neutral"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
