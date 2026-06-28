@@ -222,7 +222,7 @@ private fun EmptyPhrasebook(query: String) {
         MajaMascot(pose = "thinking")
         Spacer(Modifier.height(MaterialTheme.spacing.md))
         Text(
-            if (query.isBlank()) "No phrases yet" else "Nič tu nie je",
+            if (query.isBlank()) "No phrases yet" else "Nothing here yet",
             style = MaterialTheme.typography.headlineSmall,
         )
         Spacer(Modifier.height(MaterialTheme.spacing.xs))

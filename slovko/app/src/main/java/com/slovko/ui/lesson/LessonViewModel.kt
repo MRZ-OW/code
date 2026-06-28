@@ -15,6 +15,9 @@ import com.slovko.domain.repository.SettingsRepository
 import com.slovko.domain.repository.SrsRepository
 import com.slovko.domain.usecase.GradeAnswerUseCase
 import com.slovko.domain.usecase.XpCalculator
+import com.slovko.ui.lesson.exercise.ExerciseInput
+import com.slovko.ui.lesson.exercise.MATCH_DONE
+import com.slovko.ui.lesson.exercise.inputModeFor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -147,18 +150,20 @@ class LessonViewModel @Inject constructor(
         val s = _state.value as? LessonUiState.Active ?: return
         if (s.feedback != null) return
         val ex = s.exercise
-        val answer = when (ex.type) {
-            ExerciseType.LISTEN_TYPE, ExerciseType.TRANSLATE_EN_SK,
-            ExerciseType.TRANSLATE_SK_EN, ExerciseType.WORD_BANK,
-            ExerciseType.DIALOGUE_FILL, ExerciseType.FILL_CASE -> s.typed
+        val answer = when (inputModeFor(ex)) {
+            ExerciseInput.TEXT, ExerciseInput.WORDBANK -> s.typed
             else -> s.selected.orEmpty()
         }
         if (answer.isBlank()) return
 
-        val result = gradeAnswer(ex, answer)
-        results.add(ex.type to result.correct)
+        val correct = if (ex.type == ExerciseType.MATCH_PAIRS) {
+            answer == MATCH_DONE
+        } else {
+            gradeAnswer(ex, answer).correct
+        }
+        results.add(ex.type to correct)
 
-        if (result.correct) {
+        if (correct) {
             if (clearedIds.add(ex.id)) cleared++
             if (correctlyAnswered.none { it.id == ex.id }) {
                 correctlyAnswered.add(ex)
@@ -167,7 +172,7 @@ class LessonViewModel @Inject constructor(
             _state.value = s.copy(
                 feedback = Feedback(
                     correct = true,
-                    title = "Správne!",
+                    title = "Správne! — Correct 🎉",
                     correctAnswer = ex.answer,
                 ),
             )
@@ -175,7 +180,7 @@ class LessonViewModel @Inject constructor(
             _state.value = s.copy(
                 feedback = Feedback(
                     correct = false,
-                    title = "Skoro",
+                    title = "Not quite",
                     correctAnswer = ex.answer,
                     explanation = ex.hint,
                 ),

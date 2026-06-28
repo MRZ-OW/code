@@ -53,7 +53,7 @@ fun ChatHubScreen(
     ) {
         item {
             Text(
-                "Píšeme si",
+                "Chat practice",
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,

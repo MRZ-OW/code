@@ -81,7 +81,7 @@ fun ChatScreen(
             TopAppBar(
                 title = {
                     Text(
-                        state.title.ifBlank { "Konverzácia" },
+                        state.title.ifBlank { "Conversation" },
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                     )
@@ -229,7 +229,7 @@ private fun Composer(
                     value = draft,
                     onValueChange = { draft = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Napíš po slovensky…") },
+                    placeholder = { Text("Type in Slovak…") },
                     shape = RoundedCornerShape(24.dp),
                     maxLines = 4,
                     enabled = !sending,

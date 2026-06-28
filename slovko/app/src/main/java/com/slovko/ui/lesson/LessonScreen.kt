@@ -84,16 +84,16 @@ private fun ErrorState(onExit: () -> Unit) {
     ) {
         MajaMascot(pose = "worried")
         Spacer(Modifier.height(MaterialTheme.spacing.md))
-        Text("Túto lekciu sa nepodarilo načítať", style = MaterialTheme.typography.headlineSmall)
+        Text("Couldn't load this lesson", style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(MaterialTheme.spacing.xs))
         Text(
-            "Skús to prosím znova o chvíľu.",
+            "Please try again in a moment.",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(MaterialTheme.spacing.lg))
-        PrimaryButton(text = "Späť", onClick = onExit)
+        PrimaryButton(text = "Back", onClick = onExit)
     }
 }
 
@@ -116,7 +116,7 @@ private fun ActiveState(
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
         ) {
             IconButton(onClick = onExit) {
-                Icon(Icons.Filled.Close, contentDescription = "Zatvoriť")
+                Icon(Icons.Filled.Close, contentDescription = "Close")
             }
             LinearProgressIndicator(
                 progress = { s.progress },
@@ -161,7 +161,7 @@ private fun ActiveState(
 
             val canCheck = s.selected != null || s.typed.isNotBlank()
             PrimaryButton(
-                text = if (s.feedback != null) "Pokračovať" else "Skontrolovať",
+                text = if (s.feedback != null) "Continue" else "Check",
                 onClick = {
                     if (s.feedback != null) viewModel.continueNext() else viewModel.check()
                 },
@@ -207,7 +207,7 @@ private fun FeedbackBanner(feedback: Feedback, viewModel: LessonViewModel) {
             if (!feedback.correct) {
                 Spacer(Modifier.height(MaterialTheme.spacing.xs))
                 Text(
-                    "Správna odpoveď:",
+                    "Correct answer:",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -266,14 +266,14 @@ private fun CompletedState(s: LessonUiState.Completed, onExit: () -> Unit) {
             MajaMascot(pose = "celebrating", size = 120)
             Spacer(Modifier.height(MaterialTheme.spacing.md))
             Text(
-                "Lekcia hotová!",
+                "Lesson complete!",
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
             Spacer(Modifier.height(MaterialTheme.spacing.xs))
             Text(
-                "Skvelá práca — len tak ďalej.",
+                "Great work — keep it up!",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -292,13 +292,13 @@ private fun CompletedState(s: LessonUiState.Completed, onExit: () -> Unit) {
                     modifier = Modifier.weight(1f),
                 )
                 StatCard(
-                    label = "Presnosť",
+                    label = "Accuracy",
                     value = "$acc%",
                     accent = MaterialTheme.slovkoColors.success,
                     modifier = Modifier.weight(1f),
                 )
                 StatCard(
-                    label = "Čas",
+                    label = "Time",
                     value = formatDuration(secs),
                     accent = MaterialTheme.colorScheme.tertiary,
                     modifier = Modifier.weight(1f),
@@ -308,7 +308,7 @@ private fun CompletedState(s: LessonUiState.Completed, onExit: () -> Unit) {
             Spacer(Modifier.height(MaterialTheme.spacing.xl))
 
             PrimaryButton(
-                text = "Pokračovať",
+                text = "Continue",
                 onClick = onExit,
                 modifier = Modifier.fillMaxWidth(),
             )

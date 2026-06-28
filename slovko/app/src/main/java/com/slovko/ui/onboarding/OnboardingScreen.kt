@@ -62,7 +62,7 @@ private val GOALS = listOf(
 private data class LevelOption(val title: String, val blurb: String, val emoji: String)
 
 private val LEVELS = listOf(
-    LevelOption("Brand new", "Začíname od nuly — and that's perfect.", "🌱"),
+    LevelOption("Brand new", "Starting from zero — and that's perfect.", "🌱"),
     LevelOption("I know a little", "A few words and phrases already.", "🌤️"),
     LevelOption("I can get by", "I can hold a simple conversation.", "🏔️"),
 )

@@ -1,8 +1,10 @@
 package com.slovko.ui.lesson.exercise
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,6 +15,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -26,9 +34,24 @@ import com.slovko.core.designsystem.spacing
 import com.slovko.domain.model.Exercise
 import com.slovko.domain.model.ExerciseType
 
+/** Sentinel the match exercise emits via onSelect once every pair is connected. */
+const val MATCH_DONE = "DONE"
+
+/** What kind of input an exercise needs — shared by the renderer and the ViewModel. */
+enum class ExerciseInput { CHOICE, TEXT, WORDBANK, MATCH, SPEAK }
+
+fun inputModeFor(exercise: Exercise): ExerciseInput = when (exercise.type) {
+    ExerciseType.MATCH_PAIRS -> ExerciseInput.MATCH
+    ExerciseType.SPEAK -> ExerciseInput.SPEAK
+    ExerciseType.WORD_BANK -> ExerciseInput.WORDBANK
+    ExerciseType.LISTEN_TYPE -> ExerciseInput.TEXT
+    else -> if (exercise.choices.isNotEmpty()) ExerciseInput.CHOICE else ExerciseInput.TEXT
+}
+
 /**
- * Renders the body of a single exercise according to its [Exercise.type].
- * Pure presentation — all state lives in the caller (LessonViewModel).
+ * Renders the body of a single exercise. All instructions and chrome are in
+ * ENGLISH so a non-Slovak speaker always knows what to do; only the Slovak
+ * content being taught is shown in Slovak.
  */
 @Composable
 fun ExerciseBody(
@@ -44,32 +67,30 @@ fun ExerciseBody(
         PromptHeader(exercise, onSpeak)
         Spacer(Modifier.height(MaterialTheme.spacing.lg))
 
-        when (exercise.type) {
-            ExerciseType.MCQ,
-            ExerciseType.TRANSLATE_SK_EN,
-            ExerciseType.LISTEN_CHOOSE,
-            ExerciseType.ASPECT_CHOICE,
-            -> ChoiceBody(exercise, selected, onSelect, revealedCorrect)
-
-            ExerciseType.WORD_BANK -> WordBankBody(exercise, typed, onTyped, onSelect)
-
-            ExerciseType.TRANSLATE_EN_SK,
-            ExerciseType.LISTEN_TYPE,
-            ExerciseType.FILL_CASE,
-            ExerciseType.DIALOGUE_FILL,
-            -> TypeBody(exercise, typed, onTyped)
-
-            ExerciseType.SPEAK -> SpeakBody(exercise, selected, onSelect, onSpeak)
-
-            ExerciseType.MATCH_PAIRS -> ChoiceBody(exercise, selected, onSelect, revealedCorrect)
+        when (inputModeFor(exercise)) {
+            ExerciseInput.CHOICE -> ChoiceBody(exercise, selected, onSelect, revealedCorrect)
+            ExerciseInput.WORDBANK -> WordBankBody(exercise, typed, onTyped)
+            ExerciseInput.TEXT -> TypeBody(exercise, typed, onTyped)
+            ExerciseInput.SPEAK -> SpeakBody(exercise, selected, onSelect, onSpeak)
+            ExerciseInput.MATCH -> MatchBody(exercise, onSelect, onSpeak)
         }
     }
 }
 
 @Composable
 private fun PromptHeader(exercise: Exercise, onSpeak: (String) -> Unit) {
-    val instruction = instructionFor(exercise.type)
-    val hero = exercise.promptSk ?: exercise.promptEn
+    val instruction = instructionFor(exercise)
+
+    // Which language is the question in?  For "produce Slovak" tasks the English
+    // sentence is the prompt; otherwise prefer the Slovak hero word.
+    val heroIsEnglishTask = exercise.type == ExerciseType.TRANSLATE_EN_SK ||
+        exercise.type == ExerciseType.WORD_BANK
+    val hero = if (heroIsEnglishTask) {
+        exercise.promptEn ?: exercise.promptSk
+    } else {
+        exercise.promptSk ?: exercise.promptEn
+    }
+    val heroIsSlovak = hero != null && hero == exercise.promptSk && !heroIsEnglishTask
 
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
@@ -82,9 +103,8 @@ private fun PromptHeader(exercise: Exercise, onSpeak: (String) -> Unit) {
 
         when (exercise.type) {
             ExerciseType.LISTEN_CHOOSE, ExerciseType.LISTEN_TYPE -> {
-                // Audio is the prompt — make a big, tappable speaker tile.
                 WordTile(
-                    text = "Vypočuj si",
+                    text = "🔊  Tap to listen",
                     onSpeak = { onSpeak(exercise.answer) },
                     modifier = Modifier.wrapContentSize(),
                 )
@@ -95,16 +115,15 @@ private fun PromptHeader(exercise: Exercise, onSpeak: (String) -> Unit) {
                         hero,
                         style = MaterialTheme.typography.displaySmall,
                         fontWeight = FontWeight.Bold,
-                        color = if (exercise.promptSk != null) MaterialTheme.colorScheme.primary
+                        color = if (heroIsSlovak) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
                     )
-                    // If the hero is Slovak, let the learner hear it.
-                    if (exercise.promptSk != null) {
+                    if (heroIsSlovak) {
                         Spacer(Modifier.height(MaterialTheme.spacing.sm))
                         WordTile(
-                            text = "Prehrať",
-                            onSpeak = { onSpeak(exercise.promptSk!!) },
+                            text = "🔊  Tap to hear",
+                            onSpeak = { onSpeak(hero) },
                             modifier = Modifier.wrapContentSize(),
                         )
                     }
@@ -112,8 +131,9 @@ private fun PromptHeader(exercise: Exercise, onSpeak: (String) -> Unit) {
             }
         }
 
-        exercise.promptEn?.let { en ->
-            if (exercise.promptSk != null) {
+        // Show the English gloss whenever the hero is Slovak and a gloss exists.
+        if (heroIsSlovak) {
+            exercise.promptEn?.let { en ->
                 Spacer(Modifier.height(MaterialTheme.spacing.xs))
                 Text(
                     en,
@@ -152,6 +172,82 @@ private fun ChoiceBody(
 }
 
 @Composable
+private fun MatchBody(
+    exercise: Exercise,
+    onSelect: (String) -> Unit,
+    onSpeak: (String) -> Unit,
+) {
+    // Left = Slovak (in order), Right = English (shuffled), matched by index.
+    val pairs = exercise.pairs
+    val rightOrder = remember(exercise.id) { pairs.indices.shuffled() }
+    val matched = remember(exercise.id) { mutableStateListOf<Int>() }
+    var selectedLeft by remember(exercise.id) { mutableIntStateOf(-1) }
+    var wrongFlash by remember(exercise.id) { mutableIntStateOf(-1) }
+
+    LaunchedEffect(matched.size) {
+        if (pairs.isNotEmpty() && matched.size == pairs.size) onSelect(MATCH_DONE)
+    }
+
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+    ) {
+        // Slovak column
+        Column(
+            Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+        ) {
+            pairs.forEachIndexed { i, pair ->
+                val done = matched.contains(i)
+                OptionChip(
+                    text = pair.first,
+                    state = when {
+                        done -> OptionState.CORRECT
+                        selectedLeft == i -> OptionState.SELECTED
+                        else -> OptionState.DEFAULT
+                    },
+                    onClick = {
+                        if (!done) {
+                            selectedLeft = i
+                            onSpeak(pair.first)
+                        }
+                    },
+                )
+            }
+        }
+        // English column (shuffled)
+        Column(
+            Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+        ) {
+            rightOrder.forEach { idx ->
+                val done = matched.contains(idx)
+                OptionChip(
+                    text = pairs[idx].second,
+                    state = when {
+                        done -> OptionState.CORRECT
+                        wrongFlash == idx -> OptionState.WRONG
+                        else -> OptionState.DEFAULT
+                    },
+                    onClick = {
+                        if (!done) {
+                            if (selectedLeft == idx) {
+                                matched.add(idx)
+                                selectedLeft = -1
+                                wrongFlash = -1
+                            } else if (selectedLeft >= 0) {
+                                wrongFlash = idx
+                                selectedLeft = -1
+                            }
+                        }
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun SpeakBody(
     exercise: Exercise,
     selected: String?,
@@ -170,14 +266,21 @@ private fun SpeakBody(
             color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
         )
+        exercise.promptEn?.let {
+            Text(
+                it,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
         WordTile(
-            text = "Vypočuj si vzor",
+            text = "🔊  Tap to hear it",
             onSpeak = { onSpeak(exercise.answer) },
             modifier = Modifier.wrapContentSize(),
         )
-        // No real recognizer in this build — confirm aloud to advance.
         OptionChip(
-            text = "Povedal som to ✓",
+            text = "I said it ✓",
             state = if (selected == exercise.answer) OptionState.SELECTED else OptionState.DEFAULT,
             onClick = { onSelect(exercise.answer) },
         )
@@ -189,24 +292,23 @@ private fun WordBankBody(
     exercise: Exercise,
     typed: String,
     onTyped: (String) -> Unit,
-    onSelect: (String) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)) {
-        // The sentence being assembled.
+        // The sentence being assembled — tap to clear and start over.
         Box(
             Modifier
                 .fillMaxWidth()
-                .height(64.dp),
+                .height(64.dp)
+                .clickable { onTyped("") },
             contentAlignment = Alignment.CenterStart,
         ) {
             Text(
-                typed.ifBlank { "…" },
+                typed.ifBlank { "Tap the words below…" },
                 style = MaterialTheme.typography.headlineSmall,
                 color = if (typed.isBlank()) MaterialTheme.colorScheme.onSurfaceVariant
                 else MaterialTheme.colorScheme.onSurface,
             )
         }
-        // Word bank chips — tapping appends a word.
         FlowChips(
             words = exercise.choices,
             onWord = { word ->
@@ -219,10 +321,9 @@ private fun WordBankBody(
 
 @Composable
 private fun FlowChips(words: List<String>, onWord: (String) -> Unit) {
-    // Simple stacked rows of two to stay within the design-system primitives.
     Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)) {
         words.chunked(2).forEach { row ->
-            androidx.compose.foundation.layout.Row(
+            Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
             ) {
@@ -246,31 +347,36 @@ private fun TypeBody(
     typed: String,
     onTyped: (String) -> Unit,
 ) {
-    val slovak = exercise.type != ExerciseType.TRANSLATE_SK_EN
+    val typeEnglish = exercise.type == ExerciseType.TRANSLATE_SK_EN
     OutlinedTextField(
         value = typed,
         onValueChange = onTyped,
         modifier = Modifier.fillMaxWidth(),
         textStyle = MaterialTheme.typography.headlineSmall,
-        label = { Text(if (slovak) "Napíš po slovensky" else "Type in English") },
-        placeholder = { Text(exercise.hint.orEmpty()) },
+        label = { Text(if (typeEnglish) "Type in English" else "Type in Slovak") },
+        placeholder = { exercise.hint?.let { Text(it) } },
         singleLine = false,
-        keyboardOptions = KeyboardOptions(
-            capitalization = KeyboardCapitalization.Sentences,
-        ),
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
     )
 }
 
-private fun instructionFor(type: ExerciseType): String = when (type) {
-    ExerciseType.MCQ -> "Vyber správnu odpoveď"
-    ExerciseType.TRANSLATE_SK_EN -> "Translate to English"
-    ExerciseType.TRANSLATE_EN_SK -> "Prelož do slovenčiny"
-    ExerciseType.LISTEN_CHOOSE -> "Počúvaj a vyber"
-    ExerciseType.LISTEN_TYPE -> "Počúvaj a napíš, čo počuješ"
-    ExerciseType.WORD_BANK -> "Zostav vetu zo slov"
-    ExerciseType.SPEAK -> "Povedz nahlas"
-    ExerciseType.MATCH_PAIRS -> "Vyber správnu dvojicu"
-    ExerciseType.FILL_CASE -> "Doplň správny tvar"
-    ExerciseType.ASPECT_CHOICE -> "Vyber správny vid"
-    ExerciseType.DIALOGUE_FILL -> "Doplň repliku"
+private fun instructionFor(exercise: Exercise): String = when (inputModeFor(exercise)) {
+    ExerciseInput.MATCH -> "Tap a Slovak word, then its English match"
+    ExerciseInput.SPEAK -> "Say it out loud"
+    ExerciseInput.WORDBANK -> "Tap the words to build the Slovak sentence"
+    ExerciseInput.TEXT -> when (exercise.type) {
+        ExerciseType.LISTEN_TYPE -> "Listen and type what you hear"
+        ExerciseType.TRANSLATE_SK_EN -> "Type the English translation"
+        ExerciseType.TRANSLATE_EN_SK -> "Type it in Slovak"
+        else -> "Type the missing word"
+    }
+    ExerciseInput.CHOICE -> when (exercise.type) {
+        ExerciseType.LISTEN_CHOOSE -> "Listen, then tap what you heard"
+        ExerciseType.TRANSLATE_SK_EN -> "Tap the English meaning"
+        ExerciseType.TRANSLATE_EN_SK -> "Tap the Slovak translation"
+        ExerciseType.ASPECT_CHOICE -> "Tap the correct verb"
+        ExerciseType.FILL_CASE -> "Tap the correct form"
+        ExerciseType.DIALOGUE_FILL -> "Tap the best reply"
+        else -> "Tap the correct answer"
+    }
 }
