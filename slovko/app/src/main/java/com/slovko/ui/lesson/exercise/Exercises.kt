@@ -109,6 +109,9 @@ private fun PromptHeader(exercise: Exercise, onSpeak: (String) -> Unit) {
                     modifier = Modifier.wrapContentSize(),
                 )
             }
+            // SPEAK and MATCH render their own prompt/content in the body — the
+            // header shows only the instruction to avoid showing it twice.
+            ExerciseType.SPEAK, ExerciseType.MATCH_PAIRS -> Unit
             else -> {
                 if (hero != null) {
                     Text(
@@ -127,20 +130,19 @@ private fun PromptHeader(exercise: Exercise, onSpeak: (String) -> Unit) {
                             modifier = Modifier.wrapContentSize(),
                         )
                     }
+                    // English gloss under a Slovak hero.
+                    if (heroIsSlovak) {
+                        exercise.promptEn?.let { en ->
+                            Spacer(Modifier.height(MaterialTheme.spacing.xs))
+                            Text(
+                                en,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                    }
                 }
-            }
-        }
-
-        // Show the English gloss whenever the hero is Slovak and a gloss exists.
-        if (heroIsSlovak) {
-            exercise.promptEn?.let { en ->
-                Spacer(Modifier.height(MaterialTheme.spacing.xs))
-                Text(
-                    en,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                )
             }
         }
     }
