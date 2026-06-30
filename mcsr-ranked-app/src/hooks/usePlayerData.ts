@@ -47,7 +47,7 @@ function deriveProfile(p: UserProfile): ProfileFields {
 }
 
 export function usePlayerData() {
-  const { mode, season, search, countries, tiers, eloMin, eloMax, sort, enabledColumns } = useFilters()
+  const { mode, season, search, countries, tiers, eloMin, eloMax, sort, enabledColumns, setSort } = useFilters()
 
   // staleTime 0 lets React Query ask on every mount / focus / reconnect / tick;
   // apiGet then decides whether to actually hit the network (cache <5min → no
@@ -135,11 +135,35 @@ export function usePlayerData() {
   const [profiles, setProfiles] = useState<Map<string, ProfileFields>>(new Map())
   const [profileLoading, setProfileLoading] = useState(false)
   const { needsProfile, splitKeys } = enabledNeeds(enabledColumns)
+  // Mirror of `profiles` read inside effects so the enrichment effect doesn't
+  // need `profiles` in its deps (which would cancel its own in-flight batch on
+  // every incremental update). `requestedRef` tracks uuids already in flight so
+  // we don't refire fetches.
+  const profilesRef = useRef<Map<string, ProfileFields>>(new Map())
+  const requestedRef = useRef<Set<string>>(new Set())
+  const writeProfile = (uuid: string, fields: ProfileFields) =>
+    setProfiles((prev) => {
+      const next = new Map(prev).set(uuid, fields)
+      profilesRef.current = next
+      return next
+    })
+
+  // Profile stats are season-specific: clear when the season changes. Declared
+  // BEFORE the enrichment effect and clears the refs synchronously, so on a
+  // season change the enrichment effect (which runs next in the same commit)
+  // sees the cleared map and refetches. (Mode is intentionally not a trigger — a
+  // profile is the same regardless of which board you came from.)
+  useEffect(() => {
+    profilesRef.current = new Map()
+    requestedRef.current = new Set()
+    setProfiles(new Map())
+  }, [season])
 
   useEffect(() => {
     if (!needsProfile) return
-    const missing = filteredRows.filter((r) => !profiles.has(r.uuid))
+    const missing = filteredRows.filter((r) => !profilesRef.current.has(r.uuid) && !requestedRef.current.has(r.uuid))
     if (missing.length === 0) return
+    missing.forEach((r) => requestedRef.current.add(r.uuid))
     let cancelled = false
     setProfileLoading(true)
     ;(async () => {
@@ -147,9 +171,9 @@ export function usePlayerData() {
         missing.map(async (r) => {
           try {
             const p = await getUser(r.uuid, season ?? undefined)
-            if (!cancelled) setProfiles((prev) => new Map(prev).set(r.uuid, deriveProfile(p)))
+            if (!cancelled) writeProfile(r.uuid, deriveProfile(p))
           } catch {
-            /* skip */
+            requestedRef.current.delete(r.uuid) // allow a retry on failure
           }
         }),
       )
@@ -160,11 +184,6 @@ export function usePlayerData() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [needsProfile, filteredKey, season])
-
-  // Re-fetch profiles when season changes (different stats).
-  useEffect(() => {
-    setProfiles(new Map())
-  }, [season, mode])
 
   // ---- Splits (computed on demand) ----------------------------------------
   const [splits, setSplits] = useState<Map<string, PlayerSplits>>(new Map())
@@ -217,13 +236,24 @@ export function usePlayerData() {
     setSplitProgress(null)
   }, [])
 
+  // If the active sort column gets removed (column disabled, or mode-specific
+  // column no longer applies), fall back to the mode's default sort instead of
+  // silently ordering by a hidden column.
+  useEffect(() => {
+    const id = sort.columnId
+    const alwaysValid = id === 'rank' || id === 'player' || id === 'tier' || id === 'elo' || id === 'country'
+    const valid = alwaysValid || (id === 'recordTime' && mode === 'record') || enabledColumns.has(id)
+    if (!valid) setSort(mode === 'record' ? { columnId: 'recordTime', desc: false } : { columnId: 'rank', desc: false })
+  }, [enabledColumns, mode, sort.columnId, setSort])
+
   // ---- Sorting ------------------------------------------------------------
   const sortValue = useCallback(
     (r: PlayerRow): number | string | null => {
       const id = sort.columnId
       switch (id) {
         case 'rank':
-          return r.eloRank ?? Infinity
+          // mirror the '#' cell: global elo rank on the ladder, record rank on Fastest Times
+          return (mode === 'record' ? r.recordRank : r.eloRank) ?? Infinity
         case 'player':
           return r.nickname.toLowerCase()
         case 'country':
@@ -231,7 +261,9 @@ export function usePlayerData() {
         case 'elo':
           return r.elo
         case 'tier':
-          return rankFromElo(r.elo)?.order ?? null
+          // tier is monotonic with elo; sort by raw elo so same-tier rows still
+          // order meaningfully instead of collapsing to one value (no movement)
+          return r.elo
         case 'phasePoint':
           return r.phasePoint
         case 'recordTime':
@@ -247,7 +279,7 @@ export function usePlayerData() {
       if (!prof) return null
       return (prof as unknown as Record<string, number | null>)[id] ?? null
     },
-    [sort.columnId, profiles, splits],
+    [sort.columnId, mode, profiles, splits],
   )
 
   const sortedRows = useMemo(() => {

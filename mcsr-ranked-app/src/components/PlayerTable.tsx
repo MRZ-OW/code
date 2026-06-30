@@ -22,6 +22,9 @@ interface ColMeta {
 }
 
 const INK = '#18181b'
+// Fixed width for the sticky rank column so the second sticky column ('player')
+// can be pinned at a matching offset (no magic-number drift / overlap).
+const RANK_W = 48
 
 export function PlayerTable({
   rows,
@@ -74,8 +77,8 @@ export function PlayerTable({
                 return (
                   <th
                     key={c.id}
-                    className={clsx('border-b border-zinc-800 px-2.5 py-2', c.sticky && 'sticky z-20 bg-[#161618]')}
-                    style={c.sticky ? { left: c.id === 'rank' ? 0 : 40 } : undefined}
+                    className={clsx('border-b border-zinc-800 px-2.5 py-2', c.id === 'rank' && 'w-12 min-w-12', c.sticky && 'sticky z-20 bg-[#161618]')}
+                    style={c.sticky ? { left: c.id === 'rank' ? 0 : RANK_W } : undefined}
                   >
                     <button
                       onClick={() => handleSort(c)}
@@ -101,8 +104,8 @@ export function PlayerTable({
                 {columns.map((c) => (
                   <td
                     key={c.id}
-                    className={clsx('whitespace-nowrap px-2.5 py-2 align-middle', c.align === 'right' && 'text-right', c.sticky && 'sticky z-10')}
-                    style={c.sticky ? { left: c.id === 'rank' ? 0 : 40, background: 'var(--rowbg)' } : undefined}
+                    className={clsx('whitespace-nowrap px-2.5 py-2 align-middle', c.id === 'rank' && 'w-12 min-w-12', c.align === 'right' && 'text-right', c.sticky && 'sticky z-10')}
+                    style={c.sticky ? { left: c.id === 'rank' ? 0 : RANK_W, background: 'var(--rowbg)' } : undefined}
                   >
                     <Cell col={c.id} row={r} index={i} mode={mode} profiles={profiles} splits={splits} />
                   </td>

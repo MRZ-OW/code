@@ -34,8 +34,8 @@ export function SplitsBar({
             </div>
             {progress.currentName && <div className="mt-1 truncate font-mc text-[10px] text-zinc-600">last: {progress.currentName}</div>}
           </div>
-          <button onClick={onCancel} className="slot flex h-7 w-7 shrink-0 items-center justify-center text-zinc-400 active:translate-y-px">
-            <X size={13} />
+          <button onClick={onCancel} aria-label="Cancel split computation" className="slot flex h-9 w-9 shrink-0 items-center justify-center text-zinc-400 active:translate-y-px">
+            <X size={14} />
           </button>
         </div>
       </div>

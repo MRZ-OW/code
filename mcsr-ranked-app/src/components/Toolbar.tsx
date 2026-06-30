@@ -22,7 +22,11 @@ export function Toolbar({
         <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" />
         <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="search player…" className="input pl-9 pr-9 lowercase" />
         {search && (
-          <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-600 active:scale-90">
+          <button
+            onClick={() => setSearch('')}
+            aria-label="Clear search"
+            className="absolute right-1 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center text-zinc-600 active:scale-90"
+          >
             <X size={15} />
           </button>
         )}

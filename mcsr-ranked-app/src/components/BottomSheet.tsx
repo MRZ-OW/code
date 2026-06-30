@@ -34,7 +34,7 @@ export function BottomSheet({
         <div className="mx-auto mt-2.5 h-1 w-9 rounded-full bg-zinc-700" />
         <div className="flex items-center justify-between px-5 py-3">
           <h2 className="font-mc text-[14px] font-black text-zinc-100">{title}</h2>
-          <button onClick={onClose} className="slot flex h-8 w-8 items-center justify-center text-zinc-400 active:translate-y-px">
+          <button onClick={onClose} aria-label="Close" className="slot flex h-9 w-9 items-center justify-center text-zinc-400 active:translate-y-px">
             <X size={16} />
           </button>
         </div>

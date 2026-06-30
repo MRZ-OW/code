@@ -55,7 +55,7 @@ export function PlayerDrawer({ uuid, name, onClose }: { uuid: string; name: stri
       <div className="absolute inset-0 animate-fade-in bg-black/70" onClick={onClose} />
       <div className="relative z-10 ml-auto flex h-full w-full max-w-md animate-sheet-up flex-col bg-ink">
         <div className="safe-top sticky top-0 z-10 flex items-center gap-3 border-b border-zinc-800 bg-[#161618] px-4 py-3">
-          <button onClick={onClose} className="slot flex h-9 w-9 items-center justify-center text-zinc-300 active:translate-y-px">
+          <button onClick={onClose} aria-label="Back" className="slot flex h-10 w-10 items-center justify-center text-zinc-300 active:translate-y-px">
             <ArrowLeft size={17} />
           </button>
           <span className="font-mc text-[14px] font-black text-zinc-100">Player Profile</span>

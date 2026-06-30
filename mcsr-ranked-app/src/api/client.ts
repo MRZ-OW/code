@@ -106,15 +106,21 @@ function cacheSet<T>(key: string, data: T) {
 }
 
 function pruneCache(count: number) {
+  // Evict the oldest entries across ALL app-owned caches (request cache
+  // `mcsr:v1:` *and* the larger splits cache `mcsr:splits:`), so a full store can
+  // actually be reclaimed regardless of which cache is holding the space.
   const keys: { k: string; t: number }[] = []
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i)
-    if (!k || !k.startsWith(CACHE_PREFIX)) continue
+    if (!k || !k.startsWith('mcsr:')) continue
+    let t = 0
     try {
-      keys.push({ k, t: (JSON.parse(localStorage.getItem(k)!) as CacheRecord<unknown>).t })
+      const rec = JSON.parse(localStorage.getItem(k)!) as { t?: number; computedAt?: number }
+      t = rec.t ?? rec.computedAt ?? 0
     } catch {
-      keys.push({ k, t: 0 })
+      t = 0
     }
+    keys.push({ k, t })
   }
   keys.sort((a, b) => a.t - b.t)
   keys.slice(0, count).forEach((e) => localStorage.removeItem(e.k))
