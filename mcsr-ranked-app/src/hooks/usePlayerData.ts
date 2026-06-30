@@ -245,14 +245,12 @@ export function usePlayerData() {
     setSplitProgress(null)
   }, [])
 
-  // Sorting by a split column is meaningless until those splits exist, which
-  // otherwise looks like sorting does nothing. Kick the computation off when the
-  // user sorts by a split column and some rows are still uncomputed.
-  useEffect(() => {
-    if (!sort.columnId.startsWith('split:')) return
-    if (splitProgress || splitsToCompute.length === 0) return
-    computeSplits()
-  }, [sort.columnId, splitProgress, splitsToCompute.length, computeSplits])
+  // NOTE: splits are computed ONLY on the explicit "Compute splits" action
+  // (SplitsBar). We deliberately do NOT auto-compute when sorting by a split
+  // column: players whose computation fails (e.g. a transient API/429 error)
+  // stay uncomputed, so an auto-trigger keyed on "uncomputed rows remain" would
+  // re-fire forever — and the tight retry loop causes more rate-limiting, which
+  // sustains the loop. On-demand compute keeps it bounded and predictable.
 
   // If the active sort column gets removed (column disabled, or mode-specific
   // column no longer applies), fall back to the mode's default sort instead of
