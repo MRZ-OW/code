@@ -96,7 +96,10 @@ export function PlayerTable({
           <tbody className="font-mc">
             {rows.map((r, i) => (
               <tr
-                key={r.uuid}
+                // Fastest-Times lists the same player on multiple rows (several
+                // record times), so uuid is NOT unique there — keying by uuid
+                // would collide and break reorder-on-sort. recordId is unique.
+                key={r.recordId != null ? `rec-${r.recordId}` : r.uuid}
                 onClick={() => onSelect(r)}
                 className="group cursor-pointer border-b border-zinc-800/60 transition-colors [background:var(--rowbg)] hover:[--rowbg:#202024]"
                 style={{ ['--rowbg' as string]: INK } as React.CSSProperties}
