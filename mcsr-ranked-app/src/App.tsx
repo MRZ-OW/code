@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { AlertTriangle, Inbox } from 'lucide-react'
 import { Header } from './components/Header'
 import { Toolbar } from './components/Toolbar'
@@ -11,6 +11,7 @@ import { DataStatus } from './components/DataStatus'
 import { usePlayerData, type PlayerRow } from './hooks/usePlayerData'
 import { useOnline } from './hooks/useOnline'
 import { countriesFromCodes } from './lib/countries'
+import { prefetchHeads } from './lib/prefetch'
 
 export default function App() {
   const data = usePlayerData()
@@ -20,6 +21,11 @@ export default function App() {
   const [selected, setSelected] = useState<PlayerRow | null>(null)
 
   const countryOptions = useMemo(() => countriesFromCodes(data.baseRows.map((r) => r.country)), [data.baseRows])
+
+  // Warm the avatar cache for every player while online, so heads show offline.
+  useEffect(() => {
+    if (online && data.baseRows.length) prefetchHeads(data.baseRows.map((r) => r.uuid))
+  }, [online, data.baseRows])
 
   return (
     <div className="min-h-full">

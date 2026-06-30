@@ -20,9 +20,15 @@ and computed splits** that the official site doesn't offer.
 - **Rate-limit friendly** — a concurrency-capped request queue plus a persistent on-device cache keep well under the
   API's 500 req / 10 min limit; computed splits are cached so re-runs are instant.
 - **Offline-first** — the last-loaded leaderboard (and any profiles/splits already fetched) are persisted, so you can
-  keep filtering and sorting with no connection. An "Offline — cached data" banner shows when you're disconnected, and
-  the app silently revalidates when you're back online. (Remote Minecraft head images need a connection; names fall
-  back to initials offline.)
+  keep filtering and sorting with no connection. An "Offline — cached data" banner shows when you're disconnected.
+  Player **head avatars are cached too** (via a service worker that's warmed for every player on load), so faces show
+  offline as well.
+- **Live freshness rule** — when online, data is re-pulled whenever the cached copy is older than **5 minutes** or
+  missing; within 5 minutes the cache is served instantly. The board also refreshes on reconnect, on app resume, and on
+  a 5-minute timer. If the network/server is unreachable, it stays on the cache.
+- **Updates in place** — every APK is signed with the same committed key and carries an auto-incrementing
+  `versionCode`, so installing a newer APK **updates** the previous one and **keeps your cached data** (rather than
+  installing as a separate app or wiping storage).
 
 ## 🧮 How splits are computed
 

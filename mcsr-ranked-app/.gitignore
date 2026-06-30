@@ -11,4 +11,9 @@ android/captures/
 android/local.properties
 android/.idea/
 android/app/release/
+# NB: android/keystore/debug.keystore is intentionally committed so every build
+# is signed with the SAME key — that's what lets each APK update the previous
+# install (and keeps cached data). It uses Android's public debug credentials,
+# so there is no real secret here. Any *other* keystore stays ignored.
 *.keystore
+!android/keystore/debug.keystore

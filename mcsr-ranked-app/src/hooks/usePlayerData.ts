@@ -49,17 +49,28 @@ function deriveProfile(p: UserProfile): ProfileFields {
 export function usePlayerData() {
   const { mode, season, search, countries, tiers, eloMin, eloMax, sort, enabledColumns } = useFilters()
 
+  // staleTime 0 lets React Query ask on every mount / focus / reconnect / tick;
+  // apiGet then decides whether to actually hit the network (cache <5min → no
+  // network; ≥5min or missing → fresh pull; offline → keep cache). A 5-min
+  // interval keeps the board live while the app is open and online.
+  const liveQueryOpts = {
+    staleTime: 0,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: true,
+    refetchInterval: 5 * 60 * 1000,
+    refetchIntervalInBackground: false,
+  } as const
   const eloQuery = useQuery({
     queryKey: ['leaderboard', season],
     queryFn: () => getLeaderboard(season ?? undefined),
     enabled: mode === 'elo',
-    refetchOnReconnect: true,
+    ...liveQueryOpts,
   })
   const recordQuery = useQuery({
     queryKey: ['records', season],
     queryFn: () => getRecordLeaderboard(season ?? undefined),
     enabled: mode === 'record',
-    refetchOnReconnect: true,
+    ...liveQueryOpts,
   })
 
   const currentSeason = eloQuery.data?.season.number ?? null

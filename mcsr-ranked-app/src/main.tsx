@@ -7,6 +7,14 @@ import { initNative } from './lib/native'
 
 initNative()
 
+// Register the image-caching service worker (caches player heads for offline).
+// Degrades silently where service workers aren't available.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {})
+  })
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
