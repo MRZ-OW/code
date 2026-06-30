@@ -4,6 +4,7 @@ import clsx from 'clsx'
 import type { PlayerRow, ProfileFields } from '../hooks/usePlayerData'
 import type { PlayerSplits } from '../lib/splits'
 import { useFilters } from '../store/useFilters'
+import { useNav } from '../store/useNav'
 import { OPTIONAL_COLUMNS, COLUMN_BY_ID } from '../lib/columns'
 import { rankFromElo } from '../lib/ranks'
 import { PlayerAvatar } from './PlayerAvatar'
@@ -32,16 +33,15 @@ export function PlayerTable({
   profiles,
   splits,
   profileLoading,
-  onSelect,
 }: {
   rows: PlayerRow[]
   mode: 'elo' | 'record'
   profiles: Map<string, ProfileFields>
   splits: Map<string, PlayerSplits>
   profileLoading: boolean
-  onSelect: (row: PlayerRow) => void
 }) {
   const { enabledColumns, sort, setSort } = useFilters()
+  const { openPlayer } = useNav()
 
   // Measure the actual rendered width of the sticky rank column so the second
   // sticky column ('player') is pinned at exactly the right offset regardless of
@@ -116,7 +116,7 @@ export function PlayerTable({
                 // record times), so uuid is NOT unique there — keying by uuid
                 // would collide and break reorder-on-sort. recordId is unique.
                 key={r.recordId != null ? `rec-${r.recordId}` : r.uuid}
-                onClick={() => onSelect(r)}
+                onClick={() => openPlayer(r.uuid, r.nickname)}
                 className="group cursor-pointer border-b border-zinc-800/60 transition-colors [background:var(--rowbg)] hover:[--rowbg:#202024]"
                 style={{ ['--rowbg' as string]: INK } as React.CSSProperties}
               >
@@ -193,7 +193,13 @@ function Cell({
     case 'country':
       return <CountryFlag code={row.country} />
     case 'recordTime':
-      return <SplitTime ms={row.recordTime} className="text-[13px] font-bold text-[#2CE0D8]" />
+      return row.recordTime != null && row.recordId != null ? (
+        <MatchLink id={row.recordId} uuid={row.uuid}>
+          <SplitTime ms={row.recordTime} className="text-[13px] font-bold text-[#2CE0D8] decoration-dotted decoration-[#2CE0D8]/40 underline-offset-2 group-hover:underline" />
+        </MatchLink>
+      ) : (
+        <SplitTime ms={row.recordTime} className="text-[13px] font-bold text-[#2CE0D8]" />
+      )
     case 'phasePoint':
       return <span className="text-[13px] tabular-nums text-zinc-300">{formatNumber(row.phasePoint)}</span>
     default:
@@ -203,8 +209,18 @@ function Cell({
   if (col.startsWith('split:')) {
     const s = splits.get(row.uuid)
     if (s == null) return <span className="text-zinc-700">·</span>
-    const v = s.best?.[col.slice('split:'.length)]
-    return v == null ? <span className="text-zinc-600">—</span> : <SplitTime ms={v} className="text-[13px] font-bold text-[#2CE0D8]" />
+    const key = col.slice('split:'.length)
+    const v = s.best?.[key]
+    if (v == null) return <span className="text-zinc-600">—</span>
+    const matchId = s.source?.[key]
+    // tapping a split PB opens the match where that PB was achieved
+    return matchId != null ? (
+      <MatchLink id={matchId} uuid={row.uuid}>
+        <SplitTime ms={v} className="text-[13px] font-bold text-[#2CE0D8] decoration-dotted decoration-[#2CE0D8]/40 underline-offset-2 group-hover:underline" />
+      </MatchLink>
+    ) : (
+      <SplitTime ms={v} className="text-[13px] font-bold text-[#2CE0D8]" />
+    )
   }
 
   const prof = profiles.get(row.uuid)
@@ -227,4 +243,21 @@ function Cell({
     default:
       return <span className="text-zinc-600">—</span>
   }
+}
+
+/** A tappable time that opens the match it came from (stops the row's player-open). */
+function MatchLink({ id, uuid, children }: { id: number; uuid: string; children: React.ReactNode }) {
+  const { openMatch } = useNav()
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation()
+        openMatch(id, uuid)
+      }}
+      className="cursor-pointer"
+    >
+      {children}
+    </button>
+  )
 }

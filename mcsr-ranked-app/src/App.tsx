@@ -7,18 +7,20 @@ import { PlayerTable } from './components/PlayerTable'
 import { FilterSheet } from './components/FilterSheet'
 import { ColumnSheet } from './components/ColumnSheet'
 import { PlayerDrawer } from './components/PlayerDrawer'
+import { MatchDrawer } from './components/MatchDrawer'
 import { DataStatus } from './components/DataStatus'
-import { usePlayerData, type PlayerRow } from './hooks/usePlayerData'
+import { usePlayerData } from './hooks/usePlayerData'
 import { useOnline } from './hooks/useOnline'
+import { useNav } from './store/useNav'
 import { countriesFromCodes } from './lib/countries'
 import { prefetchHeads } from './lib/prefetch'
 
 export default function App() {
   const data = usePlayerData()
   const online = useOnline()
+  const { player, matchId, matchFocusUuid, closePlayer } = useNav()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [columnsOpen, setColumnsOpen] = useState(false)
-  const [selected, setSelected] = useState<PlayerRow | null>(null)
 
   const countryOptions = useMemo(() => countriesFromCodes(data.baseRows.map((r) => r.country)), [data.baseRows])
 
@@ -71,7 +73,6 @@ export default function App() {
               profiles={data.profiles}
               splits={data.splits}
               profileLoading={data.profileLoading}
-              onSelect={setSelected}
             />
           </div>
         )}
@@ -87,7 +88,8 @@ export default function App() {
 
       <FilterSheet open={filtersOpen} onClose={() => setFiltersOpen(false)} countries={countryOptions} />
       <ColumnSheet open={columnsOpen} onClose={() => setColumnsOpen(false)} />
-      {selected && <PlayerDrawer uuid={selected.uuid} name={selected.nickname} onClose={() => setSelected(null)} />}
+      {player && <PlayerDrawer uuid={player.uuid} name={player.name} onClose={closePlayer} />}
+      {matchId != null && <MatchDrawer id={matchId} focusUuid={matchFocusUuid} />}
     </div>
   )
 }

@@ -7,6 +7,7 @@ import type { Match } from '../api/types'
 import { computePlayerSplits, SPLITS, type PlayerSplits } from '../lib/splits'
 import { rankFromElo } from '../lib/ranks'
 import { useFilters } from '../store/useFilters'
+import { useNav } from '../store/useNav'
 import { PlayerAvatar } from './PlayerAvatar'
 import { RankBadge } from './RankBadge'
 import { RankIcon } from './RankIcon'
@@ -17,6 +18,7 @@ import { formatDuration, formatNumber, formatPercent, timeAgo, winRate, avatarUr
 
 export function PlayerDrawer({ uuid, name, onClose }: { uuid: string; name: string; onClose: () => void }) {
   const { season } = useFilters()
+  const { openMatch } = useNav()
   const profileQ = useQuery({ queryKey: ['profile', uuid, season], queryFn: () => getUser(uuid, season ?? undefined) })
   const matchesQ = useQuery({ queryKey: ['umatches', uuid], queryFn: () => getUserMatches(uuid, { type: 2, count: 12 }) })
 
@@ -130,11 +132,17 @@ export function PlayerDrawer({ uuid, name, onClose }: { uuid: string; name: stri
                 {SPLITS.map((sp) => {
                   const v = splits.best[sp.key]
                   if (v == null) return null
+                  const matchId = splits.source?.[sp.key]
                   return (
-                    <div key={sp.key} className="panel p-2.5">
+                    <button
+                      key={sp.key}
+                      onClick={() => matchId != null && openMatch(matchId, uuid)}
+                      disabled={matchId == null}
+                      className="panel p-2.5 text-left transition enabled:active:translate-y-px enabled:hover:border-[#2CE0D8]/40"
+                    >
                       <div className="font-mc text-[9px] uppercase tracking-wider text-zinc-600">{sp.label}</div>
                       <SplitTime ms={v} className="mt-0.5 block text-[15px] font-bold text-[#2CE0D8]" />
-                    </div>
+                    </button>
                   )
                 })}
                 <div className="col-span-2 font-mc text-[10px] text-zinc-600">based on {splits.sampleSize} run{splits.sampleSize === 1 ? '' : 's'}.</div>
@@ -203,6 +211,7 @@ function LinkChip({ label, href, color }: { label: string; href: string; color: 
 }
 
 function MatchRow({ match, uuid }: { match: Match; uuid: string }) {
+  const { openMatch } = useNav()
   const won = match.result?.uuid === uuid
   const draw = match.result?.uuid == null
   const change = match.changes?.find((c) => c.uuid === uuid)?.change ?? null
@@ -210,7 +219,9 @@ function MatchRow({ match, uuid }: { match: Match; uuid: string }) {
   const myTime = match.result?.uuid === uuid ? match.result.time : null
 
   return (
-    <div className="flex items-center gap-3 rounded border border-zinc-800 bg-zinc-900 px-3 py-2">
+    <button
+      onClick={() => openMatch(match.id, uuid)}
+      className="flex w-full items-center gap-3 rounded border border-zinc-800 bg-zinc-900 px-3 py-2 text-left transition hover:border-zinc-700 active:translate-y-px">
       <div className={clsx('flex h-7 w-9 shrink-0 items-center justify-center rounded-sm font-mc text-[9px] font-black', draw ? 'bg-zinc-700/40 text-zinc-300' : won ? 'bg-green-600/20 text-green-400' : 'bg-red-600/15 text-red-400')}>
         {draw ? 'TIE' : won ? 'WIN' : 'LOSS'}
       </div>
@@ -237,6 +248,6 @@ function MatchRow({ match, uuid }: { match: Match; uuid: string }) {
           </div>
         )}
       </div>
-    </div>
+    </button>
   )
 }

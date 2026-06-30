@@ -71,7 +71,7 @@ export interface ComputeOptions {
   signal?: AbortSignal
 }
 
-function extractSplits(match: Match, uuid: string): Record<string, number> {
+export function extractSplits(match: Match, uuid: string): Record<string, number> {
   const out: Record<string, number> = {}
   for (const ev of match.timelines ?? []) {
     if (ev.uuid !== uuid) continue
