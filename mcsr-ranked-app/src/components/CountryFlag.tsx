@@ -5,9 +5,12 @@ export function CountryFlag({ code, withName = false }: { code: string | null | 
   const name = countryName(code)
   return (
     <span className="inline-flex items-center gap-1.5" title={name}>
-      <span className="text-base leading-none">{flag}</span>
-      {withName && <span className="truncate text-xs text-zinc-400">{name}</span>}
-      {!withName && <span className="mono text-[11px] uppercase text-zinc-500">{code ?? '—'}</span>}
+      <span className="text-[15px] leading-none">{flag}</span>
+      {withName ? (
+        <span className="truncate font-mc text-[12px] text-zinc-400">{name}</span>
+      ) : (
+        <span className="font-mc text-[10px] uppercase text-zinc-600">{code ?? '—'}</span>
+      )}
     </span>
   )
 }

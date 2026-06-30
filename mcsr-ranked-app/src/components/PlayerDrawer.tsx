@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, ExternalLink, Trophy, Swords, Flame, Clock, Target, Crown, Loader2 } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Crown, Loader2 } from 'lucide-react'
 import clsx from 'clsx'
 import { getUser, getUserMatches } from '../api/mcsr'
 import type { Match } from '../api/types'
@@ -9,10 +9,11 @@ import { rankFromElo } from '../lib/ranks'
 import { useFilters } from '../store/useFilters'
 import { PlayerAvatar } from './PlayerAvatar'
 import { RankBadge } from './RankBadge'
+import { RankIcon } from './RankIcon'
 import { CountryFlag } from './CountryFlag'
 import { EloSparkline } from './EloSparkline'
-import { PixelOre } from './PixelOre'
-import { formatTime, formatDuration, formatNumber, formatPercent, timeAgo, winRate, avatarUrl } from '../lib/format'
+import { SplitTime } from './SplitTime'
+import { formatDuration, formatNumber, formatPercent, timeAgo, winRate, avatarUrl } from '../lib/format'
 
 export function PlayerDrawer({ uuid, name, onClose }: { uuid: string; name: string; onClose: () => void }) {
   const { season } = useFilters()
@@ -51,125 +52,113 @@ export function PlayerDrawer({ uuid, name, onClose }: { uuid: string; name: stri
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] animate-fade-in" onClick={onClose} />
-      <div className="relative z-10 ml-auto flex h-full w-full max-w-md animate-slide-up flex-col bg-ink">
-        {/* Top bar */}
-        <div className="safe-top sticky top-0 z-10 flex items-center gap-3 border-b border-line bg-ink/90 px-4 py-3 backdrop-blur">
-          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-lg border border-line bg-surface-raised text-zinc-300 active:scale-95">
+      <div className="absolute inset-0 animate-fade-in bg-black/70" onClick={onClose} />
+      <div className="relative z-10 ml-auto flex h-full w-full max-w-md animate-sheet-up flex-col bg-ink">
+        <div className="safe-top sticky top-0 z-10 flex items-center gap-3 border-b border-zinc-800 bg-[#161618] px-4 py-3">
+          <button onClick={onClose} className="slot flex h-9 w-9 items-center justify-center text-zinc-300 active:translate-y-px">
             <ArrowLeft size={17} />
           </button>
-          <span className="font-bold text-zinc-100">Player Profile</span>
+          <span className="font-mc text-[14px] font-black text-zinc-100">Player Profile</span>
         </div>
 
         <div className="safe-bottom flex-1 overflow-y-auto px-4 pb-10 pt-4">
           {/* Identity */}
-          <div className="relative overflow-hidden rounded-2xl border border-line bg-grass-fade p-4">
+          <div className="panel relative overflow-hidden p-4" style={{ borderColor: (rank?.color ?? '#3f3f46') + '55' }}>
+            <div
+              className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 opacity-[0.07]"
+              style={{ background: `radial-gradient(circle, ${rank?.color ?? '#fff'} 0%, transparent 70%)` }}
+            />
             <div className="flex items-center gap-3">
-              <PlayerAvatar uuid={uuid} name={name} size={64} />
+              <div className="slot p-1">
+                <PlayerAvatar uuid={uuid} name={name} size={56} />
+              </div>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <h2 className="truncate text-xl font-extrabold text-zinc-50">{p?.nickname ?? name}</h2>
-                </div>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
+                <h2 className="truncate font-mc text-xl font-black text-zinc-50">{p?.nickname ?? name}</h2>
+                <div className="mt-1.5 flex flex-wrap items-center gap-2">
                   <CountryFlag code={p?.country} withName />
                   {p?.eloRank != null && (
                     <span className="chip">
-                      <Crown size={12} className="text-gold" /> #{p.eloRank} global
+                      <Crown size={11} className="text-yellow-400" /> #{p.eloRank}
                     </span>
                   )}
                 </div>
               </div>
             </div>
-            <div className="mt-3 flex items-center justify-between rounded-xl border border-line bg-ink/40 p-3">
-              <RankBadge elo={p?.eloRate ?? null} size="lg" showElo />
+            <div className="mt-3 flex items-center justify-between rounded border border-zinc-800 bg-abyss p-3">
+              <RankBadge elo={p?.eloRate ?? null} size="lg" />
               <div className="text-right">
-                <div className="mono text-2xl font-extrabold" style={{ color: rank?.color ?? '#fff' }}>
+                <div className="font-mc text-2xl font-black tabular-nums" style={{ color: rank?.color ?? '#fff' }}>
                   {formatNumber(p?.eloRate ?? null)}
                 </div>
-                <div className="text-[10px] uppercase tracking-wide text-muted">Current Elo</div>
+                <div className="font-mc text-[9px] uppercase tracking-widest text-zinc-600">Current Elo</div>
               </div>
             </div>
           </div>
 
-          {/* Season elo trajectory */}
           {phases.length >= 2 && (
-            <Section title="Season Elo" icon={<Trophy size={14} />}>
-              <div className="rounded-xl border border-line bg-surface/50 p-3">
+            <Section title="Season Elo">
+              <div className="panel p-3">
                 <EloSparkline values={phases} color={rank?.color} />
-                <div className="mt-2 flex justify-between text-[11px] text-muted">
-                  <span>Low <span className="mono text-zinc-300">{formatNumber(p?.seasonResult?.lowest ?? null)}</span></span>
-                  <span>Peak <span className="mono text-grass-200">{formatNumber(p?.seasonResult?.highest ?? null)}</span></span>
+                <div className="mt-2 flex justify-between font-mc text-[11px] text-zinc-600">
+                  <span>low <span className="tabular-nums text-zinc-400">{formatNumber(p?.seasonResult?.lowest ?? null)}</span></span>
+                  <span>peak <span className="tabular-nums text-green-400">{formatNumber(p?.seasonResult?.highest ?? null)}</span></span>
                 </div>
               </div>
             </Section>
           )}
 
-          {/* Stats grid */}
-          <Section title="Season Stats" icon={<Target size={14} />}>
-            <div className="grid grid-cols-2 gap-2">
-              <Stat icon={<Clock size={13} />} label="Best PB" value={formatTime(s?.bestTime?.ranked)} accent="text-grass-200" />
-              <Stat icon={<Swords size={13} />} label="Matches" value={formatNumber(s?.playedMatches?.ranked)} />
-              <Stat icon={<Trophy size={13} />} label="Win Rate" value={formatPercent(winRate(s?.wins?.ranked ?? null, s?.loses?.ranked ?? null))} />
-              <Stat icon={<Flame size={13} />} label="Best Streak" value={formatNumber(s?.highestWinStreak?.ranked)} />
-              <Stat icon={<Trophy size={13} />} label="Wins" value={formatNumber(s?.wins?.ranked)} />
-              <Stat icon={<Clock size={13} />} label="Playtime" value={formatDuration(s?.playtime?.ranked)} />
+          <Section title="Season Stats">
+            <div className="grid grid-cols-2 gap-1.5">
+              <Stat label="Best PB" value={<SplitTime ms={s?.bestTime?.ranked} className="text-green-400" />} />
+              <Stat label="Matches" value={formatNumber(s?.playedMatches?.ranked)} />
+              <Stat label="Win Rate" value={formatPercent(winRate(s?.wins?.ranked ?? null, s?.loses?.ranked ?? null))} />
+              <Stat label="Best Streak" value={formatNumber(s?.highestWinStreak?.ranked)} />
+              <Stat label="Wins" value={formatNumber(s?.wins?.ranked)} />
+              <Stat label="Playtime" value={formatDuration(s?.playtime?.ranked)} />
             </div>
           </Section>
 
-          {/* Computed splits */}
-          <Section
-            title="Best Splits"
-            icon={<PixelOre tierKey="diamond" size={14} />}
-            note="Fastest milestone times across this player's quickest tracked runs."
-          >
+          <Section title="Best Splits" right={<RankIcon tierKey="diamond" size={15} />} note="Fastest milestones across this player's quickest tracked runs.">
             {splitsLoading ? (
-              <div className="flex items-center gap-2 rounded-xl border border-line bg-surface/50 px-3 py-4 text-xs text-muted">
-                <Loader2 size={14} className="animate-spin text-diamond" /> Analysing fastest runs…
+              <div className="panel flex items-center gap-2 px-3 py-4 font-mc text-xs text-zinc-500">
+                <Loader2 size={13} className="animate-spin text-[#2CE0D8]" /> analysing fastest runs…
               </div>
             ) : splits && Object.keys(splits.best).length > 0 ? (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-1.5">
                 {SPLITS.map((sp) => {
                   const v = splits.best[sp.key]
                   if (v == null) return null
                   return (
-                    <div key={sp.key} className="rounded-xl border border-line bg-surface/50 p-2.5">
-                      <div className="text-[10px] uppercase tracking-wide text-muted">{sp.label}</div>
-                      <div className="mono mt-0.5 text-sm font-bold text-diamond">{formatTime(v)}</div>
+                    <div key={sp.key} className="panel p-2.5">
+                      <div className="font-mc text-[9px] uppercase tracking-wider text-zinc-600">{sp.label}</div>
+                      <SplitTime ms={v} className="mt-0.5 block text-[15px] font-bold text-[#2CE0D8]" />
                     </div>
                   )
                 })}
-                <div className="col-span-2 mt-0.5 text-[10px] text-muted">Based on {splits.sampleSize} run{splits.sampleSize === 1 ? '' : 's'}.</div>
+                <div className="col-span-2 font-mc text-[10px] text-zinc-600">based on {splits.sampleSize} run{splits.sampleSize === 1 ? '' : 's'}.</div>
               </div>
             ) : (
-              <div className="rounded-xl border border-line bg-surface/50 px-3 py-4 text-xs text-muted">No timeline data available.</div>
+              <div className="panel px-3 py-4 font-mc text-xs text-zinc-600">no timeline data available.</div>
             )}
           </Section>
 
-          {/* Connections */}
           {p?.connections && Object.keys(p.connections).length > 0 && (
-            <Section title="Links" icon={<ExternalLink size={14} />}>
-              <div className="flex flex-wrap gap-2">
-                {p.connections.twitch && <LinkChip label={`Twitch · ${p.connections.twitch.name}`} href={`https://twitch.tv/${p.connections.twitch.id}`} color="#a970ff" />}
-                {p.connections.youtube && <LinkChip label="YouTube" href={`https://youtube.com/channel/${p.connections.youtube.id}`} color="#ff4e45" />}
-                {p.connections.discord && <span className="chip">Discord · {p.connections.discord.name}</span>}
+            <Section title="Links">
+              <div className="flex flex-wrap gap-1.5">
+                {p.connections.twitch && <LinkChip label={`twitch/${p.connections.twitch.id}`} href={`https://twitch.tv/${p.connections.twitch.id}`} color="#a970ff" />}
+                {p.connections.youtube && <LinkChip label="youtube" href={`https://youtube.com/channel/${p.connections.youtube.id}`} color="#ff4e45" />}
+                {p.connections.discord && <span className="chip normal-case">{p.connections.discord.name}</span>}
               </div>
             </Section>
           )}
 
-          {/* Recent matches */}
-          <Section title="Recent Ranked Matches" icon={<Swords size={14} />}>
+          <Section title="Recent Ranked Matches">
             {matchesQ.isLoading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="skeleton h-12 w-full rounded-xl" />
-                ))}
-              </div>
+              <div className="space-y-1.5">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton h-12 w-full rounded" />)}</div>
             ) : (
-              <div className="space-y-2">
-                {(matchesQ.data ?? []).map((m) => (
-                  <MatchRow key={m.id} match={m} uuid={uuid} />
-                ))}
-                {(matchesQ.data ?? []).length === 0 && <div className="text-xs text-muted">No recent matches.</div>}
+              <div className="space-y-1.5">
+                {(matchesQ.data ?? []).map((m) => <MatchRow key={m.id} match={m} uuid={uuid} />)}
+                {(matchesQ.data ?? []).length === 0 && <div className="font-mc text-xs text-zinc-600">no recent matches.</div>}
               </div>
             )}
           </Section>
@@ -179,37 +168,34 @@ export function PlayerDrawer({ uuid, name, onClose }: { uuid: string; name: stri
   )
 }
 
-function Section({ title, icon, note, children }: { title: string; icon: React.ReactNode; note?: string; children: React.ReactNode }) {
+function Section({ title, right, note, children }: { title: string; right?: React.ReactNode; note?: string; children: React.ReactNode }) {
   return (
     <section className="mt-5">
-      <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-        {icon}
-        {title}
+      <div className="mb-2 flex items-center justify-between">
+        <span className="font-mc text-[11px] font-bold uppercase tracking-wider text-zinc-400">{title}</span>
+        {right}
       </div>
-      {note && <p className="mb-2 text-[11px] leading-snug text-muted">{note}</p>}
+      {note && <p className="mb-2 font-sans text-[11px] leading-snug text-zinc-600">{note}</p>}
       {children}
     </section>
   )
 }
 
-function Stat({ icon, label, value, accent }: { icon: React.ReactNode; label: string; value: string; accent?: string }) {
+function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-line bg-surface/50 p-3">
-      <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted">
-        {icon}
-        {label}
-      </div>
-      <div className={clsx('mono mt-1 text-base font-bold text-zinc-100', accent)}>{value}</div>
+    <div className="panel p-3">
+      <div className="font-mc text-[9px] uppercase tracking-wider text-zinc-600">{label}</div>
+      <div className="mt-1 font-mc text-base font-bold tabular-nums text-zinc-100">{value}</div>
     </div>
   )
 }
 
 function LinkChip({ label, href, color }: { label: string; href: string; color: string }) {
   return (
-    <a href={href} target="_blank" rel="noreferrer" className="chip" style={{ borderColor: color + '66' }}>
-      <span className="h-2 w-2 rounded-full" style={{ background: color }} />
+    <a href={href} target="_blank" rel="noreferrer" className="chip normal-case" style={{ borderColor: color + '66' }}>
+      <span className="h-2 w-2 rounded-sm" style={{ background: color }} />
       {label}
-      <ExternalLink size={11} className="text-muted" />
+      <ExternalLink size={10} className="text-zinc-600" />
     </a>
   )
 }
@@ -222,33 +208,28 @@ function MatchRow({ match, uuid }: { match: Match; uuid: string }) {
   const myTime = match.result?.uuid === uuid ? match.result.time : null
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-line bg-surface/50 px-3 py-2.5">
-      <div
-        className={clsx(
-          'grid h-8 w-8 shrink-0 place-items-center rounded-lg text-[10px] font-extrabold',
-          draw ? 'bg-zinc-500/20 text-zinc-300' : won ? 'bg-grass/20 text-grass' : 'bg-red-500/15 text-red-300',
-        )}
-      >
+    <div className="flex items-center gap-3 rounded border border-zinc-800 bg-zinc-900 px-3 py-2">
+      <div className={clsx('flex h-7 w-9 shrink-0 items-center justify-center rounded-sm font-mc text-[9px] font-black', draw ? 'bg-zinc-700/40 text-zinc-300' : won ? 'bg-green-600/20 text-green-400' : 'bg-red-600/15 text-red-400')}>
         {draw ? 'TIE' : won ? 'WIN' : 'LOSS'}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5 text-sm">
-          <span className="text-muted">vs</span>
+        <div className="flex items-center gap-1.5">
+          <span className="font-mc text-[11px] text-zinc-600">vs</span>
           {opponent ? (
             <>
-              <img src={avatarUrl(opponent.uuid, 32)} alt="" className="h-4 w-4 rounded" style={{ imageRendering: 'pixelated' }} />
-              <span className="truncate font-semibold text-zinc-200">{opponent.nickname}</span>
+              <img src={avatarUrl(opponent.uuid, 24)} alt="" className="pixel h-4 w-4 rounded-sm" />
+              <span className="truncate font-mc text-[12px] font-bold text-zinc-300">{opponent.nickname}</span>
             </>
           ) : (
-            <span className="text-zinc-300">—</span>
+            <span className="text-zinc-500">—</span>
           )}
         </div>
-        <div className="text-[10px] text-muted">{timeAgo(match.date)}{match.forfeited ? ' · forfeit' : ''}</div>
+        <div className="font-mc text-[10px] text-zinc-600">{timeAgo(match.date)}{match.forfeited ? ' · ff' : ''}</div>
       </div>
       <div className="text-right">
-        {myTime != null && myTime > 0 && <div className="mono text-xs font-bold text-zinc-100">{formatTime(myTime)}</div>}
+        {myTime != null && myTime > 0 && <SplitTime ms={myTime} className="block text-[12px] font-bold text-zinc-200" />}
         {change != null && (
-          <div className={clsx('mono text-[11px] font-bold', change > 0 ? 'text-grass' : change < 0 ? 'text-red-300' : 'text-muted')}>
+          <div className={clsx('font-mc text-[11px] font-bold tabular-nums', change > 0 ? 'text-green-400' : change < 0 ? 'text-red-400' : 'text-zinc-600')}>
             {change > 0 ? '+' : ''}
             {change}
           </div>

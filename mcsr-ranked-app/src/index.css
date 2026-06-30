@@ -2,6 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Monocraft — OFL 1.1, an open-source Minecraft-style typeface (IdreesInc).
+   Bundled locally so the app/font work fully offline inside the APK. */
+@font-face {
+  font-family: 'Monocraft';
+  src: url('./assets/fonts/Monocraft-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Monocraft';
+  src: url('./assets/fonts/Monocraft-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Monocraft';
+  src: url('./assets/fonts/Monocraft-Black.woff2') format('woff2');
+  font-weight: 900;
+  font-display: swap;
+}
+
 @layer base {
   :root {
     color-scheme: dark;
@@ -12,12 +33,10 @@
     height: 100%;
   }
   body {
-    @apply bg-ink text-zinc-200 font-sans antialiased;
-    background-image: var(--tw-gradient, none);
+    @apply bg-ink text-zinc-300 font-sans antialiased;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior-y: none;
   }
-  /* Respect device safe areas (status bar / nav bar) */
   .safe-top {
     padding-top: env(safe-area-inset-top, 0px);
   }
@@ -25,16 +44,20 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   ::selection {
-    background: rgba(76, 193, 90, 0.3);
+    background: #22c55e;
+    color: #09090b;
   }
-  /* Slim scrollbars */
+  /* crisp Minecraft pixels on heads / logos */
+  img.pixel {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+  }
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
   ::-webkit-scrollbar-thumb {
-    background: #2a3a2c;
-    border-radius: 99px;
+    background: #3f3f46;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
@@ -42,43 +65,73 @@
 }
 
 @layer components {
-  .card {
-    @apply rounded-2xl border border-line bg-surface/80 shadow-card backdrop-blur-sm;
+  /* Flat zinc surfaces — no rounding past a small radius, no glow, no blur. */
+  .panel {
+    @apply rounded-md border border-zinc-700/80 bg-zinc-900;
   }
-  .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-raised px-2.5 py-1 text-xs font-medium text-zinc-300 transition;
+  .panel-raised {
+    @apply rounded-md border border-zinc-700/70 bg-zinc-800;
   }
-  .chip-active {
-    @apply border-grass/60 bg-grass/15 text-grass-100;
+
+  /* Sortable column-header chip, lifted straight from the real MCSR site. */
+  .hchip {
+    @apply rounded px-2 py-1 text-[11px] font-bold uppercase tracking-wide text-zinc-500 transition;
   }
+  .hchip:hover {
+    @apply bg-white/5 text-zinc-300;
+  }
+  .hchip-active {
+    @apply text-brand-text;
+  }
+
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-surface-raised px-3.5 py-2 text-sm font-semibold text-zinc-200 transition active:scale-[0.97] disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded border border-zinc-700 bg-zinc-800 px-3 py-2 font-mc text-[13px] font-bold text-zinc-200 transition active:translate-y-px;
   }
   .btn:hover {
-    @apply border-line bg-surface-high;
+    @apply bg-zinc-700/70;
   }
   .btn-primary {
-    @apply border-transparent bg-grass-500 text-ink-900 shadow-glow;
+    @apply border-green-600 bg-green-600 text-zinc-950;
   }
   .btn-primary:hover {
-    @apply bg-grass-400;
+    @apply bg-green-500;
   }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded border border-zinc-700 bg-zinc-800 px-2 py-1 font-mc text-[11px] font-bold text-zinc-300 transition;
+  }
+  .chip:hover {
+    @apply bg-zinc-700/60;
+  }
+  .chip-on {
+    @apply border-green-600/70 bg-green-600/15 text-brand-text;
+  }
+
   .input {
-    @apply w-full rounded-xl border border-line bg-ink/60 px-3 py-2 text-sm text-zinc-100 placeholder:text-muted focus:border-grass/60 focus:outline-none focus:ring-2 focus:ring-grass/20;
+    @apply w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-2 font-mc text-[13px] text-zinc-100 placeholder:text-zinc-600 focus:border-green-600/70 focus:outline-none;
   }
-  .mono {
-    font-variant-numeric: tabular-nums;
-    @apply font-mono;
+
+  /* Minecraft inventory-slot inset bevel — used sparingly (avatar frames). */
+  .slot {
+    background: #1c1c1f;
+    box-shadow: inset 1.5px 1.5px 0 0 #09090b, inset -1.5px -1.5px 0 0 #3f3f46;
+    image-rendering: pixelated;
   }
-  /* loading shimmer */
+
+  /* XP-bar style stepped progress fill (splits compute). */
+  .xpbar {
+    background-image: repeating-linear-gradient(
+      45deg,
+      #22c55e 0,
+      #22c55e 8px,
+      #16a34a 8px,
+      #16a34a 16px
+    );
+    background-size: 24px 100%;
+  }
+
   .skeleton {
-    @apply relative overflow-hidden rounded-md bg-surface-high;
-  }
-  .skeleton::after {
-    content: '';
-    @apply absolute inset-0 animate-shimmer;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-    transform: translateX(-100%);
+    @apply animate-pulse bg-zinc-800;
   }
 }
 
@@ -86,7 +139,9 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
-  .text-balance {
-    text-wrap: balance;
+  /* hard keyboard focus ring, Minecraft-style (no soft glow) */
+  .focus-mc:focus-visible {
+    outline: 2px solid #e4e4e7;
+    outline-offset: 1px;
   }
 }

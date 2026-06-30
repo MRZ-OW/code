@@ -1,6 +1,6 @@
-export function EloSparkline({ values, color = '#4cc15a', height = 44 }: { values: number[]; color?: string; height?: number }) {
+export function EloSparkline({ values, color = '#22c55e', height = 44 }: { values: number[]; color?: string; height?: number }) {
   const pts = values.filter((v) => Number.isFinite(v))
-  if (pts.length < 2) return <div className="text-xs text-muted">Not enough phases to chart.</div>
+  if (pts.length < 2) return <div className="font-mc text-xs text-zinc-600">Not enough phases to chart.</div>
   const w = 100
   const min = Math.min(...pts)
   const max = Math.max(...pts)

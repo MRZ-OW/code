@@ -1,28 +1,36 @@
 import { useState } from 'react'
-import { avatarUrl } from '../lib/format'
 import clsx from 'clsx'
+import { headUrl, avatarUrl, minotarUrl } from '../lib/format'
 
-export function PlayerAvatar({ uuid, name, size = 36 }: { uuid: string; name: string; size?: number }) {
-  const [err, setErr] = useState(false)
-  const initial = (name?.[0] ?? '?').toUpperCase()
+/**
+ * Real Minecraft head. Tries the 3D isometric render first (like the MCSR site),
+ * then falls back to the flat avatar, then a different provider, then initials.
+ */
+export function PlayerAvatar({ uuid, name, size = 36, flat = false }: { uuid: string; name: string; size?: number; flat?: boolean }) {
+  const [stage, setStage] = useState(0)
+  const px = Math.round(size * 2)
+  const sources = flat ? [avatarUrl(uuid, px), minotarUrl(uuid, px)] : [headUrl(uuid, px), avatarUrl(uuid, px), minotarUrl(uuid, px)]
+
+  if (stage >= sources.length) {
+    return (
+      <div className="slot flex shrink-0 items-center justify-center" style={{ width: size, height: size }}>
+        <span className="font-mc text-zinc-500" style={{ fontSize: size * 0.42 }}>
+          {(name?.[0] ?? '?').toUpperCase()}
+        </span>
+      </div>
+    )
+  }
+
   return (
-    <div
-      className={clsx('relative shrink-0 overflow-hidden rounded-md border border-line bg-surface-high')}
-      style={{ width: size, height: size, imageRendering: 'pixelated' }}
-    >
-      {!err ? (
-        <img
-          src={avatarUrl(uuid, size * 2)}
-          alt={name}
-          width={size}
-          height={size}
-          loading="lazy"
-          onError={() => setErr(true)}
-          style={{ imageRendering: 'pixelated', display: 'block' }}
-        />
-      ) : (
-        <div className="flex h-full w-full items-center justify-center text-sm font-bold text-grass-300">{initial}</div>
-      )}
-    </div>
+    <img
+      src={sources[stage]}
+      alt={name}
+      width={size}
+      height={size}
+      loading="lazy"
+      onError={() => setStage((s) => s + 1)}
+      className={clsx('pixel shrink-0 select-none')}
+      style={{ width: size, height: size, display: 'block' }}
+    />
   )
 }

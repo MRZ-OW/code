@@ -60,7 +60,30 @@ export function formatPercent(frac: number | null | undefined, digits = 0): stri
   return `${(frac * 100).toFixed(digits)}%`
 }
 
-/** Minecraft head avatar from a uuid via the (CORS-enabled) mc-heads service. */
+/** 3D isometric Minecraft head render (matches the real MCSR site's avatars). */
+export function headUrl(uuid: string, size = 64): string {
+  return `https://mc-heads.net/head/${uuid}/${size}`
+}
+
+/** Flat 2D head avatar — fallback when the 3D render is unavailable. */
 export function avatarUrl(uuid: string, size = 64): string {
   return `https://mc-heads.net/avatar/${uuid}/${size}`
+}
+
+/** Last-resort head source (different provider) for the fallback chain. */
+export function minotarUrl(uuid: string, size = 64): string {
+  return `https://minotar.net/helm/${uuid}/${size}.png`
+}
+
+/**
+ * MCSR's signature time treatment: a large main time + a smaller decimal tail.
+ * 368221ms -> { main: "6:08", decimal: ".221" }.
+ */
+export function splitParts(ms: number | null | undefined): { main: string; decimal: string } | null {
+  if (ms == null || !Number.isFinite(ms)) return null
+  const totalSeconds = Math.floor(ms / 1000)
+  const millis = ms % 1000
+  const m = Math.floor(totalSeconds / 60)
+  const s = totalSeconds % 60
+  return { main: `${m}:${s.toString().padStart(2, '0')}`, decimal: `.${millis.toString().padStart(3, '0')}` }
 }

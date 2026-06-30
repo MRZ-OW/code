@@ -37,6 +37,28 @@ Fetching every run for every player would blow the rate limit, so the engine use
 
 See [`src/lib/splits.ts`](src/lib/splits.ts).
 
+## 🎨 Design
+
+The look is modelled on the real MCSR Ranked site (verified against its own
+stylesheet/JS), not a generic dark theme:
+
+- **Palette** — Tailwind **zinc** dashboard (`#18181b` base) with `green-500` as
+  the only saturated accent, exactly like the site.
+- **Type** — the OFL **Monocraft** pixel font (an open Minecraft-typeface
+  alternative by IdreesInc) is bundled locally for the wordmark, numbers, tier
+  labels and chrome; system-sans is reserved for long descriptive copy.
+- **Tier emblems** — bespoke pixel-art Minecraft items (coal lump, iron/gold/
+  netherite ingots, emerald/diamond gems) in the **exact** tier hex values from
+  the site's own tier table.
+- **Avatars** — real 3D isometric Minecraft head renders (mc-heads.net, with a
+  fallback chain), `image-rendering: pixelated` to stay crisp.
+- **Split times** — MCSR's signature treatment: a large `m:ss` figure with a
+  smaller `.mmm` decimal tail.
+- Flat surfaces, hard pixel borders/bevels, no glassmorphism, no glow shadows.
+
+Fonts are bundled under `src/assets/fonts/` (Monocraft, SIL OFL 1.1 — see
+`OFL.txt`). The "Minecraft" name/data and Mojang assets are **not** redistributed.
+
 ## 🏗️ Tech stack
 
 Vite · React + TypeScript · Tailwind CSS · TanStack Query · Zustand · Capacitor (Android).

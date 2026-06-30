@@ -47,7 +47,7 @@ export default function App() {
             sub={data.error.message || 'The MCSR Ranked API may be rate-limiting or offline. Try again shortly.'}
           />
         ) : data.rows.length === 0 ? (
-          <EmptyState icon={<Inbox className="text-muted" />} title="No players match your filters" sub="Try clearing a filter or widening the elo range." />
+          <EmptyState icon={<Inbox className="text-zinc-500" />} title="No players match your filters" sub="Try clearing a filter or widening the elo range." />
         ) : (
           <div className="animate-fade-in">
             <PlayerTable
@@ -61,12 +61,12 @@ export default function App() {
           </div>
         )}
 
-        <footer className="mt-6 text-center text-[10px] leading-relaxed text-muted">
-          Built on the public{' '}
-          <a href="https://docs.mcsrranked.com" target="_blank" rel="noreferrer" className="text-grass-300 underline">
+        <footer className="mt-6 text-center font-mc text-[10px] leading-relaxed text-zinc-600">
+          built on the public{' '}
+          <a href="https://docs.mcsrranked.com" target="_blank" rel="noreferrer" className="text-green-500 underline">
             MCSR Ranked API
           </a>
-          . Not affiliated with Mojang. Data refreshes live · splits computed on device.
+          {' '}· not affiliated with Mojang · splits computed on device
         </footer>
       </main>
 
@@ -79,13 +79,13 @@ export default function App() {
 
 function TableSkeleton() {
   return (
-    <div className="card space-y-px overflow-hidden p-0">
+    <div className="panel divide-y divide-zinc-800/60 overflow-hidden bg-abyss p-0">
       {Array.from({ length: 12 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-3 px-3 py-3">
-          <div className="skeleton h-4 w-5" />
-          <div className="skeleton h-8 w-8 rounded-md" />
-          <div className="skeleton h-4 flex-1" />
-          <div className="skeleton h-4 w-12" />
+        <div key={i} className="flex items-center gap-3 px-3 py-2.5">
+          <div className="skeleton h-4 w-4 rounded-sm" />
+          <div className="skeleton h-6 w-6 rounded-sm" />
+          <div className="skeleton h-3.5 flex-1 rounded-sm" />
+          <div className="skeleton h-3.5 w-12 rounded-sm" />
         </div>
       ))}
     </div>
@@ -94,10 +94,10 @@ function TableSkeleton() {
 
 function EmptyState({ icon, title, sub }: { icon: React.ReactNode; title: string; sub: string }) {
   return (
-    <div className="card flex flex-col items-center gap-2 px-6 py-14 text-center">
-      <div className="grid h-12 w-12 place-items-center rounded-xl border border-line bg-surface-raised">{icon}</div>
-      <h3 className="text-sm font-bold text-zinc-100">{title}</h3>
-      <p className="max-w-xs text-xs text-muted">{sub}</p>
+    <div className="panel flex flex-col items-center gap-2 px-6 py-14 text-center">
+      <div className="slot flex h-12 w-12 items-center justify-center">{icon}</div>
+      <h3 className="font-mc text-sm font-bold text-zinc-100">{title}</h3>
+      <p className="max-w-xs font-sans text-xs text-zinc-500">{sub}</p>
     </div>
   )
 }
