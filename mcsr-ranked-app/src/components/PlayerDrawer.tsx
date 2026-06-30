@@ -48,7 +48,9 @@ export function PlayerDrawer({ uuid, name, onClose }: { uuid: string; name: stri
   const p = profileQ.data
   const s = p?.statistics?.season
   const rank = rankFromElo(p?.eloRate ?? null)
-  const phases = p?.seasonResult?.phases?.map((ph) => ph.eloRate ?? 0) ?? []
+  // Drop phases with no elo rather than coercing null→0 (which would draw a
+  // false drop-to-zero on the sparkline).
+  const phases = (p?.seasonResult?.phases ?? []).map((ph) => ph.eloRate).filter((v): v is number => v != null)
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col">

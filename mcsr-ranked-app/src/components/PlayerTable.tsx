@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 import clsx from 'clsx'
 import type { PlayerRow, ProfileFields } from '../hooks/usePlayerData'
@@ -43,6 +43,21 @@ export function PlayerTable({
 }) {
   const { enabledColumns, sort, setSort } = useFilters()
 
+  // Measure the actual rendered width of the sticky rank column so the second
+  // sticky column ('player') is pinned at exactly the right offset regardless of
+  // content width (avoids overlap/gap on horizontal scroll).
+  const rankRef = useRef<HTMLTableCellElement>(null)
+  const [rankW, setRankW] = useState(RANK_W)
+  useLayoutEffect(() => {
+    const el = rankRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const update = () => setRankW(el.getBoundingClientRect().width || RANK_W)
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
   const columns = useMemo<ColMeta[]>(() => {
     const cols: ColMeta[] = [
       { id: 'rank', label: '#', align: 'right', defaultDesc: false, sticky: true },
@@ -77,8 +92,9 @@ export function PlayerTable({
                 return (
                   <th
                     key={c.id}
+                    ref={c.id === 'rank' ? rankRef : undefined}
                     className={clsx('border-b border-zinc-800 px-2.5 py-2', c.id === 'rank' && 'w-12 min-w-12', c.sticky && 'sticky z-20 bg-[#161618]')}
-                    style={c.sticky ? { left: c.id === 'rank' ? 0 : RANK_W } : undefined}
+                    style={c.sticky ? { left: c.id === 'rank' ? 0 : rankW } : undefined}
                   >
                     <button
                       onClick={() => handleSort(c)}
@@ -108,7 +124,7 @@ export function PlayerTable({
                   <td
                     key={c.id}
                     className={clsx('whitespace-nowrap px-2.5 py-2 align-middle', c.id === 'rank' && 'w-12 min-w-12', c.align === 'right' && 'text-right', c.sticky && 'sticky z-10')}
-                    style={c.sticky ? { left: c.id === 'rank' ? 0 : RANK_W, background: 'var(--rowbg)' } : undefined}
+                    style={c.sticky ? { left: c.id === 'rank' ? 0 : rankW, background: 'var(--rowbg)' } : undefined}
                   >
                     <Cell col={c.id} row={r} index={i} mode={mode} profiles={profiles} splits={splits} />
                   </td>

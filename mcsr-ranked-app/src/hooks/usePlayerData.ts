@@ -210,10 +210,13 @@ export function usePlayerData() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredKey, splitKeys.length])
 
-  const splitsToCompute = useMemo(
-    () => (splitKeys.length === 0 ? [] : filteredRows.filter((r) => !splits.has(r.uuid))),
-    [filteredRows, splits, splitKeys.length],
-  )
+  // De-duplicate by uuid: the Fastest-Times board can list the same player on
+  // several rows, but a player's splits only need computing once.
+  const splitsToCompute = useMemo(() => {
+    if (splitKeys.length === 0) return []
+    const seen = new Set<string>()
+    return filteredRows.filter((r) => !splits.has(r.uuid) && !seen.has(r.uuid) && (seen.add(r.uuid), true))
+  }, [filteredRows, splits, splitKeys.length])
 
   const computeSplits = useCallback(async () => {
     const players = splitsToCompute.map((r) => ({ identifier: r.uuid, uuid: r.uuid, name: r.nickname }))
@@ -222,19 +225,34 @@ export function usePlayerData() {
     abortRef.current = abort
     setSplitProgress({ done: 0, total: players.length })
     const result = await computeManySplits(players, { signal: abort.signal }, (p) => setSplitProgress({ ...p }))
+    // Merge whatever completed (valid + already cached on device).
     setSplits((prev) => {
       const next = new Map(prev)
       result.forEach((v, k) => next.set(k, v))
       return next
     })
-    setSplitProgress(null)
-    abortRef.current = null
+    // Only touch shared progress/abort state if THIS batch is still the current
+    // one — a cancel + immediate recompute could have started a newer batch.
+    if (abortRef.current === abort) {
+      setSplitProgress(null)
+      abortRef.current = null
+    }
   }, [splitsToCompute])
 
   const cancelSplits = useCallback(() => {
     abortRef.current?.abort()
+    abortRef.current = null
     setSplitProgress(null)
   }, [])
+
+  // Sorting by a split column is meaningless until those splits exist, which
+  // otherwise looks like sorting does nothing. Kick the computation off when the
+  // user sorts by a split column and some rows are still uncomputed.
+  useEffect(() => {
+    if (!sort.columnId.startsWith('split:')) return
+    if (splitProgress || splitsToCompute.length === 0) return
+    computeSplits()
+  }, [sort.columnId, splitProgress, splitsToCompute.length, computeSplits])
 
   // If the active sort column gets removed (column disabled, or mode-specific
   // column no longer applies), fall back to the mode's default sort instead of
