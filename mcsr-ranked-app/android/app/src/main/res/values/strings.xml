@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MCSR Ranked Explorer</string>
+    <string name="title_activity_main">MCSR Ranked Explorer</string>
+    <string name="package_name">com.mcsr.explorer</string>
+    <string name="custom_url_scheme">com.mcsr.explorer</string>
+</resources>

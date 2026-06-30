@@ -1,0 +1,269 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { getLeaderboard, getRecordLeaderboard, getUser } from '../api/mcsr'
+import type { UserProfile } from '../api/types'
+import { rankFromElo } from '../lib/ranks'
+import { countryName } from '../lib/countries'
+import { enabledNeeds } from '../lib/columns'
+import { computeManySplits, getCachedSplits, type BatchProgress, type PlayerSplits } from '../lib/splits'
+import { winRate as calcWinRate } from '../lib/format'
+import { useFilters } from '../store/useFilters'
+
+export interface PlayerRow {
+  uuid: string
+  nickname: string
+  country: string | null
+  roleType: number
+  elo: number | null
+  eloRank: number | null
+  phasePoint: number | null
+  recordTime?: number | null
+  recordId?: number
+  recordRank?: number
+}
+
+export interface ProfileFields {
+  bestTime: number | null
+  winRate: number | null
+  highestElo: number | null
+  matches: number | null
+  wins: number | null
+  winStreak: number | null
+  playtime: number | null
+}
+
+function deriveProfile(p: UserProfile): ProfileFields {
+  const s = p.statistics?.season
+  return {
+    bestTime: s?.bestTime?.ranked ?? null,
+    winRate: calcWinRate(s?.wins?.ranked ?? null, s?.loses?.ranked ?? null),
+    highestElo: p.seasonResult?.highest ?? null,
+    matches: s?.playedMatches?.ranked ?? null,
+    wins: s?.wins?.ranked ?? null,
+    winStreak: s?.highestWinStreak?.ranked ?? null,
+    playtime: s?.playtime?.ranked ?? null,
+  }
+}
+
+export function usePlayerData() {
+  const { mode, season, search, countries, tiers, eloMin, eloMax, sort, enabledColumns } = useFilters()
+
+  const eloQuery = useQuery({
+    queryKey: ['leaderboard', season],
+    queryFn: () => getLeaderboard(season ?? undefined),
+    enabled: mode === 'elo',
+  })
+  const recordQuery = useQuery({
+    queryKey: ['records', season],
+    queryFn: () => getRecordLeaderboard(season ?? undefined),
+    enabled: mode === 'record',
+  })
+
+  const currentSeason = eloQuery.data?.season.number ?? null
+
+  // ---- Base rows ----------------------------------------------------------
+  const baseRows = useMemo<PlayerRow[]>(() => {
+    if (mode === 'elo') {
+      const users = eloQuery.data?.users ?? []
+      return users.map((u) => ({
+        uuid: u.uuid,
+        nickname: u.nickname,
+        country: u.country,
+        roleType: u.roleType,
+        elo: u.eloRate,
+        eloRank: u.eloRank,
+        phasePoint: u.seasonResult?.phasePoint ?? null,
+      }))
+    }
+    const entries = recordQuery.data ?? []
+    return entries.map((e) => ({
+      uuid: e.user.uuid,
+      nickname: e.user.nickname,
+      country: e.user.country,
+      roleType: e.user.roleType,
+      elo: e.user.eloRate,
+      eloRank: e.user.eloRank,
+      phasePoint: null,
+      recordTime: e.time,
+      recordId: e.id,
+      recordRank: e.rank,
+    }))
+  }, [mode, eloQuery.data, recordQuery.data])
+
+  // ---- Filtering ----------------------------------------------------------
+  const filteredRows = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return baseRows.filter((r) => {
+      if (q && !r.nickname.toLowerCase().includes(q)) return false
+      if (countries.size > 0) {
+        const code = r.country ? r.country.toLowerCase() : '__unknown'
+        if (!countries.has(code)) return false
+      }
+      if (tiers.size > 0) {
+        const rk = rankFromElo(r.elo)
+        if (!rk || !tiers.has(rk.tier.key)) return false
+      }
+      if (eloMin != null && (r.elo ?? -Infinity) < eloMin) return false
+      if (eloMax != null && (r.elo ?? Infinity) > eloMax) return false
+      return true
+    })
+  }, [baseRows, search, countries, tiers, eloMin, eloMax])
+
+  const filteredKey = useMemo(() => filteredRows.map((r) => r.uuid).join(','), [filteredRows])
+
+  // ---- Profile enrichment (lazy, over the filtered set) -------------------
+  const [profiles, setProfiles] = useState<Map<string, ProfileFields>>(new Map())
+  const [profileLoading, setProfileLoading] = useState(false)
+  const { needsProfile, splitKeys } = enabledNeeds(enabledColumns)
+
+  useEffect(() => {
+    if (!needsProfile) return
+    const missing = filteredRows.filter((r) => !profiles.has(r.uuid))
+    if (missing.length === 0) return
+    let cancelled = false
+    setProfileLoading(true)
+    ;(async () => {
+      await Promise.all(
+        missing.map(async (r) => {
+          try {
+            const p = await getUser(r.uuid, season ?? undefined)
+            if (!cancelled) setProfiles((prev) => new Map(prev).set(r.uuid, deriveProfile(p)))
+          } catch {
+            /* skip */
+          }
+        }),
+      )
+      if (!cancelled) setProfileLoading(false)
+    })()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needsProfile, filteredKey, season])
+
+  // Re-fetch profiles when season changes (different stats).
+  useEffect(() => {
+    setProfiles(new Map())
+  }, [season, mode])
+
+  // ---- Splits (computed on demand) ----------------------------------------
+  const [splits, setSplits] = useState<Map<string, PlayerSplits>>(new Map())
+  const [splitProgress, setSplitProgress] = useState<BatchProgress | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
+
+  // Seed from persistent cache whenever the filtered set or split needs change.
+  useEffect(() => {
+    if (splitKeys.length === 0) return
+    setSplits((prev) => {
+      const next = new Map(prev)
+      let changed = false
+      for (const r of filteredRows) {
+        if (!next.has(r.uuid)) {
+          const cached = getCachedSplits(r.uuid)
+          if (cached) {
+            next.set(r.uuid, cached)
+            changed = true
+          }
+        }
+      }
+      return changed ? next : prev
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredKey, splitKeys.length])
+
+  const splitsToCompute = useMemo(
+    () => (splitKeys.length === 0 ? [] : filteredRows.filter((r) => !splits.has(r.uuid))),
+    [filteredRows, splits, splitKeys.length],
+  )
+
+  const computeSplits = useCallback(async () => {
+    const players = splitsToCompute.map((r) => ({ identifier: r.uuid, uuid: r.uuid, name: r.nickname }))
+    if (players.length === 0) return
+    const abort = new AbortController()
+    abortRef.current = abort
+    setSplitProgress({ done: 0, total: players.length })
+    const result = await computeManySplits(players, { signal: abort.signal }, (p) => setSplitProgress({ ...p }))
+    setSplits((prev) => {
+      const next = new Map(prev)
+      result.forEach((v, k) => next.set(k, v))
+      return next
+    })
+    setSplitProgress(null)
+    abortRef.current = null
+  }, [splitsToCompute])
+
+  const cancelSplits = useCallback(() => {
+    abortRef.current?.abort()
+    setSplitProgress(null)
+  }, [])
+
+  // ---- Sorting ------------------------------------------------------------
+  const sortValue = useCallback(
+    (r: PlayerRow): number | string | null => {
+      const id = sort.columnId
+      switch (id) {
+        case 'rank':
+          return r.eloRank ?? Infinity
+        case 'player':
+          return r.nickname.toLowerCase()
+        case 'country':
+          return countryName(r.country).toLowerCase()
+        case 'elo':
+          return r.elo
+        case 'tier':
+          return rankFromElo(r.elo)?.order ?? null
+        case 'phasePoint':
+          return r.phasePoint
+        case 'recordTime':
+          return r.recordTime ?? null
+        default:
+          break
+      }
+      if (id.startsWith('split:')) {
+        const key = id.slice('split:'.length)
+        return splits.get(r.uuid)?.best?.[key] ?? null
+      }
+      const prof = profiles.get(r.uuid)
+      if (!prof) return null
+      return (prof as unknown as Record<string, number | null>)[id] ?? null
+    },
+    [sort.columnId, profiles, splits],
+  )
+
+  const sortedRows = useMemo(() => {
+    const rows = [...filteredRows]
+    rows.sort((a, b) => {
+      const av = sortValue(a)
+      const bv = sortValue(b)
+      // nulls always sort last regardless of direction
+      if (av == null && bv == null) return 0
+      if (av == null) return 1
+      if (bv == null) return -1
+      let cmp: number
+      if (typeof av === 'string' || typeof bv === 'string') cmp = String(av).localeCompare(String(bv))
+      else cmp = (av as number) - (bv as number)
+      return sort.desc ? -cmp : cmp
+    })
+    return rows
+  }, [filteredRows, sortValue, sort.desc])
+
+  return {
+    mode,
+    currentSeason,
+    isLoading: mode === 'elo' ? eloQuery.isLoading : recordQuery.isLoading,
+    error: (mode === 'elo' ? eloQuery.error : recordQuery.error) as Error | null,
+    baseRows,
+    rows: sortedRows,
+    filteredCount: filteredRows.length,
+    totalCount: baseRows.length,
+    profiles,
+    profileLoading,
+    needsProfile,
+    splits,
+    splitKeys,
+    splitProgress,
+    splitsToCompute: splitsToCompute.length,
+    computeSplits,
+    cancelSplits,
+  }
+}

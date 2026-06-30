@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-ink text-zinc-200 font-sans antialiased;
+    background-image: var(--tw-gradient, none);
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+  /* Respect device safe areas (status bar / nav bar) */
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  ::selection {
+    background: rgba(76, 193, 90, 0.3);
+  }
+  /* Slim scrollbars */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2a3a2c;
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-line bg-surface/80 shadow-card backdrop-blur-sm;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-raised px-2.5 py-1 text-xs font-medium text-zinc-300 transition;
+  }
+  .chip-active {
+    @apply border-grass/60 bg-grass/15 text-grass-100;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-surface-raised px-3.5 py-2 text-sm font-semibold text-zinc-200 transition active:scale-[0.97] disabled:opacity-50;
+  }
+  .btn:hover {
+    @apply border-line bg-surface-high;
+  }
+  .btn-primary {
+    @apply border-transparent bg-grass-500 text-ink-900 shadow-glow;
+  }
+  .btn-primary:hover {
+    @apply bg-grass-400;
+  }
+  .input {
+    @apply w-full rounded-xl border border-line bg-ink/60 px-3 py-2 text-sm text-zinc-100 placeholder:text-muted focus:border-grass/60 focus:outline-none focus:ring-2 focus:ring-grass/20;
+  }
+  .mono {
+    font-variant-numeric: tabular-nums;
+    @apply font-mono;
+  }
+  /* loading shimmer */
+  .skeleton {
+    @apply relative overflow-hidden rounded-md bg-surface-high;
+  }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0 animate-shimmer;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+    transform: translateX(-100%);
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+}
