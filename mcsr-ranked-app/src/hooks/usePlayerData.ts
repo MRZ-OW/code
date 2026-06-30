@@ -73,7 +73,28 @@ export function usePlayerData() {
     ...liveQueryOpts,
   })
 
-  const currentSeason = eloQuery.data?.season.number ?? null
+  // The LIVE season number, fetched independently of the selected season so that
+  // viewing an older season doesn't make the app think that season is "live".
+  const liveSeasonQ = useQuery({
+    queryKey: ['liveLeaderboard'],
+    queryFn: () => getLeaderboard(),
+    staleTime: 5 * 60 * 1000,
+    refetchOnReconnect: true,
+  })
+  const currentSeason = liveSeasonQ.data?.season.number ?? eloQuery.data?.season.number ?? null
+
+  // ---- Global player search (find anyone by exact IGN, beyond the top 150) ----
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 350)
+    return () => clearTimeout(t)
+  }, [search])
+  const searchQ = useQuery({
+    queryKey: ['userSearch', debouncedSearch.toLowerCase(), season],
+    queryFn: () => getUser(debouncedSearch, season ?? undefined),
+    enabled: debouncedSearch.length >= 2,
+    retry: false, // 404 = no such player
+  })
 
   // Timestamp the current board was last cached (for the offline/updated badge).
   const seasonQ = season != null ? `?season=${season}` : ''
@@ -129,7 +150,22 @@ export function usePlayerData() {
     })
   }, [baseRows, search, countries, tiers, eloMin, eloMax])
 
-  const filteredKey = useMemo(() => filteredRows.map((r) => r.uuid).join(','), [filteredRows])
+  // A player found by exact-name search who isn't in the loaded leaderboard
+  // (e.g. ranked outside the top 150) — surfaced so you can find anyone in MCSR.
+  const searchRow = useMemo<PlayerRow | null>(() => {
+    const u = searchQ.data
+    if (!u || !search.trim()) return null
+    return { uuid: u.uuid, nickname: u.nickname, country: u.country, roleType: u.roleType, elo: u.eloRate, eloRank: u.eloRank, phasePoint: u.seasonResult?.phasePoint ?? null }
+  }, [searchQ.data, search])
+
+  // Augment the filtered rows with the global search hit if it isn't already shown.
+  const augmentedRows = useMemo(() => {
+    if (!searchRow) return filteredRows
+    if (filteredRows.some((r) => r.uuid === searchRow.uuid)) return filteredRows
+    return [searchRow, ...filteredRows]
+  }, [filteredRows, searchRow])
+
+  const filteredKey = useMemo(() => augmentedRows.map((r) => r.uuid).join(','), [augmentedRows])
 
   // ---- Profile enrichment (lazy, over the filtered set) -------------------
   const [profiles, setProfiles] = useState<Map<string, ProfileFields>>(new Map())
@@ -161,7 +197,7 @@ export function usePlayerData() {
 
   useEffect(() => {
     if (!needsProfile) return
-    const missing = filteredRows.filter((r) => !profilesRef.current.has(r.uuid) && !requestedRef.current.has(r.uuid))
+    const missing = augmentedRows.filter((r) => !profilesRef.current.has(r.uuid) && !requestedRef.current.has(r.uuid))
     if (missing.length === 0) return
     missing.forEach((r) => requestedRef.current.add(r.uuid))
     let cancelled = false
@@ -196,7 +232,7 @@ export function usePlayerData() {
     setSplits((prev) => {
       const next = new Map(prev)
       let changed = false
-      for (const r of filteredRows) {
+      for (const r of augmentedRows) {
         if (!next.has(r.uuid)) {
           const cached = getCachedSplits(r.uuid)
           if (cached) {
@@ -215,8 +251,8 @@ export function usePlayerData() {
   const splitsToCompute = useMemo(() => {
     if (splitKeys.length === 0) return []
     const seen = new Set<string>()
-    return filteredRows.filter((r) => !splits.has(r.uuid) && !seen.has(r.uuid) && (seen.add(r.uuid), true))
-  }, [filteredRows, splits, splitKeys.length])
+    return augmentedRows.filter((r) => !splits.has(r.uuid) && !seen.has(r.uuid) && (seen.add(r.uuid), true))
+  }, [augmentedRows, splits, splitKeys.length])
 
   const computeSplits = useCallback(async () => {
     const players = splitsToCompute.map((r) => ({ identifier: r.uuid, uuid: r.uuid, name: r.nickname }))
@@ -224,8 +260,14 @@ export function usePlayerData() {
     const abort = new AbortController()
     abortRef.current = abort
     setSplitProgress({ done: 0, total: players.length })
-    const result = await computeManySplits(players, { signal: abort.signal }, (p) => setSplitProgress({ ...p }))
-    // Merge whatever completed (valid + already cached on device).
+    const result = await computeManySplits(
+      players,
+      { signal: abort.signal },
+      (p) => setSplitProgress({ ...p }),
+      // stream: light up each player's row the moment it resolves
+      (s) => setSplits((prev) => new Map(prev).set(s.uuid, s)),
+    )
+    // Final merge as a safety net (covers anything the stream missed).
     setSplits((prev) => {
       const next = new Map(prev)
       result.forEach((v, k) => next.set(k, v))
@@ -299,7 +341,7 @@ export function usePlayerData() {
   )
 
   const sortedRows = useMemo(() => {
-    const rows = [...filteredRows]
+    const rows = [...augmentedRows]
     rows.sort((a, b) => {
       const av = sortValue(a)
       const bv = sortValue(b)
@@ -313,7 +355,7 @@ export function usePlayerData() {
       return sort.desc ? -cmp : cmp
     })
     return rows
-  }, [filteredRows, sortValue, sort.desc])
+  }, [augmentedRows, sortValue, sort.desc])
 
   return {
     mode,
@@ -325,7 +367,7 @@ export function usePlayerData() {
     refetch,
     baseRows,
     rows: sortedRows,
-    filteredCount: filteredRows.length,
+    filteredCount: augmentedRows.length,
     totalCount: baseRows.length,
     profiles,
     profileLoading,
@@ -336,5 +378,14 @@ export function usePlayerData() {
     splitsToCompute: splitsToCompute.length,
     computeSplits,
     cancelSplits,
+    searchState: (debouncedSearch.length < 2
+      ? 'idle'
+      : searchQ.isFetching
+        ? 'loading'
+        : searchQ.isError
+          ? 'notfound'
+          : searchQ.data
+            ? 'found'
+            : 'idle') as 'idle' | 'loading' | 'found' | 'notfound',
   }
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AlertTriangle, Inbox } from 'lucide-react'
+import { AlertTriangle, Inbox, Loader2 } from 'lucide-react'
 import { Header } from './components/Header'
 import { Toolbar } from './components/Toolbar'
 import { SplitsBar } from './components/SplitsBar'
@@ -64,7 +64,17 @@ export default function App() {
             }
           />
         ) : data.rows.length === 0 ? (
-          <EmptyState icon={<Inbox className="text-zinc-500" />} title="No players match your filters" sub="Try clearing a filter or widening the elo range." />
+          data.searchState === 'loading' ? (
+            <EmptyState icon={<Loader2 className="animate-spin text-green-500" />} title="Searching all of MCSR…" sub="Looking up that player by name." />
+          ) : data.searchState === 'notfound' ? (
+            <EmptyState icon={<Inbox className="text-zinc-500" />} title="No player by that exact name" sub="Search uses exact in-game names. Check spelling, or browse the top-150 ladder." />
+          ) : (
+            <EmptyState
+              icon={<Inbox className="text-zinc-500" />}
+              title="No players match your filters"
+              sub="The ranked ladder shows the top 150. To find anyone else in MCSR, type their exact in-game name."
+            />
+          )
         ) : (
           <div className="animate-fade-in">
             <PlayerTable

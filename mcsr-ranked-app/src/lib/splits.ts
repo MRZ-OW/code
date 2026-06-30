@@ -92,61 +92,53 @@ export function extractSplits(match: Match, uuid: string): Record<string, number
   return out
 }
 
-/**
- * Compute a player's best splits.
- *
- * Strategy (cheap + accurate): a player's personal-best splits almost always
- * occur inside their fastest *winning* runs. We scan their recent ranked
- * matches, take the `topN` fastest wins (where the API gives us their time
- * directly without an extra request), then fetch only those match timelines.
- */
-export async function computePlayerSplits(
-  identifier: string,
-  uuid: string,
-  opts: ComputeOptions = {},
-): Promise<PlayerSplits> {
-  const topN = opts.topN ?? 10
-  const pages = opts.pages ?? 2
+type Acc = { best: Record<string, number>; source: Record<string, number> }
 
+function foldSplits(acc: Acc, splits: Record<string, number>, matchId: number) {
+  for (const [k, t] of Object.entries(splits)) {
+    if (acc.best[k] == null || t < acc.best[k]) {
+      acc.best[k] = t
+      acc.source[k] = matchId
+    }
+  }
+}
+
+/** The match ids of a player's `topN` fastest winning ranked runs (one list request). */
+async function fastestWinIds(identifier: string, uuid: string, topN: number): Promise<number[]> {
+  // sort=fastest returns the player's runs fastest-first server-side (one request,
+  // no "the PB is on page 3" blind spot). Keep only their own completed wins.
+  const page = await getUserMatches(identifier, { type: 2, count: 100, sort: 'fastest', excludeDecay: true })
+  return page
+    .filter((m) => !m.forfeited && m.result?.uuid === uuid && (m.result.time ?? 0) > 0)
+    .slice(0, topN)
+    .map((m) => m.id)
+}
+
+/**
+ * Compute a player's best splits (single-player path, e.g. the profile drawer).
+ * Cheap: one fastest-list request + a few match-detail fetches. Each match
+ * detail also carries the opponent's timeline, but here we only need this player.
+ */
+export async function computePlayerSplits(identifier: string, uuid: string, opts: ComputeOptions = {}): Promise<PlayerSplits> {
+  const topN = opts.topN ?? 4
   if (!opts.force) {
     const cached = readCache(uuid)
     if (cached) return cached
   }
-
-  // 1. Gather recent ranked matches across a few pages.
-  const all: Match[] = []
-  for (let p = 0; p < pages; p++) {
-    if (opts.signal?.aborted) throw new DOMException('aborted', 'AbortError')
-    const page = await getUserMatches(identifier, { type: 2, count: 50, page: p, excludeDecay: true })
-    all.push(...page)
-    if (page.length < 50) break // no more pages
-  }
-
-  // 2. Keep the player's completed *wins* (their time is `result.time`), fastest first.
-  const fastWins = all
-    .filter((m) => !m.forfeited && m.result?.uuid === uuid && (m.result.time ?? 0) > 0)
-    .sort((a, b) => a.result.time - b.result.time)
-    .slice(0, topN)
-
-  // 3. Fetch those match timelines and fold in the best split per milestone.
-  const best: Record<string, number> = {}
-  const source: Record<string, number> = {}
+  const ids = await fastestWinIds(identifier, uuid, topN)
+  const acc: Acc = { best: {}, source: {} }
   let analysed = 0
-
-  for (const m of fastWins) {
+  for (const id of ids) {
     if (opts.signal?.aborted) throw new DOMException('aborted', 'AbortError')
-    const detail = await getMatch(m.id)
-    analysed++
-    const splits = extractSplits(detail, uuid)
-    for (const [k, t] of Object.entries(splits)) {
-      if (best[k] == null || t < best[k]) {
-        best[k] = t
-        source[k] = m.id
-      }
+    try {
+      const detail = await getMatch(id)
+      foldSplits(acc, extractSplits(detail, uuid), id)
+      analysed++
+    } catch {
+      /* skip a failed match */
     }
   }
-
-  const result: PlayerSplits = { uuid, best, source, sampleSize: analysed, computedAt: Date.now() }
+  const result: PlayerSplits = { uuid, best: acc.best, source: acc.source, sampleSize: analysed, computedAt: Date.now() }
   writeCache(result)
   return result
 }
@@ -158,29 +150,95 @@ export interface BatchProgress {
 }
 
 /**
- * Compute splits for many players, reporting progress. Players already cached
- * resolve instantly. Designed to run over the *currently filtered* set only.
+ * Compute splits for many players, FAST.
+ *
+ * Optimisations vs the naive per-player loop:
+ *  - one `sort=fastest` list request per player (not 2 pages), topN=3 details.
+ *  - a single shared accumulator: every fetched match detail carries BOTH
+ *    players' timelines, so we fold splits for EVERY target player present in a
+ *    match — opponents get covered "for free", and because best = MIN over
+ *    observed runs, folding more runs is always correct.
+ *  - the request queue de-dupes concurrent identical match fetches and caches
+ *    details 24h, so shared games are fetched once.
+ *  - results stream out via `onPlayer` the moment each player resolves.
+ * Players are processed in input (elo) order so high-overlap top players run
+ * first and pre-cover everyone else.
  */
 export async function computeManySplits(
   players: { identifier: string; uuid: string; name: string }[],
   opts: ComputeOptions,
   onProgress: (p: BatchProgress) => void,
+  onPlayer?: (s: PlayerSplits) => void,
 ): Promise<Map<string, PlayerSplits>> {
+  const topN = opts.topN ?? 3
+  const total = players.length
   const result = new Map<string, PlayerSplits>()
+  const targets = new Set(players.map((p) => p.uuid))
+  const acc = new Map<string, Acc>(players.map((p) => [p.uuid, { best: {}, source: {} }]))
   let done = 0
-  onProgress({ done, total: players.length })
-  for (const pl of players) {
-    if (opts.signal?.aborted) break
-    try {
-      const s = await computePlayerSplits(pl.identifier, pl.uuid, opts)
-      result.set(pl.uuid, s)
-    } catch (e) {
-      if ((e as Error)?.name === 'AbortError') break
-      // skip player on error, keep going
-    }
+  onProgress({ done, total })
+
+  const finalize = (p: { uuid: string; name: string }, analysed: number) => {
+    const a = acc.get(p.uuid)!
+    const ps: PlayerSplits = { uuid: p.uuid, best: a.best, source: a.source, sampleSize: analysed, computedAt: Date.now() }
+    writeCache(ps)
+    result.set(p.uuid, ps)
+    onPlayer?.(ps)
     done++
-    onProgress({ done, total: players.length, currentName: pl.name })
+    onProgress({ done, total, currentName: p.name })
   }
+
+  // Serve fresh-cached players instantly; only the rest need network work.
+  const toFetch: typeof players = []
+  for (const p of players) {
+    if (!opts.force) {
+      const cached = readCache(p.uuid)
+      if (cached) {
+        // seed the accumulator with cached bests so opponents can still benefit
+        foldSplits(acc.get(p.uuid)!, cached.best, 0)
+        Object.assign(acc.get(p.uuid)!.source, cached.source)
+        result.set(p.uuid, cached)
+        onPlayer?.(cached)
+        done++
+        onProgress({ done, total, currentName: p.name })
+        continue
+      }
+    }
+    toFetch.push(p)
+  }
+
+  // Process players concurrently (the queue caps real concurrency). Each player:
+  // fetch their fastest-win ids, fetch those match details, fold ALL target
+  // players present in each match, then finalize this player.
+  await Promise.all(
+    toFetch.map(async (p) => {
+      if (opts.signal?.aborted) return
+      let ids: number[] = []
+      try {
+        ids = await fastestWinIds(p.identifier, p.uuid, topN)
+      } catch {
+        /* no list → finalize with whatever opponents contributed */
+      }
+      let analysed = 0
+      await Promise.all(
+        ids.map(async (id) => {
+          if (opts.signal?.aborted) return
+          try {
+            const detail = await getMatch(id)
+            analysed++
+            for (const pl of detail.players ?? []) {
+              if (!targets.has(pl.uuid)) continue
+              foldSplits(acc.get(pl.uuid)!, extractSplits(detail, pl.uuid), id)
+            }
+          } catch {
+            /* skip a failed match */
+          }
+        }),
+      )
+      if (opts.signal?.aborted) return
+      finalize(p, analysed)
+    }),
+  )
   return result
 }
 

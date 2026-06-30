@@ -4,17 +4,21 @@ const BASE = 'https://api.mcsrranked.com'
 const CACHE_PREFIX = 'mcsr:v1:'
 
 /**
- * The public API allows 500 requests / 10 min. We keep well under that with a
- * small concurrency cap + a minimum gap between request *starts*, and we cache
- * aggressively so split computation over a filtered set stays cheap on re-runs.
+ * The public API allows 500 requests per sliding 10-min window (header
+ * `ratelimit: "500-in-10min"; r=<remaining>; t=<reset-seconds>`). Bursts are
+ * allowed, so rather than a fixed slow drip we BURST while the window has budget
+ * and back off as it runs low — using the server's own remaining/reset counter.
+ * Aggressive caching keeps re-runs nearly free.
  */
-const MAX_CONCURRENT = 6
-const MIN_GAP_MS = 90
+const MAX_CONCURRENT = 12
+const RESERVE = 40 // keep this much budget for live board/profile refreshes
+const COLD_GAP_MS = 90 // conservative pacing until we've seen a ratelimit header
 
 type Job<T> = {
   url: string
   resolve: (v: T) => void
   reject: (e: unknown) => void
+  tries: number
 }
 
 let active = 0
@@ -22,10 +26,37 @@ let lastStart = 0
 const queue: Job<unknown>[] = []
 const inflight = new Map<string, Promise<unknown>>()
 
+// Server-truth rate-limit budget, updated from response headers.
+const budget = { remaining: 500, resetAt: 0, known: false }
+let pausedUntil = 0
+
+export function getBudget() {
+  return { remaining: budget.remaining, resetInSeconds: Math.max(0, Math.round((budget.resetAt - Date.now()) / 1000)), known: budget.known }
+}
+
+function updateBudgetFromHeaders(headers: Headers) {
+  // ratelimit: "500-in-10min"; r=498; t=529
+  const h = headers.get('ratelimit')
+  if (!h) return
+  const r = /(?:^|[;,\s])r=(\d+)/.exec(h)
+  const t = /(?:^|[;,\s])t=(\d+)/.exec(h)
+  if (r) budget.remaining = Number(r[1])
+  if (t) budget.resetAt = Date.now() + Number(t[1]) * 1000
+  budget.known = true
+}
+
+function nextDelay(): number {
+  const now = Date.now()
+  if (pausedUntil > now) return pausedUntil - now
+  if (!budget.known) return Math.max(0, lastStart + COLD_GAP_MS - now) // pace until we know the budget
+  if (budget.remaining > RESERVE) return 0 // plenty of budget → burst at full concurrency
+  // low on budget: wait for the window to reset, then resume
+  return Math.max(250, budget.resetAt - now + 250)
+}
+
 function pump() {
   if (active >= MAX_CONCURRENT || queue.length === 0) return
-  const now = Date.now()
-  const wait = Math.max(0, lastStart + MIN_GAP_MS - now)
+  const wait = nextDelay()
   if (wait > 0) {
     setTimeout(pump, wait)
     return
@@ -33,21 +64,46 @@ function pump() {
   const job = queue.shift()!
   active++
   lastStart = Date.now()
+  if (budget.known) budget.remaining = Math.max(0, budget.remaining - 1) // optimistic decrement; corrected by headers
   runFetch(job.url)
     .then((v) => job.resolve(v))
-    .catch((e) => job.reject(e))
+    .catch((e) => {
+      // On 429, pause until the window resets and retry the job a few times
+      // (so a momentary exhaustion is a brief stall, not a silent data hole).
+      if ((e as RateLimitError)?.is429 && job.tries < 4) {
+        pausedUntil = (e as RateLimitError).retryAt
+        budget.remaining = 0
+        job.tries++
+        queue.unshift(job)
+      } else {
+        job.reject(e)
+      }
+    })
     .finally(() => {
       active--
       pump()
     })
-  // Try to start more if we still have headroom.
-  pump()
+  pump() // start more while we still have headroom
+}
+
+interface RateLimitError extends Error {
+  is429: true
+  retryAt: number
 }
 
 async function runFetch<T>(url: string): Promise<T> {
   const res = await fetch(url, { headers: { accept: 'application/json' } })
+  updateBudgetFromHeaders(res.headers)
   if (!res.ok) {
-    if (res.status === 429) throw new Error('Rate limited by MCSR API — slow down a little.')
+    if (res.status === 429) {
+      const retry = Number(res.headers.get('retry-after')) || 30
+      budget.remaining = 0
+      budget.resetAt = Date.now() + retry * 1000
+      const err = new Error('Rate limited by MCSR API') as RateLimitError
+      err.is429 = true
+      err.retryAt = budget.resetAt
+      throw err
+    }
     throw new Error(`Request failed (${res.status})`)
   }
   const json = (await res.json()) as ApiEnvelope<T>
@@ -57,7 +113,7 @@ async function runFetch<T>(url: string): Promise<T> {
 
 function enqueue<T>(url: string): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    queue.push({ url, resolve: resolve as (v: unknown) => void, reject })
+    queue.push({ url, resolve: resolve as (v: unknown) => void, reject, tries: 0 })
     pump()
   })
 }

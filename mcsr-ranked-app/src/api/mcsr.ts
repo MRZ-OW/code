@@ -40,13 +40,14 @@ export function getUser(identifier: string, season?: number) {
  */
 export function getUserMatches(
   identifier: string,
-  opts: { type?: number; count?: number; page?: number; excludeDecay?: boolean } = {},
+  opts: { type?: number; count?: number; page?: number; excludeDecay?: boolean; sort?: 'newest' | 'oldest' | 'fastest' | 'slowest' } = {},
 ) {
   const params = new URLSearchParams()
   if (opts.type != null) params.set('type', String(opts.type))
-  params.set('count', String(opts.count ?? 50))
+  params.set('count', String(Math.min(opts.count ?? 50, 100))) // API caps at 100
   params.set('page', String(opts.page ?? 0))
   if (opts.excludeDecay) params.set('excludedecay', 'true')
+  if (opts.sort) params.set('sort', opts.sort)
   // Matches lists change as players play; keep them fresh-ish but cacheable.
   return apiGet<Match[]>(`/users/${encodeURIComponent(identifier)}/matches?${params}`, FRESH_MS)
 }
