@@ -133,9 +133,18 @@ function Cell({
 }) {
   switch (col) {
     case 'rank': {
-      const n = mode === 'record' ? row.recordRank : row.eloRank
-      const medal = n === 1 ? 'text-yellow-400' : n === 2 ? 'text-zinc-300' : n === 3 ? 'text-orange-400' : 'text-zinc-600'
-      return <span className={clsx('text-[13px] font-black tabular-nums', medal)}>{n ?? index + 1}</span>
+      // Show the row's position in the CURRENT sort (1..N) so every re-sort
+      // visibly renumbers; keep the player's global rank as a small secondary
+      // when it differs (e.g. when sorting by a non-rank column).
+      const pos = index + 1
+      const globalRank = mode === 'record' ? row.recordRank : row.eloRank
+      const medal = pos === 1 ? 'text-yellow-400' : pos === 2 ? 'text-zinc-300' : pos === 3 ? 'text-orange-400' : 'text-zinc-600'
+      return (
+        <span className="inline-flex flex-col items-end leading-none">
+          <span className={clsx('text-[13px] font-black tabular-nums', medal)}>{pos}</span>
+          {globalRank != null && globalRank !== pos && <span className="mt-0.5 text-[9px] tabular-nums text-zinc-600">#{globalRank}</span>}
+        </span>
+      )
     }
     case 'player':
       return (
