@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getLeaderboard, getRecordLeaderboard, getUser } from '../api/mcsr'
+import { cachedAt } from '../api/client'
 import type { UserProfile } from '../api/types'
 import { rankFromElo } from '../lib/ranks'
 import { countryName } from '../lib/countries'
@@ -52,14 +53,22 @@ export function usePlayerData() {
     queryKey: ['leaderboard', season],
     queryFn: () => getLeaderboard(season ?? undefined),
     enabled: mode === 'elo',
+    refetchOnReconnect: true,
   })
   const recordQuery = useQuery({
     queryKey: ['records', season],
     queryFn: () => getRecordLeaderboard(season ?? undefined),
     enabled: mode === 'record',
+    refetchOnReconnect: true,
   })
 
   const currentSeason = eloQuery.data?.season.number ?? null
+
+  // Timestamp the current board was last cached (for the offline/updated badge).
+  const seasonQ = season != null ? `?season=${season}` : ''
+  const boardPath = mode === 'elo' ? `/leaderboard${seasonQ}` : `/record-leaderboard${seasonQ}`
+  const lastUpdated = cachedAt(boardPath)
+  const refetch = () => (mode === 'elo' ? eloQuery.refetch() : recordQuery.refetch())
 
   // ---- Base rows ----------------------------------------------------------
   const baseRows = useMemo<PlayerRow[]>(() => {
@@ -251,7 +260,10 @@ export function usePlayerData() {
     mode,
     currentSeason,
     isLoading: mode === 'elo' ? eloQuery.isLoading : recordQuery.isLoading,
+    isFetching: mode === 'elo' ? eloQuery.isFetching : recordQuery.isFetching,
     error: (mode === 'elo' ? eloQuery.error : recordQuery.error) as Error | null,
+    lastUpdated,
+    refetch,
     baseRows,
     rows: sortedRows,
     filteredCount: filteredRows.length,

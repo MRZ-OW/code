@@ -69,16 +69,26 @@ interface CacheRecord<T> {
   d: T
 }
 
-function cacheGet<T>(key: string, ttlMs: number): T | undefined {
+function readRecord<T>(key: string): CacheRecord<T> | undefined {
   try {
     const raw = localStorage.getItem(CACHE_PREFIX + key)
     if (!raw) return undefined
-    const rec = JSON.parse(raw) as CacheRecord<T>
-    if (Date.now() - rec.t > ttlMs) return undefined
-    return rec.d
+    return JSON.parse(raw) as CacheRecord<T>
   } catch {
     return undefined
   }
+}
+
+function cacheGet<T>(key: string, ttlMs: number): T | undefined {
+  const rec = readRecord<T>(key)
+  if (!rec) return undefined
+  if (Date.now() - rec.t > ttlMs) return undefined
+  return rec.d
+}
+
+/** Return cached data regardless of age (for offline fallback). */
+function cacheGetStale<T>(key: string): T | undefined {
+  return readRecord<T>(key)?.d
 }
 
 function cacheSet<T>(key: string, data: T) {
@@ -119,12 +129,22 @@ export function clearApiCache() {
   toRemove.forEach((k) => localStorage.removeItem(k))
 }
 
+function resolveUrl(path: string): string {
+  return path.startsWith('http') ? path : BASE + path
+}
+
 /**
  * GET a path under the API base, returning the unwrapped `data`.
- * Uses a persistent TTL cache and coalesces concurrent identical requests.
+ *
+ * Caching strategy (offline-first):
+ *  - within `ttlMs` → serve the cached copy instantly, no network.
+ *  - stale/missing → revalidate over the network; on success update the cache.
+ *  - network fails (offline) → fall back to ANY cached copy regardless of age,
+ *    so the last-loaded data stays filterable/sortable offline. Only throws if
+ *    there is nothing cached at all.
  */
 export function apiGet<T>(path: string, ttlMs = 5 * 60 * 1000): Promise<T> {
-  const url = path.startsWith('http') ? path : BASE + path
+  const url = resolveUrl(path)
   const cached = cacheGet<T>(url, ttlMs)
   if (cached !== undefined) return Promise.resolve(cached)
 
@@ -136,9 +156,24 @@ export function apiGet<T>(path: string, ttlMs = 5 * 60 * 1000): Promise<T> {
       cacheSet(url, data)
       return data
     })
+    .catch((err) => {
+      const stale = cacheGetStale<T>(url)
+      if (stale !== undefined) return stale // offline → serve last-known data
+      throw err
+    })
     .finally(() => inflight.delete(url))
   inflight.set(url, p)
   return p
+}
+
+/** Timestamp (ms) the given path was last successfully cached, if ever. */
+export function cachedAt(path: string): number | undefined {
+  return readRecord(resolveUrl(path))?.t
+}
+
+/** Whether any cached copy of the given path exists (any age). */
+export function hasCached(path: string): boolean {
+  return readRecord(resolveUrl(path)) !== undefined
 }
 
 export function queueDepth() {

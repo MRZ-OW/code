@@ -7,11 +7,14 @@ import { PlayerTable } from './components/PlayerTable'
 import { FilterSheet } from './components/FilterSheet'
 import { ColumnSheet } from './components/ColumnSheet'
 import { PlayerDrawer } from './components/PlayerDrawer'
+import { DataStatus } from './components/DataStatus'
 import { usePlayerData, type PlayerRow } from './hooks/usePlayerData'
+import { useOnline } from './hooks/useOnline'
 import { countriesFromCodes } from './lib/countries'
 
 export default function App() {
   const data = usePlayerData()
+  const online = useOnline()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [columnsOpen, setColumnsOpen] = useState(false)
   const [selected, setSelected] = useState<PlayerRow | null>(null)
@@ -23,6 +26,8 @@ export default function App() {
       <Header currentSeason={data.currentSeason} />
 
       <main className="mx-auto max-w-3xl px-4 pb-16 pt-4">
+        <DataStatus online={online} lastUpdated={data.lastUpdated} isFetching={data.isFetching} onRefresh={data.refetch} />
+
         <Toolbar
           filteredCount={data.filteredCount}
           totalCount={data.totalCount}
@@ -43,8 +48,12 @@ export default function App() {
         ) : data.error ? (
           <EmptyState
             icon={<AlertTriangle className="text-amber-400" />}
-            title="Couldn't load the leaderboard"
-            sub={data.error.message || 'The MCSR Ranked API may be rate-limiting or offline. Try again shortly.'}
+            title={online ? "Couldn't load the leaderboard" : 'No offline data yet'}
+            sub={
+              online
+                ? data.error.message || 'The MCSR Ranked API may be rate-limiting. Try again shortly.'
+                : 'Connect once while online to cache the leaderboard — after that it stays available offline.'
+            }
           />
         ) : data.rows.length === 0 ? (
           <EmptyState icon={<Inbox className="text-zinc-500" />} title="No players match your filters" sub="Try clearing a filter or widening the elo range." />

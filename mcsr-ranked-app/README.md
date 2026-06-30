@@ -19,6 +19,10 @@ and computed splits** that the official site doesn't offer.
 - **MCSR theming** — dark green-tinted palette, hand-crafted pixel-art ore/ingot tier badges, Minecraft-head avatars.
 - **Rate-limit friendly** — a concurrency-capped request queue plus a persistent on-device cache keep well under the
   API's 500 req / 10 min limit; computed splits are cached so re-runs are instant.
+- **Offline-first** — the last-loaded leaderboard (and any profiles/splits already fetched) are persisted, so you can
+  keep filtering and sorting with no connection. An "Offline — cached data" banner shows when you're disconnected, and
+  the app silently revalidates when you're back online. (Remote Minecraft head images need a connection; names fall
+  back to initials offline.)
 
 ## 🧮 How splits are computed
 
