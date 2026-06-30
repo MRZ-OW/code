@@ -23,11 +23,15 @@ export const SPLITS: SplitDef[] = [
   { key: 'blind', label: 'Blind Travel', short: 'Blind', eventType: 'projectelo.timeline.blind_travel', description: 'Threw blind into the stronghold' },
   { key: 'stronghold', label: 'Eye Spy', short: 'Stronghold', eventType: 'story.follow_ender_eye', description: 'Located the stronghold' },
   { key: 'end', label: 'End Enter', short: 'End', eventType: 'story.enter_the_end', description: 'Entered the End' },
-  { key: 'finish', label: 'Finish', short: 'Finish', eventType: 'projectelo.timeline.dragon_death', description: 'Killed the Ender Dragon' },
+  // 'finish' is the official completion time (matches the leaderboard/record),
+  // NOT the projectelo.timeline.dragon_death event — that fires ~10s earlier
+  // (start of the dragon's death) and would under-report the run time.
+  { key: 'finish', label: 'Finish', short: 'Finish', eventType: '__completion__', description: 'Completed the run (final time)' },
 ]
 
 export const SPLIT_BY_KEY: Record<string, SplitDef> = Object.fromEntries(SPLITS.map((s) => [s.key, s]))
-const EVENT_TO_KEY: Record<string, string> = Object.fromEntries(SPLITS.map((s) => [s.eventType, s.key]))
+// Timeline-event → split key (finish is handled separately from the completion time).
+const EVENT_TO_KEY: Record<string, string> = Object.fromEntries(SPLITS.filter((s) => s.eventType !== '__completion__').map((s) => [s.eventType, s.key]))
 
 export interface PlayerSplits {
   uuid: string
@@ -39,7 +43,8 @@ export interface PlayerSplits {
   computedAt: number
 }
 
-const CACHE_PREFIX = 'mcsr:splits:v2:'
+// v3: 'finish' now uses the official completion time (not the dragon_death event).
+const CACHE_PREFIX = 'mcsr:splits:v3:'
 const CACHE_TTL = 12 * 60 * 60 * 1000
 
 function readCache(uuid: string): PlayerSplits | undefined {
@@ -80,6 +85,10 @@ export function extractSplits(match: Match, uuid: string): Record<string, number
     // Timelines can contain duplicate event types; keep the earliest.
     if (out[key] == null || ev.time < out[key]) out[key] = ev.time
   }
+  // Finish = the official completion time (matches the leaderboard/record),
+  // not the dragon_death timeline event (which is ~10s earlier).
+  const completion = match.completions?.find((c) => c.uuid === uuid)?.time ?? (match.result?.uuid === uuid ? match.result?.time : undefined)
+  if (completion != null && completion > 0) out.finish = completion
   return out
 }
 
