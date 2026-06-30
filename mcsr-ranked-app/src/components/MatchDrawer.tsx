@@ -181,6 +181,8 @@ function SplitRace({ players, splitsOf }: { players: UserLite[]; splitsOf: (uuid
   return (
     <section className="mt-5">
       <div className="mb-2 font-mc text-[11px] font-bold uppercase tracking-wider text-zinc-400">Split Race</div>
+      {/* Fixed-width center label keeps both time columns (and their green
+          highlight blocks) exactly the same width on every row. */}
       <div className="panel divide-y divide-zinc-800/70 overflow-hidden">
         {rows.map((s) => {
           const ta = sa[s.key]
@@ -188,13 +190,13 @@ function SplitRace({ players, splitsOf }: { players: UserLite[]; splitsOf: (uuid
           const aFaster = ta != null && (tb == null || ta < tb)
           const bFaster = tb != null && (ta == null || tb < ta)
           return (
-            <div key={s.key} className={clsx('grid items-center gap-2 px-3 py-2', twoUp ? 'grid-cols-[1fr_auto_1fr]' : 'grid-cols-[1fr_auto]')}>
-              <div className={clsx('text-right', aFaster && 'rounded bg-green-600/10')}>
+            <div key={s.key} className={clsx('grid items-stretch gap-2 px-3 py-1.5', twoUp ? 'grid-cols-[1fr_92px_1fr]' : 'grid-cols-[1fr_92px]')}>
+              <div className={clsx('flex items-center justify-center rounded py-1', aFaster && 'bg-green-600/15')}>
                 {ta != null ? <SplitTime ms={ta} className={clsx('text-[13px] font-bold', aFaster ? 'text-green-400' : 'text-zinc-400')} /> : <span className="font-mc text-zinc-700">—</span>}
               </div>
-              <div className="px-1 text-center font-mc text-[9px] uppercase tracking-wide text-zinc-600">{s.short}</div>
+              <div className="flex items-center justify-center text-center font-mc text-[9px] uppercase tracking-wide text-zinc-600">{s.short}</div>
               {twoUp && (
-                <div className={clsx(bFaster && 'rounded bg-green-600/10')}>
+                <div className={clsx('flex items-center justify-center rounded py-1', bFaster && 'bg-green-600/15')}>
                   {tb != null ? <SplitTime ms={tb} className={clsx('text-[13px] font-bold', bFaster ? 'text-green-400' : 'text-zinc-400')} /> : <span className="font-mc text-zinc-700">—</span>}
                 </div>
               )}
@@ -211,8 +213,8 @@ function SeedCard({ match }: { match: Match }) {
   if (!seed) return null
   const bits: { label: string; value: string; icon?: React.ReactNode }[] = []
   if (seed.overworld) bits.push({ label: 'Overworld', value: seed.overworld.toLowerCase().replace(/_/g, ' '), icon: <Sprout size={11} className="text-green-500" /> })
-  if (seed.nether) bits.push({ label: 'Nether', value: seed.nether.toLowerCase().replace(/_/g, ' '), icon: <Flame size={11} className="text-orange-400" /> })
-  if (match.bastionType) bits.push({ label: 'Bastion', value: match.bastionType.toLowerCase().replace(/_/g, ' ') })
+  // (Nether seed type is the same as the bastion type, so we only show Bastion.)
+  if (match.bastionType) bits.push({ label: 'Bastion', value: match.bastionType.toLowerCase().replace(/_/g, ' '), icon: <Flame size={11} className="text-orange-400" /> })
   if (seed.endTowers?.length) bits.push({ label: 'End Towers', value: seed.endTowers.join(', ') })
   return (
     <section className="mt-5">
