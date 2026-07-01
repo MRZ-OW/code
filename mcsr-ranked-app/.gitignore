@@ -17,3 +17,7 @@ android/app/release/
 # so there is no real secret here. Any *other* keystore stays ignored.
 *.keystore
 !android/keystore/debug.keystore
+# Release/upload signing secrets — NEVER commit these.
+android/keystore/upload.keystore
+android/keystore.properties
+store/artifacts/

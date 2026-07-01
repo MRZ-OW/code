@@ -1,5 +1,12 @@
 apply plugin: 'com.android.application'
 
+// Release signing loaded from android/keystore.properties (gitignored). Absent
+// on machines without the secrets → release build falls back to unsigned.
+def keystorePropsFile = rootProject.file('keystore.properties')
+def hasReleaseSigning = keystorePropsFile.exists()
+def keystoreProps = new Properties()
+if (hasReleaseSigning) keystoreProps.load(new FileInputStream(keystorePropsFile))
+
 android {
     namespace "com.mcsr.explorer"
     compileSdk rootProject.ext.compileSdkVersion
@@ -29,13 +36,23 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        if (hasReleaseSigning) {
+            release {
+                storeFile rootProject.file(keystoreProps['storeFile'])
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.stable
         }
         release {
-            signingConfig signingConfigs.stable
+            // Use the real upload key when secrets are present (Play submission),
+            // otherwise fall back to the stable debug key for local testing.
+            signingConfig hasReleaseSigning ? signingConfigs.release : signingConfigs.stable
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
