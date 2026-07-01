@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { App as CapacitorApp } from '@capacitor/app'
 import { AlertTriangle, Inbox, Loader2 } from 'lucide-react'
 import { Header } from './components/Header'
 import { Toolbar } from './components/Toolbar'
@@ -28,6 +29,26 @@ export default function App() {
   useEffect(() => {
     if (online && data.baseRows.length) prefetchHeads(data.baseRows.map((r) => r.uuid))
   }, [online, data.baseRows])
+
+  // Android hardware/gesture back: close the topmost overlay (match → player →
+  // column sheet → filter sheet) instead of leaving the app; exit only when
+  // nothing is open. Registered once; reads current state via refs/getState.
+  const filtersOpenRef = useRef(filtersOpen)
+  filtersOpenRef.current = filtersOpen
+  const columnsOpenRef = useRef(columnsOpen)
+  columnsOpenRef.current = columnsOpen
+  useEffect(() => {
+    let sub: { remove: () => void } | undefined
+    CapacitorApp.addListener('backButton', () => {
+      const nav = useNav.getState()
+      if (nav.matchId != null) return nav.closeMatch()
+      if (nav.player) return nav.closePlayer()
+      if (columnsOpenRef.current) return setColumnsOpen(false)
+      if (filtersOpenRef.current) return setFiltersOpen(false)
+      CapacitorApp.exitApp()
+    }).then((h) => (sub = h))
+    return () => sub?.remove()
+  }, [])
 
   return (
     <div className="min-h-full">

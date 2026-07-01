@@ -1,6 +1,6 @@
 import clsx from 'clsx'
-import { Logo } from './Logo'
 import { useFilters } from '../store/useFilters'
+import logoUrl from '../assets/mcsr-ranked-logo.png'
 
 export function Header({ currentSeason }: { currentSeason: number | null }) {
   const { mode, setMode, season, setSeason } = useFilters()
@@ -10,14 +10,13 @@ export function Header({ currentSeason }: { currentSeason: number | null }) {
     <header className="safe-top sticky top-0 z-30 border-b border-zinc-800 bg-[#161618]">
       <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 pb-2.5 pt-3">
         <div className="flex items-center gap-2.5">
-          <div className="slot flex h-9 w-9 items-center justify-center">
-            <Logo size={20} />
-          </div>
           <div className="leading-none">
-            <div className="font-mc text-[15px] font-black tracking-tight">
-              <span className="text-zinc-100">MCSR</span> <span className="text-green-500">RANKED</span>
+            <div className="flex items-center gap-2">
+              <span className="font-mc text-[16px] font-black tracking-tight text-zinc-100">MCSR</span>
+              {/* the authentic MCSR "RANKED" pixel logo */}
+              <img src={logoUrl} alt="Ranked" className="pixel h-[22px] w-auto" />
             </div>
-            <div className="mt-1 font-mc text-[9px] uppercase tracking-[0.2em] text-zinc-600">Leaderboard Explorer</div>
+            <div className="mt-1.5 font-mc text-[9px] uppercase tracking-[0.2em] text-zinc-600">Leaderboard Explorer</div>
           </div>
         </div>
 
