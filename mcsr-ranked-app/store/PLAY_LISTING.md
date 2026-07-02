@@ -43,7 +43,7 @@ Sports (or Entertainment)
 minecraft, speedrun, mcsr, ranked, leaderboard, splits, elo
 
 ## Contact details
-• Email: <YOUR-CONTACT-EMAIL>
+• Email: <themrz.ow@gmail.com>
 • Website (optional): https://mcsrranked.com
 
 ## Privacy Policy URL
