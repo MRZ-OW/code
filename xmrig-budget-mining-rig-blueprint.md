@@ -141,4 +141,40 @@ Assumptions: MoneroOcean effective revenue **~$0.027/KH/s/day**, tuned/undervolt
 - [Best Monero pools 2026 (Coin Bureau)](https://coinbureau.com/mining/best-monero-pools)
 - [Monero mining guide 2026 (Paybis)](https://paybis.com/blog/how-to-mine-monero/)
 
+---
+
+## Appendix: Scaling to a $200/month Target (electricity ignored)
+
+**Hashrate required:** $200/mo = $6.58/day. At MoneroOcean (~$0.027/KH/s/day) → **~240 KH/s**; direct XMR (~$0.024) → **~275 KH/s**. A single Ryzen 9 7950X (~29 KH/s) makes only ~$24/mo, so this needs a small **fleet** — which shifts the metric from hashes-per-watt to **hashes-per-dollar**, pointing to used server EPYC.
+
+### Hashes-per-dollar (used market, 2026)
+
+| CPU | Cores | ~Hashrate | Used price | KH/s per $ |
+|---|---|---|---|---|
+| **EPYC 7551** (Naples, 8-ch DDR4-2666) | 32 | ~22–28 KH/s | ~$120 | **~0.20** 🏆 |
+| EPYC 7642 / 7K62 (Rome, 8-ch DDR4-3200) | 48 | ~28–32 KH/s | ~$300–330 | ~0.10 |
+| EPYC 7742 (Rome) | 64 | ~45 KH/s | ~$500–700 | ~0.075 |
+| Ryzen 9 7950X | 16 | ~29 KH/s | ~$450 | ~0.064 |
+| Threadripper 3990X | 64 | ~40–53 KH/s | ~$1,500+ | ~0.028 |
+
+8 memory channels/socket is why server EPYC crushes consumer dual-channel for RandomX.
+
+### Builds that reach ~240 KH/s (dual-socket H11/H12 nodes)
+
+| Build | Per-node parts | KH/s/node | Nodes | Total upfront |
+|---|---|---|---|---|
+| **A. Cheapest capital** — dual EPYC 7551 | 2×7551 + H11DSi + 128 GB DDR4-2666 ECC + PSU/frame ≈ $910 | ~45 | 6 (~270 KH/s) | ~$5,000–5,500 |
+| **B. Balanced** — dual EPYC 7642 | 2×7642 + H11DSi + 128 GB DDR4-3200 ECC + PSU/frame ≈ $1,360 | ~58 | 4–5 (~232–290 KH/s) | ~$5,400–6,800 |
+| **C. Fewest boxes** — dual EPYC 7742 | 2×7742 + H12DSi + 256 GB DDR4-3200 + PSU/chassis ≈ $2,050 | ~88 | 3 (~264 KH/s) | ~$6,150 |
+
+**Recommendation:** Build C (3 machines, ~264 KH/s ≈ $215/mo) for manageability, or Build A for lowest cash (~$5k, 6 nodes). **Budget ~$5,000–6,000 upfront for ~$200/month.**
+
+### Reality check on "ignore electricity"
+- 240 KH/s of EPYC draws **~2,500–3,000 W continuous** (~72 kWh/day). At $0.10/kWh ≈ **~$220/mo — erasing the entire profit.** This target is only viable with free/included power.
+- Hardware payback ≈ $5,500 ÷ $200 ≈ **~28 months**, during which XMR price and difficulty dominate outcomes.
+- ~3 kW = serious heat/noise; needs dedicated circuits and a garage/basement.
+- Buy **unlocked/tray** EPYC or Supermicro boards — ex-Dell/Lenovo vendor-locked chips can refuse to boot.
+
+---
+
 *Not financial advice. Verify local electricity rates, hardware prices, and live network stats before purchasing.*
