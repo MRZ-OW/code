@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">RageBait Guard</string>
+    <string name="service_label">RageBait Guard</string>
+    <string name="service_summary">Auto-skips rage-bait videos in TikTok</string>
+    <string name="service_description">Reads the caption, hashtags, and creator of the TikTok video on screen and automatically swipes past videos that match your blocklist. Also shows a small floating flag button so you can teach it new rage-bait patterns. Everything stays on this device — nothing is uploaded anywhere.</string>
+
+    <!-- Status card -->
+    <string name="status_title">Guard status</string>
+    <string name="status_service_on">Accessibility service: ON</string>
+    <string name="status_service_off">Accessibility service: OFF — tap below to enable</string>
+    <string name="open_accessibility_settings">Open Accessibility settings</string>
+    <string name="master_switch_label">Auto-skip matching videos</string>
+
+    <!-- Stats card -->
+    <string name="stats_title">Activity</string>
+    <string name="stats_line">Auto-skipped: %1$d   ·   Flagged with 😤: %2$d   ·   Examples saved: %3$d</string>
+
+    <!-- Blocklist card -->
+    <string name="blocklist_title">Blocked words &amp; phrases</string>
+    <string name="blocklist_hint">word, phrase, or #hashtag</string>
+    <string name="blocklist_add">Add</string>
+    <string name="blocklist_empty">No custom terms yet — add words, phrases, or #hashtags above.</string>
+
+    <!-- Topic packs card -->
+    <string name="packs_title">Topic packs</string>
+    <string name="pack_row">%1$s  ·  %2$d terms</string>
+
+    <!-- Learned card -->
+    <string name="learned_title">Learned from 😤 flags</string>
+    <string name="learned_subtitle">Terms seen in %1$d+ flagged videos start auto-skipping. Remove any that don\'t belong.</string>
+    <string name="learned_active_row">%1$s   (seen %2$d×)</string>
+    <string name="learned_pending_row">%1$s   (seen %2$d× — not active yet)</string>
+    <string name="learned_empty">Nothing learned yet. In TikTok, tap the floating 😤 button on a rage-bait video to teach the guard.</string>
+
+    <!-- Creators card -->
+    <string name="creators_title">Blocked creators</string>
+    <string name="creators_subtitle">Flag the same creator twice with 😤 and they land here automatically.</string>
+    <string name="creators_empty">No blocked creators yet.</string>
+
+    <!-- Misc -->
+    <string name="remove">Remove</string>
+    <string name="how_it_works">How it works: while TikTok is open, the guard reads the visible caption, hashtags, and creator handle. If they match anything above, it swipes to the next video for you (max 5 in a row, then it pauses — so it can never spiral). The floating 😤 button skips the current video AND saves it as a training example. All data stays on this phone. Works on both Z Fold screens — the button re-anchors when you fold or unfold.</string>
+
+    <!-- Toasts -->
+    <string name="toast_creator_blocked">Blocked creator: %1$s</string>
+    <string name="toast_terms_learned">Learned new blocked terms: %1$s</string>
+    <string name="toast_term_added">Added to blocklist</string>
+
+    <!-- Overlay -->
+    <string name="overlay_flag_description">Flag this video as rage bait</string>
+</resources>

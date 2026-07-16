@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Small, semi-transparent, draggable flag button. Kept deliberately tiny
+     (48dp touch target) and out of the way; alpha keeps it unobtrusive over
+     video. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/flag_button"
+    android:layout_width="48dp"
+    android:layout_height="48dp"
+    android:alpha="0.8"
+    android:background="@drawable/bg_flag_button"
+    android:contentDescription="@string/overlay_flag_description"
+    android:elevation="6dp"
+    android:gravity="center"
+    android:text="😤"
+    android:textSize="22sp" />
