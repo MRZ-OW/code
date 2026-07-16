@@ -9,6 +9,7 @@
     <string name="status_title">Guard status</string>
     <string name="status_service_on">Accessibility service: ON</string>
     <string name="status_service_off">Accessibility service: OFF — tap below to enable</string>
+    <string name="status_samsung_hint">If a general Accessibility page opens instead of this app\'s page: tap "Installed apps" → "RageBait Guard" → turn it On → Allow.</string>
     <string name="open_accessibility_settings">Open Accessibility settings</string>
     <string name="master_switch_label">Auto-skip matching videos</string>
 

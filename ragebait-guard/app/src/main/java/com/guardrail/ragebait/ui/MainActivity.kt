@@ -1,5 +1,6 @@
 package com.guardrail.ragebait.ui
 
+import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
@@ -36,7 +37,7 @@ class MainActivity : AppCompatActivity() {
         training = TrainingStore(this)
 
         findViewById<Button>(R.id.open_settings_button).setOnClickListener {
-            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            openAccessibilitySettings()
         }
 
         val masterSwitch = findViewById<MaterialSwitch>(R.id.master_switch)
@@ -66,6 +67,39 @@ class MainActivity : AppCompatActivity() {
     }
 
     // ------------------------------------------------------------------
+
+    /**
+     * Land the user as close to our service's toggle as the OS allows.
+     * Samsung's One UI buries third-party services under Accessibility →
+     * "Installed apps", so the generic settings screen is confusing.
+     */
+    private fun openAccessibilitySettings() {
+        val component = ComponentName(this, GuardService::class.java).flattenToString()
+
+        // 1) Direct per-service detail page (works on recent Android/One UI).
+        try {
+            startActivity(
+                Intent("android.settings.ACCESSIBILITY_DETAILS_SETTINGS")
+                    .putExtra("android.intent.extra.COMPONENT_NAME", component)
+            )
+            return
+        } catch (_: Exception) {
+            // Fall through.
+        }
+
+        // 2) Root accessibility screen, asking Settings to highlight/scroll
+        //    to our service where supported.
+        try {
+            val args = Bundle().apply { putString(":settings:fragment_args_key", component) }
+            startActivity(
+                Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                    .putExtra(":settings:fragment_args_key", component)
+                    .putExtra(":settings:show_fragment_args", args)
+            )
+        } catch (_: Exception) {
+            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+        }
+    }
 
     private fun refreshStatus() {
         val enabled = isServiceEnabled()

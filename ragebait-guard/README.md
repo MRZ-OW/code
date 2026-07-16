@@ -56,9 +56,12 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 ## Phone setup (one-time)
 
 1. Install the APK (sideload; you may need to allow "install unknown apps").
-2. Open **RageBait Guard** → *Open Accessibility settings* → enable
-   **RageBait Guard**. Android will warn that the service can read screen
-   content — that is exactly what it does, for TikTok only, on-device only.
+2. Open **RageBait Guard** → *Open Accessibility settings*. The app tries to
+   deep-link straight to its own toggle; if your phone opens the general
+   Accessibility page instead (Samsung One UI does this), go to
+   **Installed apps → RageBait Guard → On → Allow**. Android will warn that
+   the service can read screen content — that is exactly what it does, for
+   TikTok only, on-device only.
 3. Samsung aggressively kills background services: in phone Settings →
    Apps → RageBait Guard → Battery, set **Unrestricted**.
 4. Open TikTok. The 😤 button appears; drag it wherever it's least annoying.
