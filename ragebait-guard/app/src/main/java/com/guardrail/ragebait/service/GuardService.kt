@@ -11,6 +11,7 @@ import com.guardrail.ragebait.classify.Classifier
 import com.guardrail.ragebait.classify.LlmJudge
 import com.guardrail.ragebait.classify.TopicPacks
 import com.guardrail.ragebait.data.GuardPrefs
+import com.guardrail.ragebait.data.Logs
 import com.guardrail.ragebait.data.TrainingStore
 import com.guardrail.ragebait.model.VideoSnapshot
 
@@ -45,37 +46,54 @@ class GuardService : AccessibilityService() {
 
     override fun onServiceConnected() {
         super.onServiceConnected()
-        prefs = GuardPrefs(this)
-        training = TrainingStore(this)
-        skips = SkipController(this)
-        llm = LlmJudge(prefs)
-        ocr = OcrReader()
-        overlay = FlagButtonOverlay(this, prefs, onFlag = ::onFlagPressed)
+        Logs.init(this)
+        try {
+            prefs = GuardPrefs(this)
+            training = TrainingStore(this)
+            skips = SkipController(this)
+            llm = LlmJudge(prefs)
+            ocr = OcrReader()
+            overlay = FlagButtonOverlay(this, prefs, onFlag = ::onFlagPressed)
+            Logs.i(TAG, "Service connected")
+        } catch (t: Throwable) {
+            Logs.e(TAG, "onServiceConnected failed", t)
+        }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
-        val pkg = event.packageName
+        // This runs on the main thread; an escaping exception crashes the
+        // whole app. Contain everything.
+        try {
+            val pkg = event.packageName
 
-        // Window switches: keep the overlay in sync with TikTok's visibility.
-        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ||
-            event.eventType == AccessibilityEvent.TYPE_WINDOWS_CHANGED
-        ) {
-            when {
-                ScreenReader.isTikTok(pkg) -> overlay?.show()
-                // Our own overlay window also fires state events — not a switch.
-                pkg != null && pkg.toString() != packageName -> overlay?.hide()
+            // Window switches: keep the overlay in sync with TikTok visibility.
+            if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ||
+                event.eventType == AccessibilityEvent.TYPE_WINDOWS_CHANGED
+            ) {
+                when {
+                    ScreenReader.isTikTok(pkg) -> overlay?.show()
+                    // Our own overlay window also fires state events.
+                    pkg != null && pkg.toString() != packageName -> overlay?.hide()
+                }
             }
-        }
 
-        if (!ScreenReader.isTikTok(pkg)) return
-        scheduleEvaluate()
+            if (!ScreenReader.isTikTok(pkg)) return
+            scheduleEvaluate()
+        } catch (t: Throwable) {
+            Logs.e(TAG, "onAccessibilityEvent failed", t)
+        }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         // Z Fold 6 fold/unfold (or rotation) — re-anchor the button on the
         // new display bounds.
-        overlay?.reposition()
+        try {
+            overlay?.reposition()
+            Logs.i(TAG, "Config changed; overlay repositioned")
+        } catch (t: Throwable) {
+            Logs.e(TAG, "onConfigurationChanged failed", t)
+        }
     }
 
     override fun onInterrupt() = Unit
@@ -104,6 +122,14 @@ class GuardService : AccessibilityService() {
     }
 
     private fun evaluate() {
+        try {
+            evaluateInner()
+        } catch (t: Throwable) {
+            Logs.e(TAG, "evaluate failed", t)
+        }
+    }
+
+    private fun evaluateInner() {
         val root = rootInActiveWindow ?: return
         if (!ScreenReader.isTikTok(root.packageName)) {
             overlay?.hide()
@@ -143,6 +169,7 @@ class GuardService : AccessibilityService() {
             if (skips.maybeSkip()) {
                 lastActedSignature = snapshot.signature
                 prefs.incrementSkipped()
+                Logs.i(TAG, "Skipped (list): ${reason(verdict)}")
             }
             return
         }
@@ -161,65 +188,83 @@ class GuardService : AccessibilityService() {
         }
 
         ocr.read(this) { ocrText ->
-            // Only act if the same video is still on screen after OCR.
-            if (currentSnapshot?.signature != sig) return@read
-            val enriched =
-                if (ocrText.isNullOrBlank()) snapshot
-                else snapshot.copy(texts = snapshot.texts + ocrText)
+            try {
+                // Only act if the same video is still on screen after OCR.
+                if (currentSnapshot?.signature != sig) return@read
+                val enriched =
+                    if (ocrText.isNullOrBlank()) snapshot
+                    else snapshot.copy(texts = snapshot.texts + ocrText)
 
-            val ocrVerdict = Classifier.evaluate(
-                snapshot = enriched,
-                blockedTerms = blockedTerms,
-                learnedTerms = training.activeLearnedTerms().keys,
-                blockedCreators = prefs.blockedCreators,
-            )
-            if (ocrVerdict.shouldSkip) {
-                skipIfStillShowing(sig)
-                return@read
-            }
+                val ocrVerdict = Classifier.evaluate(
+                    snapshot = enriched,
+                    blockedTerms = blockedTerms,
+                    learnedTerms = training.activeLearnedTerms().keys,
+                    blockedCreators = prefs.blockedCreators,
+                )
+                if (ocrVerdict.shouldSkip) {
+                    if (skipIfStillShowing(sig)) Logs.i(TAG, "Skipped (OCR): ${reason(ocrVerdict)}")
+                    return@read
+                }
 
-            llm.judgeAsync(sig, enriched.joinedText, blockedTerms) { isBad ->
-                if (isBad) skipIfStillShowing(sig)
+                llm.judgeAsync(sig, enriched.joinedText, blockedTerms) { isBad ->
+                    Logs.i(TAG, "AI judge verdict: ${if (isBad) "SKIP" else "keep"}")
+                    if (isBad) skipIfStillShowing(sig)
+                }
+            } catch (t: Throwable) {
+                Logs.e(TAG, "OCR/LLM stage failed", t)
             }
         }
     }
+
+    private fun reason(v: Classifier.Verdict): String =
+        v.matchedCreator?.let { "creator $it" }
+            ?: v.matchedTerms.joinToString(", ").ifEmpty { "matched" }
 
     /**
      * Async verdicts race against the user's own scrolling: only swipe if
      * the judged video is still the one on screen and the guard is still on.
      */
-    private fun skipIfStillShowing(signature: String) {
-        if (!prefs.guardEnabled) return
-        if (currentSnapshot?.signature != signature) return
-        if (lastActedSignature == signature) return
+    private fun skipIfStillShowing(signature: String): Boolean {
+        if (!prefs.guardEnabled) return false
+        if (currentSnapshot?.signature != signature) return false
+        if (lastActedSignature == signature) return false
         if (skips.maybeSkip()) {
             lastActedSignature = signature
             prefs.incrementSkipped()
+            return true
         }
+        return false
     }
 
     /** 😤 button tapped: learn from this video, then swipe past it. */
     private fun onFlagPressed() {
-        val snapshot = currentSnapshot ?: return
-        val result = training.recordFlag(snapshot)
-        prefs.incrementFlagged()
+        try {
+            val snapshot = currentSnapshot ?: return
+            val result = training.recordFlag(snapshot)
+            prefs.incrementFlagged()
+            Logs.i(TAG, "Flagged video (creator=${snapshot.creator ?: "?"})")
 
-        result.newlyBlockedCreator?.let { creator ->
-            prefs.addBlockedCreator(creator)
-            toast(getString(R.string.toast_creator_blocked, creator))
-        }
-        if (result.newlyLearnedTerms.isNotEmpty()) {
-            toast(
-                getString(
-                    R.string.toast_terms_learned,
-                    result.newlyLearnedTerms.joinToString(", "),
+            result.newlyBlockedCreator?.let { creator ->
+                prefs.addBlockedCreator(creator)
+                toast(getString(R.string.toast_creator_blocked, creator))
+                Logs.i(TAG, "Auto-blocked creator: $creator")
+            }
+            if (result.newlyLearnedTerms.isNotEmpty()) {
+                toast(
+                    getString(
+                        R.string.toast_terms_learned,
+                        result.newlyLearnedTerms.joinToString(", "),
+                    )
                 )
-            )
-        }
+                Logs.i(TAG, "Learned terms: ${result.newlyLearnedTerms.joinToString(", ")}")
+            }
 
-        overlay?.flashFlagged()
-        lastActedSignature = snapshot.signature
-        skips.maybeSkip(force = true)
+            overlay?.flashFlagged()
+            lastActedSignature = snapshot.signature
+            skips.maybeSkip(force = true)
+        } catch (t: Throwable) {
+            Logs.e(TAG, "onFlagPressed failed", t)
+        }
     }
 
     private fun toast(message: String) {
@@ -227,6 +272,7 @@ class GuardService : AccessibilityService() {
     }
 
     companion object {
+        private const val TAG = "GuardService"
         private const val DEBOUNCE_MS = 350L
     }
 }

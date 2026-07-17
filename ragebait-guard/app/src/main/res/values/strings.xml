@@ -48,6 +48,16 @@
     <string name="toast_llm_saved">AI judge settings saved</string>
     <string name="llm_note">When the local lists don\'t match, the guard screenshots the video, reads the on-screen text with on-device OCR, and asks a fast Gemini model \"related to any blocked topic, or obvious rage bait? Yes/No\". Costs about $0.04 per 1,000 videos and adds under a second. Only recognized text is sent to Google — never the screen image. If the call fails, nothing is skipped. Get a key at aistudio.google.com.</string>
 
+    <!-- Advanced / logs -->
+    <string name="advanced_title">Advanced</string>
+    <string name="advanced_subtitle">If the app crashes or misbehaves, open the logs and share them so the problem can be diagnosed. Crash stack traces are saved here automatically.</string>
+    <string name="open_logs">View logs</string>
+    <string name="logs_title">Logs</string>
+    <string name="logs_refresh">Refresh</string>
+    <string name="logs_share">Share</string>
+    <string name="logs_clear">Clear</string>
+    <string name="logs_empty">No logs yet.</string>
+
     <!-- Misc -->
     <string name="remove">Remove</string>
     <string name="how_it_works">How it works: while TikTok is open, the guard reads the visible caption, hashtags, and creator handle. If they match anything above, it swipes to the next video for you (max 5 in a row, then it pauses — so it can never spiral). The floating 😤 button skips the current video AND saves it as a training example. All data stays on this phone. Works on both Z Fold screens — the button re-anchors when you fold or unfold.</string>

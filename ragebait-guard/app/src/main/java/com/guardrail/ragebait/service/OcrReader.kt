@@ -9,6 +9,7 @@ import android.view.Display
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.guardrail.ragebait.data.Logs
 import java.util.concurrent.Executors
 
 /**
@@ -37,6 +38,15 @@ class OcrReader {
             return
         }
 
+        try {
+            takeScreenshot(service, onResult)
+        } catch (t: Throwable) {
+            Logs.e("OcrReader", "takeScreenshot threw", t)
+            onResult(null)
+        }
+    }
+
+    private fun takeScreenshot(service: AccessibilityService, onResult: (String?) -> Unit) {
         service.takeScreenshot(
             Display.DEFAULT_DISPLAY,
             executor,

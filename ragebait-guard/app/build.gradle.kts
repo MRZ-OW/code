@@ -11,8 +11,8 @@ android {
         applicationId = "com.guardrail.ragebait"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 3
+        versionName = "0.3.0"
 
         // Bundled ML Kit OCR ships native libs per ABI; modern phones
         // (incl. Z Fold 6) are arm64, so drop the rest to keep the APK small.

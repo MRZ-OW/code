@@ -16,6 +16,7 @@ import com.google.android.material.materialswitch.MaterialSwitch
 import com.guardrail.ragebait.R
 import com.guardrail.ragebait.classify.TopicPacks
 import com.guardrail.ragebait.data.GuardPrefs
+import com.guardrail.ragebait.data.Logs
 import com.guardrail.ragebait.data.TrainingStore
 import com.guardrail.ragebait.service.GuardService
 
@@ -32,12 +33,16 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Logs.init(this)
         setContentView(R.layout.activity_main)
         prefs = GuardPrefs(this)
         training = TrainingStore(this)
 
         findViewById<Button>(R.id.open_settings_button).setOnClickListener {
             openAccessibilitySettings()
+        }
+        findViewById<Button>(R.id.open_logs_button).setOnClickListener {
+            startActivity(Intent(this, LogActivity::class.java))
         }
 
         val masterSwitch = findViewById<MaterialSwitch>(R.id.master_switch)

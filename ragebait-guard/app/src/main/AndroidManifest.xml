@@ -23,6 +23,12 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.LogActivity"
+            android:exported="false"
+            android:label="@string/logs_title"
+            android:resizeableActivity="true" />
+
         <service
             android:name=".service.GuardService"
             android:exported="false"
