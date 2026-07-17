@@ -54,6 +54,23 @@ class MainActivity : AppCompatActivity() {
                 refreshTerms()
             }
         }
+
+        // AI judge settings
+        val llmSwitch = findViewById<MaterialSwitch>(R.id.llm_switch)
+        llmSwitch.isChecked = prefs.llmEnabled
+        llmSwitch.setOnCheckedChangeListener { _, checked ->
+            prefs.llmEnabled = checked
+        }
+        val keyInput = findViewById<EditText>(R.id.llm_key_input)
+        val modelInput = findViewById<EditText>(R.id.llm_model_input)
+        keyInput.setText(prefs.llmApiKey)
+        modelInput.setText(prefs.llmModel)
+        findViewById<Button>(R.id.llm_save_button).setOnClickListener {
+            prefs.llmApiKey = keyInput.text.toString()
+            prefs.llmModel = modelInput.text.toString()
+            modelInput.setText(prefs.llmModel)
+            Toast.makeText(this, R.string.toast_llm_saved, Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onResume() {

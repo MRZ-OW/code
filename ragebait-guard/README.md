@@ -31,6 +31,28 @@ hard stop after 5 consecutive skips (10 s pause) so the guard can never
 spiral into an endless swipe loop — that both feels broken and looks
 bot-like to TikTok.
 
+## Optional AI judge (OCR + fast LLM)
+
+For videos the lists don't catch, an escalation pipeline can be enabled in
+the app (off by default, needs a [Gemini API key](https://aistudio.google.com)):
+
+1. **Screenshot** the video via the accessibility API (Android 11+).
+2. **On-device ML Kit OCR** (~100–250 ms) reads text baked into the frames —
+   the classic rage-bait headline overlay that never appears in
+   accessibility nodes. The image never leaves the phone.
+3. The blocklist is re-checked against the OCR text (free — many videos
+   resolve right here with no API call).
+4. Only if still unresolved, the recognized *text* plus the blocked-topic
+   list goes to a fast Gemini model (`gemini-2.5-flash-lite` by default),
+   which answers a single word: Yes (skip) or No.
+
+Latency is ~0.5–1.5 s end-to-end — the skip lands within the first second
+or two of a video someone would otherwise watch for 10+. Cost is ~400
+prompt tokens + 1 output token per judged video ≈ **$0.04 per 1,000
+videos** at Flash-Lite pricing. One request in flight at a time, one
+judgement per video (LRU-cached verdicts), and every failure fails *open* —
+a network hiccup can never block scrolling.
+
 ## Z Fold 6 support
 
 Built fold-aware from the start:
@@ -75,8 +97,9 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 
 ## Honest limitations
 
-- **Text-only.** It sees captions/hashtags/handles — not the video frames or
-  audio. Rage bait with a clean caption sails through until it's flagged a
+- **Text-only.** It sees captions/hashtags/handles plus (with the AI judge
+  enabled) OCR of on-screen text — but not the imagery or audio itself.
+  Rage bait with a totally clean screen sails through until it's flagged a
   few times.
 - **Reactive, not predictive.** TikTok decides the feed server-side a video
   at a time; there is no sanctioned way to peek ahead. The guard skips fast

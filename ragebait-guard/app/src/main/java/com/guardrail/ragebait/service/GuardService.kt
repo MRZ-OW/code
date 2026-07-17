@@ -8,6 +8,7 @@ import android.view.accessibility.AccessibilityEvent
 import android.widget.Toast
 import com.guardrail.ragebait.R
 import com.guardrail.ragebait.classify.Classifier
+import com.guardrail.ragebait.classify.LlmJudge
 import com.guardrail.ragebait.classify.TopicPacks
 import com.guardrail.ragebait.data.GuardPrefs
 import com.guardrail.ragebait.data.TrainingStore
@@ -30,6 +31,8 @@ class GuardService : AccessibilityService() {
     private lateinit var prefs: GuardPrefs
     private lateinit var training: TrainingStore
     private lateinit var skips: SkipController
+    private lateinit var llm: LlmJudge
+    private lateinit var ocr: OcrReader
     private var overlay: FlagButtonOverlay? = null
 
     private val handler = Handler(Looper.getMainLooper())
@@ -38,12 +41,15 @@ class GuardService : AccessibilityService() {
     private var currentSnapshot: VideoSnapshot? = null
     private var lastSignature: String? = null
     private var lastActedSignature: String? = null
+    private var lastJudgedSignature: String? = null
 
     override fun onServiceConnected() {
         super.onServiceConnected()
         prefs = GuardPrefs(this)
         training = TrainingStore(this)
         skips = SkipController(this)
+        llm = LlmJudge(prefs)
+        ocr = OcrReader()
         overlay = FlagButtonOverlay(this, prefs, onFlag = ::onFlagPressed)
     }
 
@@ -125,15 +131,69 @@ class GuardService : AccessibilityService() {
         // wrong surface.
         if (capture.hasEditText) return
 
+        val blockedTerms = prefs.blockedTerms + TopicPacks.termsFor(prefs.enabledPackIds)
         val verdict = Classifier.evaluate(
             snapshot = snapshot,
-            blockedTerms = prefs.blockedTerms + TopicPacks.termsFor(prefs.enabledPackIds),
+            blockedTerms = blockedTerms,
             learnedTerms = training.activeLearnedTerms().keys,
             blockedCreators = prefs.blockedCreators,
         )
 
-        if (verdict.shouldSkip && skips.maybeSkip()) {
-            lastActedSignature = snapshot.signature
+        if (verdict.shouldSkip) {
+            if (skips.maybeSkip()) {
+                lastActedSignature = snapshot.signature
+                prefs.incrementSkipped()
+            }
+            return
+        }
+
+        // Local list didn't match. Escalate once per video: screenshot OCR
+        // (on-device, catches text baked into the frames), re-check the list
+        // for free, and only then ask the AI judge if it's enabled.
+        if (!prefs.llmEnabled) return
+        if (snapshot.signature == lastJudgedSignature) return
+        lastJudgedSignature = snapshot.signature
+        val sig = snapshot.signature
+
+        llm.cachedVerdict(sig)?.let { cached ->
+            if (cached) skipIfStillShowing(sig)
+            return
+        }
+
+        ocr.read(this) { ocrText ->
+            // Only act if the same video is still on screen after OCR.
+            if (currentSnapshot?.signature != sig) return@read
+            val enriched =
+                if (ocrText.isNullOrBlank()) snapshot
+                else snapshot.copy(texts = snapshot.texts + ocrText)
+
+            val ocrVerdict = Classifier.evaluate(
+                snapshot = enriched,
+                blockedTerms = blockedTerms,
+                learnedTerms = training.activeLearnedTerms().keys,
+                blockedCreators = prefs.blockedCreators,
+            )
+            if (ocrVerdict.shouldSkip) {
+                skipIfStillShowing(sig)
+                return@read
+            }
+
+            llm.judgeAsync(sig, enriched.joinedText, blockedTerms) { isBad ->
+                if (isBad) skipIfStillShowing(sig)
+            }
+        }
+    }
+
+    /**
+     * Async verdicts race against the user's own scrolling: only swipe if
+     * the judged video is still the one on screen and the guard is still on.
+     */
+    private fun skipIfStillShowing(signature: String) {
+        if (!prefs.guardEnabled) return
+        if (currentSnapshot?.signature != signature) return
+        if (lastActedSignature == signature) return
+        if (skips.maybeSkip()) {
+            lastActedSignature = signature
             prefs.incrementSkipped()
         }
     }
