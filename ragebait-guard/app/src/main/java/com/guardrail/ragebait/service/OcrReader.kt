@@ -28,18 +28,29 @@ class OcrReader {
     private val mainHandler = Handler(Looper.getMainLooper())
 
     /**
+     * Once the platform hard-denies screenshots (missing capability), it will
+     * keep denying for the whole session — so we disable OCR after the first
+     * SecurityException instead of retrying (and re-logging) on every video.
+     */
+    @Volatile private var permanentlyDisabled = false
+
+    /**
      * Invokes [onResult] on the main thread with recognized text, or null
      * when OCR isn't possible (pre-Android 11, screenshot throttled, etc.).
      * Callers treat null as "proceed without OCR".
      */
     fun read(service: AccessibilityService, onResult: (String?) -> Unit) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R || permanentlyDisabled) {
             onResult(null)
             return
         }
 
         try {
             takeScreenshot(service, onResult)
+        } catch (e: SecurityException) {
+            permanentlyDisabled = true
+            Logs.e("OcrReader", "Screenshot denied; disabling OCR for this session", e)
+            onResult(null)
         } catch (t: Throwable) {
             Logs.e("OcrReader", "takeScreenshot threw", t)
             onResult(null)
