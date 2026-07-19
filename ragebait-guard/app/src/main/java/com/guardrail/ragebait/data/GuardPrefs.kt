@@ -97,9 +97,11 @@ class GuardPrefs(context: Context) {
 
     val skippedCount: Int get() = prefs.getInt(KEY_SKIPPED, 0)
     val flaggedCount: Int get() = prefs.getInt(KEY_FLAGGED, 0)
+    val llmCheckCount: Int get() = prefs.getInt(KEY_LLM_CHECKS, 0)
 
     fun incrementSkipped() = prefs.edit().putInt(KEY_SKIPPED, skippedCount + 1).apply()
     fun incrementFlagged() = prefs.edit().putInt(KEY_FLAGGED, flaggedCount + 1).apply()
+    fun incrementLlmChecks() = prefs.edit().putInt(KEY_LLM_CHECKS, llmCheckCount + 1).apply()
 
     companion object {
         private const val KEY_ENABLED = "guard_enabled"
@@ -110,6 +112,7 @@ class GuardPrefs(context: Context) {
         private const val KEY_OVERLAY_FY = "overlay_fy"
         private const val KEY_SKIPPED = "stat_skipped"
         private const val KEY_FLAGGED = "stat_flagged"
+        private const val KEY_LLM_CHECKS = "stat_llm_checks"
         private const val KEY_LLM_ENABLED = "llm_enabled"
         private const val KEY_LLM_API_KEY = "llm_api_key"
         private const val KEY_LLM_MODEL = "llm_model"

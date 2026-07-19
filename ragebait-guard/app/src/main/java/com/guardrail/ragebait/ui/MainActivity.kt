@@ -144,6 +144,7 @@ class MainActivity : AppCompatActivity() {
             prefs.skippedCount,
             prefs.flaggedCount,
             training.exampleCount(),
+            prefs.llmCheckCount,
         )
     }
 

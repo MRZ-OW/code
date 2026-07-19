@@ -3,6 +3,7 @@ package com.guardrail.ragebait.classify
 import android.os.Handler
 import android.os.Looper
 import com.guardrail.ragebait.data.GuardPrefs
+import com.guardrail.ragebait.data.Logs
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -50,31 +51,49 @@ class LlmJudge(private val prefs: GuardPrefs) {
         blockedTopics: Collection<String>,
         onVerdict: (Boolean) -> Unit,
     ) {
-        if (!prefs.llmEnabled || prefs.llmApiKey.isBlank()) return
+        if (!prefs.llmEnabled) return
+        if (prefs.llmApiKey.isBlank()) {
+            Logs.w(TAG, "AI judge is ON but no API key is set — paste a Gemini key in the AI judge card")
+            return
+        }
         synchronized(verdicts) {
             verdicts[signature]?.let { cached ->
+                Logs.i(TAG, "cache hit → ${verdictWord(cached)}")
                 mainHandler.post { onVerdict(cached) }
                 return
             }
         }
-        if (!inFlight.compareAndSet(false, true)) return
+        if (!inFlight.compareAndSet(false, true)) {
+            Logs.i(TAG, "busy — a request is already in flight, skipping this video")
+            return
+        }
 
         val apiKey = prefs.llmApiKey
         val model = prefs.llmModel
+        Logs.i(TAG, "→ asking $model  (topics=${blockedTopics.size}, chars=${screenText.length})")
+        val startedAt = System.currentTimeMillis()
         executor.execute {
             val verdict = try {
                 call(apiKey, model, screenText, blockedTopics)
-            } catch (_: Exception) {
+            } catch (t: Throwable) {
+                Logs.e(TAG, "request failed (${t.javaClass.simpleName}): ${t.message}")
                 null
             } finally {
                 inFlight.set(false)
             }
+            prefs.incrementLlmChecks()
+            val ms = System.currentTimeMillis() - startedAt
             if (verdict != null) {
+                Logs.i(TAG, "← ${verdictWord(verdict)}  (${ms} ms)")
                 synchronized(verdicts) { verdicts[signature] = verdict }
                 mainHandler.post { onVerdict(verdict) }
+            } else {
+                Logs.w(TAG, "← no usable answer (${ms} ms) — failing open, nothing skipped")
             }
         }
     }
+
+    private fun verdictWord(bad: Boolean) = if (bad) "Yes → SKIP" else "No → keep"
 
     // ------------------------------------------------------------------
 
@@ -133,24 +152,43 @@ class LlmJudge(private val prefs: GuardPrefs) {
         val connection = url.openConnection() as HttpURLConnection
         try {
             connection.requestMethod = "POST"
-            connection.connectTimeout = 2000
-            connection.readTimeout = 4000
+            connection.connectTimeout = 3000
+            connection.readTimeout = 6000
             connection.doOutput = true
             connection.setRequestProperty("Content-Type", "application/json")
             connection.setRequestProperty("x-goog-api-key", apiKey)
             connection.outputStream.use { it.write(body.toString().toByteArray()) }
 
-            if (connection.responseCode !in 200..299) return null
+            val code = connection.responseCode
+            if (code !in 200..299) {
+                val err = try {
+                    connection.errorStream?.bufferedReader()?.readText()
+                } catch (_: Exception) {
+                    null
+                }
+                // Surface the reason: 400 = bad request, 403/400 = bad key,
+                // 404 = wrong model id, 429 = rate limited (free tier).
+                Logs.w(TAG, "HTTP $code from $model: ${err?.take(300) ?: "(no body)"}")
+                return null
+            }
 
             val response = connection.inputStream.bufferedReader().readText()
             val text = JSONObject(response)
                 .optJSONArray("candidates")?.optJSONObject(0)
                 ?.optJSONObject("content")
                 ?.optJSONArray("parts")?.optJSONObject(0)
-                ?.optString("text") ?: return null
+                ?.optString("text")
+            if (text.isNullOrBlank()) {
+                Logs.w(TAG, "HTTP $code but no text in response: ${response.take(200)}")
+                return null
+            }
             return text.trim().lowercase().startsWith("yes")
         } finally {
             connection.disconnect()
         }
+    }
+
+    companion object {
+        private const val TAG = "LlmJudge"
     }
 }

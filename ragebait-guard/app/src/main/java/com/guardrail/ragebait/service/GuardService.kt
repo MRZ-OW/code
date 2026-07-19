@@ -181,6 +181,7 @@ class GuardService : AccessibilityService() {
         if (snapshot.signature == lastJudgedSignature) return
         lastJudgedSignature = snapshot.signature
         val sig = snapshot.signature
+        Logs.i(TAG, "No list match → escalating to OCR/AI for @${snapshot.creator ?: "?"}")
 
         llm.cachedVerdict(sig)?.let { cached ->
             if (cached) skipIfStillShowing(sig)
@@ -207,7 +208,6 @@ class GuardService : AccessibilityService() {
                 }
 
                 llm.judgeAsync(sig, enriched.joinedText, blockedTerms) { isBad ->
-                    Logs.i(TAG, "AI judge verdict: ${if (isBad) "SKIP" else "keep"}")
                     if (isBad) skipIfStillShowing(sig)
                 }
             } catch (t: Throwable) {

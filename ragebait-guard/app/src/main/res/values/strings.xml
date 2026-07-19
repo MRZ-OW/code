@@ -15,7 +15,7 @@
 
     <!-- Stats card -->
     <string name="stats_title">Activity</string>
-    <string name="stats_line">Auto-skipped: %1$d   ·   Flagged with 😤: %2$d   ·   Examples saved: %3$d</string>
+    <string name="stats_line">Auto-skipped: %1$d   ·   Flagged with 😤: %2$d   ·   Examples saved: %3$d   ·   AI checks: %4$d</string>
 
     <!-- Blocklist card -->
     <string name="blocklist_title">Blocked words &amp; phrases</string>
