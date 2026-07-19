@@ -43,13 +43,20 @@ the app (off by default, needs a [Gemini API key](https://aistudio.google.com)):
 3. The blocklist is re-checked against the OCR text (free — many videos
    resolve right here with no API call).
 4. Only if still unresolved, the recognized *text* plus the blocked-topic
-   list goes to a fast Gemini model (`gemini-2.5-flash-lite` by default),
-   which answers a single word: Yes (skip) or No.
+   list goes to a fast Gemini model, which answers a single word: Yes (skip)
+   or No.
+
+The default model id is **`gemini-flash-lite-latest`** — an alias that
+auto-tracks Google's newest stable flash-lite, so the app doesn't 404 when a
+specific version is retired (Google gives ~2 weeks' notice before the alias
+moves). To pin a fixed version, type one in the app (e.g.
+`gemini-3.1-flash-lite`). Retired ids saved by older installs (e.g.
+`gemini-2.5-flash-lite`) are auto-migrated to the default on read.
 
 Latency is ~0.5–1.5 s end-to-end — the skip lands within the first second
 or two of a video someone would otherwise watch for 10+. Cost is ~400
-prompt tokens + 1 output token per judged video ≈ **$0.04 per 1,000
-videos** at Flash-Lite pricing. One request in flight at a time, one
+prompt tokens + 1 output token per judged video ≈ **~10 cents per 1,000
+videos** at flash-lite pricing. One request in flight at a time, one
 judgement per video (LRU-cached verdicts), and every failure fails *open* —
 a network hiccup can never block scrolling.
 

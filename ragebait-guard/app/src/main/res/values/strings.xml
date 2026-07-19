@@ -43,10 +43,10 @@
     <string name="llm_title">AI judge (optional)</string>
     <string name="llm_switch_label">Ask AI when the blocklist isn\'t sure</string>
     <string name="llm_key_hint">Gemini API key</string>
-    <string name="llm_model_hint">Model id (default: gemini-2.5-flash-lite)</string>
+    <string name="llm_model_hint">Model id (default: gemini-flash-lite-latest)</string>
     <string name="llm_save">Save</string>
     <string name="toast_llm_saved">AI judge settings saved</string>
-    <string name="llm_note">When the local lists don\'t match, the guard screenshots the video, reads the on-screen text with on-device OCR, and asks a fast Gemini model \"related to any blocked topic, or obvious rage bait? Yes/No\". Costs about $0.04 per 1,000 videos and adds under a second. Only recognized text is sent to Google — never the screen image. If the call fails, nothing is skipped. Get a key at aistudio.google.com.</string>
+    <string name="llm_note">When the local lists don\'t match, the guard screenshots the video, reads the on-screen text with on-device OCR, and asks a fast Gemini model \"related to any blocked topic, or obvious rage bait? Yes/No\". Roughly 10 cents per 1,000 videos and adds under a second. The default \"gemini-flash-lite-latest\" auto-updates to Google\'s newest cheap model, so it won\'t break when a version is retired; or pin one like \"gemini-3.1-flash-lite\". Only recognized text is sent to Google — never the screen image. If the call fails, nothing is skipped. Get a key at aistudio.google.com.</string>
 
     <!-- Advanced / logs -->
     <string name="advanced_title">Advanced</string>

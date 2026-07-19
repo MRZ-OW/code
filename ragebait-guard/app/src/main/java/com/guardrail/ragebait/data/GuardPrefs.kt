@@ -88,7 +88,15 @@ class GuardPrefs(context: Context) {
         set(value) = prefs.edit().putString(KEY_LLM_API_KEY, value.trim()).apply()
 
     var llmModel: String
-        get() = prefs.getString(KEY_LLM_MODEL, DEFAULT_LLM_MODEL)!!
+        get() {
+            val stored = prefs.getString(KEY_LLM_MODEL, DEFAULT_LLM_MODEL)!!
+            // Self-heal keys still pointing at a model Google has retired.
+            if (stored in RETIRED_MODELS) {
+                llmModel = DEFAULT_LLM_MODEL
+                return DEFAULT_LLM_MODEL
+            }
+            return stored
+        }
         set(value) = prefs.edit()
             .putString(KEY_LLM_MODEL, value.trim().ifEmpty { DEFAULT_LLM_MODEL })
             .apply()
@@ -117,7 +125,16 @@ class GuardPrefs(context: Context) {
         private const val KEY_LLM_API_KEY = "llm_api_key"
         private const val KEY_LLM_MODEL = "llm_model"
 
-        const val DEFAULT_LLM_MODEL = "gemini-2.5-flash-lite"
+        /**
+         * The "-latest" alias auto-tracks Google's newest stable flash-lite,
+         * so the app won't 404 again when a specific version is retired
+         * (Google gives 2 weeks' notice before the alias moves). To pin a
+         * fixed version instead, type e.g. "gemini-3.1-flash-lite" in the app.
+         */
+        const val DEFAULT_LLM_MODEL = "gemini-flash-lite-latest"
+
+        /** Model ids Google has withdrawn — migrated to the default on read. */
+        val RETIRED_MODELS = setOf("gemini-2.5-flash-lite")
 
         /** Starter custom list — fully editable in the app. */
         val DEFAULT_TERMS: Set<String> = setOf(
