@@ -1,0 +1,60 @@
+# ============================================================================
+# VoiceBridge configuration
+# ----------------------------------------------------------------------------
+# Copy this file to `config.yaml` and edit it for your machine.
+#   cp config.example.yaml config.yaml      (Windows: copy config.example.yaml config.yaml)
+#
+# Find your device names/IDs with:   python -m voicebridge devices
+# ============================================================================
+
+audio:
+  # Input = her real microphone. Output = the virtual cable the game listens to.
+  # Use the exact substring of the device name (case-insensitive) OR a numeric id.
+  input_device: "default"          # e.g. "Microphone (USB)"  -> her physical mic
+  output_device: "CABLE Input"     # VB-CABLE playback device -> game reads "CABLE Output"
+  monitor_device: null             # optional: also play converted audio to headphones to hear herself
+
+  samplerate: 48000                # device sample rate (Hz). 48000 is the safe default on Windows.
+  channels: 1                      # mono in/out
+
+# Real-time streaming parameters. These trade latency against quality/stability.
+# See docs/LATENCY.md for tuning. Total added latency ~= block_ms + crossfade_ms + inference.
+stream:
+  block_ms: 150                    # audio captured per inference step. Lower = less latency, more CPU/GPU load.
+  crossfade_ms: 40                 # overlap blended between chunks to hide seams. 25-60 is reasonable.
+  context_ms: 200                  # past audio fed to the model for continuity (not played, just context).
+  pipeline_samplerate: 16000       # internal SR the engine resamples to for the model (HuBERT-style = 16000).
+
+# Which conversion backend to use: passthrough | rvc | seedvc
+backend: passthrough
+
+# ---- Backend: passthrough -------------------------------------------------
+# Not AI. Proves the mic -> cable -> game routing works on ANY machine, today.
+# Optional toy pitch shift so you can *hear* a change while testing routing.
+passthrough:
+  pitch_semitones: 0               # e.g. -4 to sound deeper. Formants NOT preserved; it's only a test tone.
+
+# ---- Backend: rvc (your cloned voice) -------------------------------------
+# This is the real product: a model trained on YOUR voice (see docs/TRAINING.md).
+rvc:
+  model_path: "models/your_voice.pth"     # the trained RVC generator
+  index_path: "models/your_voice.index"   # retrieval index (improves timbre); optional
+  index_rate: 0.5                          # 0..1 how strongly to pull toward the trained timbre
+  f0_method: "rmvpe"                       # pitch estimator: rmvpe (best), crepe, harvest, pm
+  f0_up_key: 0                             # pitch shift in semitones. If she is higher-pitched than you,
+                                           #   try +0 first; the model already retargets timbre. Tune by ear.
+  protect: 0.33                            # protect unvoiced consonants (reduces artifacts); 0..0.5
+  device: "cuda:0"                         # "cuda:0" for NVIDIA GPU (required for real time), or "cpu" (slow)
+
+# ---- Backend: seedvc (zero-shot, no training) -----------------------------
+# Point it at a reference clip of your voice; no training step. Lower quality
+# than a fine-tuned RVC model but instant. Good for a quick first test.
+seedvc:
+  reference_wav: "recordings/reference.wav"
+  checkpoint: null                 # null = use the default pretrained Seed-VC checkpoint
+  diffusion_steps: 4               # fewer steps = lower latency, rougher quality
+  device: "cuda:0"
+
+logging:
+  level: INFO                      # DEBUG | INFO | WARNING
+  show_latency: true               # print rolling input->output latency while running

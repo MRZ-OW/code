@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.python-version
+
+# VoiceBridge data & models (never commit voice data or weights)
+models/
+*.pth
+*.index
+*.onnx
+*.pt
+*.ckpt
+data/
+recordings/
+datasets/
+logs/
+*.wav
+*.flac
+*.mp3
+*.npy
+
+# Local config (may contain device names / personal paths)
+config.yaml
+config.local.yaml
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
