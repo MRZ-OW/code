@@ -49,7 +49,10 @@ const SV = {
 // Where each shoulder is (body frame x): profile both near the middle; 3/4 the near one on the torso's back edge (the arm
 // overlaps the edge) and the far one far enough forward that its outer edge shows past the chest; front and back at the
 // torso's edges.
-const shoulderX = (V, sideSign, far, u) => V === SV.q ? (far ? 1.35 : -1.1) * u : V.side ? (far ? .25 : -.15) * u : sideSign * 1.8 * u * V.torsoW;
+// a: the shoulder angle, when known. A near 3/4 arm raised above the shoulder moves its joint back toward the torso's
+// back corner (up to .45u), so a raised arm grows out of a shoulder, not out from under the chin and beard.
+const svRaise = (V, far, a) => V === SV.q && !far && a != null ? .45 * clamp(Math.sin(a) / .8) : 0;
+const shoulderX = (V, sideSign, far, u, a = null) => V === SV.q ? (far ? 1.35 : -1.1 - svRaise(V, far, a)) * u : V.side ? (far ? .25 : -.15) * u : sideSign * 1.8 * u * V.torsoW;
 // A seated body keeps its seat (no upward bob) and squashes half as much. Shared by survivor() and its helpers.
 const bodySq = o => ((o.sq || 0) + (o.take || 0)) * (1 - .5 * clamp(o.sit || 0));
 const bodyDy = o => (o.dy || 0) < 0 ? (o.dy || 0) * (1 - clamp(o.sit || 0)) : (o.dy || 0);
@@ -243,7 +246,7 @@ function survivor(x, y, u, o = {}) {
   const arm = (which, far, inFront = false) => {   // inFront: a far arm drawn over the body (reaching across it)
     rs('arm' + which);
     const sideSign = V.side ? 1 : (which === 'R' ? 1 : -1), a = which === 'L' ? aL : aR, b = (which === 'L' ? o.bendL : o.bendR) ?? (.22 + .55 * clamp((a + .6) / 1.6));   // raised arms bend in
-    const shx = shoulderX(V, sideSign, far, u), shy = -7.75 * u + drop;
+    const shx = shoulderX(V, sideSign, far, u, a), shy = -7.75 * u + drop;
     const d1 = [sideSign * Math.cos(a), -Math.sin(a)], a2 = a - b, d2 = [sideSign * Math.cos(a2), -Math.sin(a2)], ak = (which === 'L' ? o.armKL : o.armKR) ?? 1;
     const ex = shx + d1[0] * 1.85 * u * ak, ey = shy + d1[1] * 1.85 * u * ak, hx = ex + d2[0] * 1.75 * u * ak, hy = ey + d2[1] * 1.75 * u * ak;
     const top = gear.hoodie || suit, col0 = top ? (suit || (gear.hoodieCol || '#A8382E')) : SB.col, shade = far && !inFront;
@@ -445,7 +448,7 @@ function handLocal(u, o, which) {
   const a = o.rawArms ? (which === 'L' ? o.aL ?? -1.32 : o.aR ?? -1.32) : humanArm(which === 'L' ? o.aL ?? .2 : o.aR ?? .2);
   const b = (which === 'L' ? o.bendL : o.bendR) ?? (.22 + .55 * clamp((a + .6) / 1.6));
   const far = V.far.includes(which), sideSign = V.side ? 1 : (which === 'R' ? 1 : -1);
-  const shx = shoulderX(V, sideSign, far, u), shy = -7.75 * u + drop, a2 = a - b, ak = (which === 'L' ? o.armKL : o.armKR) ?? 1;
+  const shx = shoulderX(V, sideSign, far, u, a), shy = -7.75 * u + drop, a2 = a - b, ak = (which === 'L' ? o.armKL : o.armKR) ?? 1;
   return [shx + sideSign * (Math.cos(a) * 1.85 + Math.cos(a2) * 1.75) * u * ak, shy - (Math.sin(a) * 1.85 + Math.sin(a2) * 1.75) * u * ak];
 }
 // For props that leave the hand (a dropped rock, a handshake, a handover). Follows survivor()'s maths: view, arms,
@@ -462,19 +465,24 @@ function survivorHand(x, y, u, o, which) {
 function reachArm(u, o, which, tx, ty, elbowDown = true) {
   const V = SV[o.view] || SV.front, far = V.far.includes(which), sideSign = V.side ? 1 : (which === 'R' ? 1 : -1);
   const drop = clamp(o.crouch || 0) * 1.2 * u + clamp(o.sit || 0) * 2.05 * u;
-  const sx = shoulderX(V, sideSign, far, u), sy = -7.75 * u + drop;
-  const dx = (tx - sx) * sideSign, dy = -(ty - sy), D = Math.hypot(dx, dy), ak = clamp(D / (3.6 * u * .97), 1, 1.3);   // out of reach: the arm stretches (up to 30%)
-  const L1 = 1.85 * u * ak, L2 = 1.75 * u * ak, d = clamp(D, .2 * u, (L1 + L2) * .999);
-  const th = Math.atan2(dy, dx), phi = Math.acos(clamp((L1 * L1 + d * d - L2 * L2) / (2 * L1 * d), -1, 1));
-  // Which of the two elbows. 3/4 and profile (+x forward): elbowDown = the elbow below the shoulder-hand line reaching
-  // forward, back behind him reaching back. Front, qf and back (+x = out from the body): the elbow that sits out and down
-  // (the larger of x - .35y), so a hand across the chest, on the belly or near the hip keeps its elbow down and out at
-  // his side instead of cocked up over the shoulder or crossed inward over the body. That choice only flips where both
-  // solutions mirror each other about an out-and-slightly-down line, which a bent arm rarely crosses, so it doesn't pop.
-  const outDown = q => Math.cos(q) - .35 * Math.sin(q);
-  const lo = V.side ? true : outDown(th - phi) >= outDown(th + phi);
-  const a = th + ((lo === elbowDown) ? -phi : phi), ex = L1 * Math.cos(a), ey = L1 * Math.sin(a), a2 = Math.atan2(dy * d / (D || 1) - ey, dx * d / (D || 1) - ex);
-  return which === 'L' ? { aL: a, bendL: a - a2, armKL: ak } : { aR: a, bendR: a - a2, armKR: ak };
+  const sy = -7.75 * u + drop;
+  let r = solve(shoulderX(V, sideSign, far, u));
+  if (svRaise(V, far, r.a) > 0) for (let i = 0; i < 3; i++) r = solve(shoulderX(V, sideSign, far, u, r.a));   // a raised 3/4 arm's shoulder moves back (see shoulderX)
+  return which === 'L' ? { aL: r.a, bendL: r.a - r.a2, armKL: r.ak } : { aR: r.a, bendR: r.a - r.a2, armKR: r.ak };
+  function solve(sx) {
+    const dx = (tx - sx) * sideSign, dy = -(ty - sy), D = Math.hypot(dx, dy), ak = clamp(D / (3.6 * u * .97), 1, 1.3);   // out of reach: the arm stretches (up to 30%)
+    const L1 = 1.85 * u * ak, L2 = 1.75 * u * ak, d = clamp(D, .2 * u, (L1 + L2) * .999);
+    const th = Math.atan2(dy, dx), phi = Math.acos(clamp((L1 * L1 + d * d - L2 * L2) / (2 * L1 * d), -1, 1));
+    // Which of the two elbows. 3/4 and profile (+x forward): elbowDown = the elbow below the shoulder-hand line reaching
+    // forward, back behind him reaching back. Front, qf and back (+x = out from the body): the elbow that sits out and down
+    // (the larger of x - .35y), so a hand across the chest, on the belly or near the hip keeps its elbow down and out at
+    // his side instead of cocked up over the shoulder or crossed inward over the body. That choice only flips where both
+    // solutions mirror each other about an out-and-slightly-down line, which a bent arm rarely crosses, so it doesn't pop.
+    const outDown = q => Math.cos(q) - .35 * Math.sin(q);
+    const lo = V.side ? true : outDown(th - phi) >= outDown(th + phi);
+    const a = th + ((lo === elbowDown) ? -phi : phi), ex = L1 * Math.cos(a), ey = L1 * Math.sin(a), a2 = Math.atan2(dy * d / (D || 1) - ey, dx * d / (D || 1) - ex);
+    return { a, a2, ak };
+  }
 }
 
 // The inverse: a world point in a survivor's body frame (for reachArm targets in the world).

@@ -183,7 +183,7 @@
     camBegin(540, 1150, 1.5);
     campSet(t, 1.05, 1);
     stump(330, 1400, 70, SEAT, 1.05); stump(700, 1400, 70, SEAT, 1.05);
-    const lift = ease(seg(t, 8.0, 8.3)), rk = [330 + 3.0 * U, 1400 - 7.6 * U];   // where the rock is held up (world)
+    const lift = ease(seg(t, 8.0, 8.3)), rk = [330 + 3.0 * U, 1400 - 6.6 * U];   // where the rock is held up (world): chest high, so the Chad's pat reaches it under his mask, not across it
     // the Naked: rock held up in both hands like a treasure; starstruck at the AK
     const star = t > 9.45, N = star ? feel('starstruck', t, { aL: 0, aR: 0 }) : feel('hopeful', t, { blush: .5 });
     const No = { ...N, boilKey: NK, seed: 1, view: 'q', sit: 1, prop: 'none', rawArms: true };
@@ -192,7 +192,7 @@
     No.handL = (u, sw) => { push(); translate(.3 * u, -.3 * u); rotate(-.15); rockProp(u * 1.05, sw); pop(); };
     // the Chad: two pats on top of the rock (8.55–9.05), then the AK from his lap, up level and side-on (9.15–9.45)
     const Cb = { ...feel('happy', t), eyes: 'happy', boilKey: CH, seed: 2, view: 'q', flip: true, sit: 1, rawArms: true, aR: -1.32, bendR: .22 };
-    const rockTop = [rk[0] + 1.8 * U, rk[1] - 1.1 * U],   // the pat lands on the rock's near shoulder: his arm reaches it without stretching across his mask
+    const rockTop = [rk[0] + 1.8 * U, rk[1] - .9 * U],   // the pat lands on the rock's near shoulder: his arm reaches it without stretching across his mask
       pat = t > 8.55 && t < 9.05 ? Math.max(0, Math.sin((t - 8.55) * TAU * 2)) : 0;
     if (t < 9.1) {
       const reach = ease(seg(t, 8.3, 8.55)) * (1 - ease(seg(t, 9.0, 9.1)));
