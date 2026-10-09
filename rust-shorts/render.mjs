@@ -89,8 +89,8 @@ async function openPage(tag = '') {
   const page = await browser.newPage();
   page.on('console', m => { if (['error', 'warn'].includes(m.type())) console.log(`[page${tag}]`, m.text()); });
   page.on('pageerror', e => console.log(`[page error${tag}]`, e.message));
-  await page.goto(pathToFileURL(resolve('studio.html')).href + '?render' + (EP ? `&ep=${EP}` : ''), { waitUntil: 'networkidle0' });
-  await page.waitForFunction('window.ready === true', { timeout: 60000 });
+  await page.goto(pathToFileURL(resolve('studio.html')).href + '?render' + (EP ? `&ep=${EP}` : ''), { waitUntil: 'networkidle0', timeout: 300000 });
+  await page.waitForFunction('window.ready === true', { timeout: 300000 });
   if (args.loop) {
     const ok = await page.evaluate(name => { if (!LOOPS[name]) return false; window.LOOP = LOOPS[name]; return true; }, args.loop);
     if (!ok) { console.error(`no loop named "${args.loop}"`); process.exit(1); }
