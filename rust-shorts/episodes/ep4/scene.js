@@ -377,6 +377,20 @@
   function worldHeadPt(x, y, o, lon, lat, k = 1) { const p = headPoint(U, o, lon, lat, k); return bodyPt(x, y, o, p[0], p[1]); }
   // How the Naked carries his rock: clutched at the chest under the beard (never at the mouth or over the briefs), or
   // cocked back over his head (charging), so his face stays clear. FAR_CLUTCH: the far hand on the rock too.
+  // The near arm laid across his chest is skin on skin, and the rig gives it only soft brown edges there: ink both sides
+  // of the upper arm and forearm (a draw hook, same maths as survivor()'s arm; stops short of the shoulder and the fist).
+  const armInk = o => (u, sw, V) => {
+    if (V !== SV.q) return;
+    const drop = clamp(o.crouch || 0) * 1.2 * u + clamp(o.sit || 0) * 2.05 * u, a = o.aL, b = o.bendL ?? .22, ak = o.armKL ?? 1, a2 = a - b;
+    const sh = [-1.1 * u, -7.75 * u + drop], d1 = [-Math.cos(a), -Math.sin(a)], d2 = [-Math.cos(a2), -Math.sin(a2)];
+    const el = [sh[0] + d1[0] * 1.85 * u * ak, sh[1] + d1[1] * 1.85 * u * ak], hd = [el[0] + d2[0] * 1.75 * u * ak, el[1] + d2[1] * 1.75 * u * ak];
+    if (hd[0] < -.2 * u) return;   // only while the hand is forward, across the body
+    boilSeed('armink' + (o.boilKey || ''));
+    for (const P of limbSides(sh, el, hd, .95 * u, .78 * u)) {
+      const Q = densify(P, 8).filter(p => Math.hypot(p[0] - sh[0], p[1] - sh[1]) > .62 * u && Math.hypot(p[0] - hd[0], p[1] - hd[1]) > .6 * u);
+      if (Q.length > 1) inkLine(Q, sw * .8, PAL.ink, 'ink', 0);
+    }
+  };
   const CHEST = [-6.9, -.95], RAISED = { aL: -4.45, bendL: -.3, armKL: 1.2 };
   const clutch = (o, k = 1) => { const [hx, hy] = handLocal(U, o, 'L'), r = reachArm(U, o, 'R', hx - .25 * U, hy + .35 * U); return { aR: lerp(o.aR ?? -1.2, r.aR, k), bendR: lerp(o.bendR ?? .3, r.bendR, k), armKR: lerp(1, r.armKR, k) }; };
 
@@ -702,11 +716,11 @@
     camBegin(c.cx, c.cy, c.z);
     floor();
     bushX();
-    const C = chad2B(10.5);
+    const C = { ...chad2B(10.5) }; C.x += 14;   // a closer framing cheat: his mask clear of the left edge
     geared(C.x, CY, U, { ...C.o, face: chadFace(1, 0) });
     const No = { ...face(t, [[10.5, 'determined', { eyes: 'determined', mouth: 'flat' }]]), boilKey: NK, seed: 1, prop: 'none', handOver: true, handL: rockHand, view: 'q', flip: true, rawArms: true,
       aL: CHEST[0] + .04 * Math.sin(t * 9), bendL: CHEST[1] - .1, aR: -1.2, bendR: .3, lookX: .9, lookY: .05, squint: .28 * ease(seg(t, 10.6, 11.0)) };
-    No.face = nakedFace({ glints: 1, look: No });
+    No.face = nakedFace({ glints: 1, look: No }); No.draw = armInk(No);
     spawnling(NX2, G, U, No);
     const mp = maskPt(C), sx = (mp[0] - c.cx) * c.z + W / 2, sy = (mp[1] - c.cy) * c.z + H / 2;
     camEnd();
@@ -736,19 +750,20 @@
     const eyes = t < CLANG ? 'normal' : t < 12.45 ? 'wide' : t < 13.25 ? 'normal' : 'angry';
     return { x: CX, o: chadPose({ crouch: .12, rot: -.05 * hitK, eyes, lookX: t > 12.45 ? .25 : .4, lookY: t > 12.45 ? .2 : 0, squint: t > 12.45 ? .4 * ease(seg(t, 12.45, 13.9)) : 0 }) };
   }
-  const OUT = [-6.55, .2];   // after the CLANG: his rock arm held out stiff, low in front of him, buzzing
+  const OUT = [-6.55, .2], HOLD = .08;   // after the CLANG: his rock arm held out stiff, low in front of him, buzzing
   function naked2D(t) {
     const target = maskPt(chad2D(CLANG));
     const base = { view: 'q', flip: true, rawArms: true };
     const hit = strike(NX2, G, { ...base, rot: -.06, aL: -6.2, bendL: .02, armKL: 1.2 }, target[0] + 8, target[1]);
-    const buzz = t > CLANG ? .09 * Math.exp(-(t - CLANG) * 3.2) * (Math.floor(t * 24) % 2 ? 1 : -1) : 0;
+    const buzz = t > CLANG + HOLD ? .09 * Math.exp(-(t - CLANG - HOLD) * 3.2) * (Math.floor(t * 24) % 2 ? 1 : -1) : 0;
     let aL, bendL, dx, rot, armK, hug = 0;
     if (t < CLANG) {   // winds up from his chest (11.5–11.78), swings (11.85–12.0)
       aL = t < 11.85 ? kf(t, [[11.5, CHEST[0] + TAU], [11.78, COCK[0]], [11.85, -4.55]]) : lerp(-4.55, hit.aL, easeIn(seg(t, 11.85, CLANG)));
       bendL = t < 11.85 ? kf(t, [[11.5, CHEST[1]], [11.78, COCK[1]], [11.85, -1.25]]) : lerp(-1.25, .02, easeIn(seg(t, 11.85, CLANG)));
       dx = kf(t, [[11.8, 0], [CLANG, hit.dx]]); rot = kf(t, [[11.5, 0], [11.8, .16], [CLANG, -.06]]); armK = lerp(1, 1.2, easeIn(seg(t, 11.85, CLANG)));
-    } else {   // the rock bounces off: he recoils back past his mark (by 12.25), arm buzzing; then pulls the rock in and hugs it (13.0–13.5)
-      const rec = easeOut(seg(t, CLANG, 12.25)), back = ease(seg(t, 13.0, 13.5));
+    } else {   // the rock sits on the mask for two frames (hit-stop), then bounces off: he recoils back past his mark (by 12.3),
+      // arm buzzing; then pulls the rock in and hugs it (13.0–13.5)
+      const rec = easeOut(seg(t, CLANG + HOLD, 12.3)), back = ease(seg(t, 13.0, 13.5));
       aL = lerp(lerp(hit.aL, OUT[0], rec), CHEST[0], back) + buzz * (1 - back); bendL = lerp(lerp(.02, OUT[1], rec), CHEST[1], back);
       dx = lerp(hit.dx, .8, rec); rot = lerp(-.06, .1, rec) * (1 - back) + .02 * back; armK = lerp(1.2, 1, rec); hug = back;
     }
@@ -773,21 +788,40 @@
     const onHead = t >= XHEADLAND, cross = t > XHEADLAND;
     const No = { ...N.o };
     if (cross) { No.eyes = 'cross'; No.squint = 0; }
-    No.face = nakedFace({ xOn: onHead ? 1 : 0 });
+    No.face = nakedFace({ xOn: onHead ? 1 : 0 }); No.draw = armInk(No);
+    swoosh(t, 11.88, CLANG, tt => { const n = naked2D(tt); return alongArm(n.x, G, n.o, 1.3); }, 'h4');   // behind his arm, so the rock stays clear
+    // the contact: a pale burst on the mask behind the rock (the rock's face sits on it while the hit holds)
+    if (t >= CLANG && t < CLANG + .11) {
+      const f = alongArm(N.x, G, N.o, 1.2), k = 1 - seg(t, CLANG + .06, CLANG + .11);
+      glow(f[0], f[1], 150 * k, '#FFF2C8', .9 * k);
+      boilSeed('clangburst'); paint(starPts(f[0], f[1], 96 * k, .42, 9, .3), { wash: '#FFF4CC', ink: '#B08A2E', sw: 1.6 });
+    }
     spawnling(N.x, G, U, No);
-    swoosh(t, 11.88, CLANG, tt => { const n = naked2D(tt); return alongArm(n.x, G, n.o, 1.3); }, 'h4');
+    shakeArcs(t, N);
     // CLANG: sparks, ring lines round the mask, a short flash
     if (t >= CLANG) { sparks(mx + 30, my - 10, 1.1, t - CLANG, { dir: -Math.PI * .6, spread: 2.6, n: 11, key: 'clang' }); rings(mx + 10, my, t - CLANG); }
     // the X: pops off the mask, floats between them (above their heads), hops onto his forehead
     if (t >= CLANG && t < XHEADLAND) {
       let p, o = { key: 'float' };
-      if (t < 12.3) { const h = hopX([mx, my], XFLOAT, 120, ease(seg(t, CLANG, 12.3))); p = h.p; o = { ...o, stretch: h.stretch, dir: h.dir, rot: (t - CLANG) * 14 }; }
+      if (t < 12.3) { const h = hopX([mx, my], XFLOAT, 120, ease(seg(t, CLANG, 12.3))); p = h.p; o = { ...o, stretch: h.stretch, dir: h.dir, rot: .3 * Math.sin((t - CLANG) * 26) }; }   // a wobble, never past ±20° (a spun X reads as a +)
       else if (t < XHEAD) { p = [XFLOAT[0] + 8 * Math.sin((t - 12.3) * 4), XFLOAT[1] + 10 * Math.sin((t - 12.3) * 6)]; o.rot = .15 * Math.sin((t - 12.3) * 5); const [a, b] = xSquash(t, 12.3, .7); o.sx = a; o.sy = b; }
       else { const h = hopX(XFLOAT, nakedForehead(No), 70, seg(t, XHEAD, XHEADLAND)); p = h.p; o = { ...o, stretch: h.stretch, dir: h.dir }; }
       xMark(p[0], p[1], XR * .95, o);
     }
     camEnd();
-    if (t >= CLANG) flash(.2 * Math.exp(-(t - CLANG) * 18), '#FFF6E0');
+    if (t >= CLANG) flash(.12 * Math.exp(-(t - CLANG) * 18), '#FFF6E0');
+  }
+  // his rock arm buzzing after the CLANG: 2–3 shake arcs either side of the forearm and rock (12.08–12.32, 6 frames)
+  function shakeArcs(t, N) {
+    const a = t - CLANG - HOLD; if (a < 0 || a > .24) return;
+    const c = alongArm(N.x, G, N.o, .1), q = alongArm(N.x, G, N.o, -1.2), ang = Math.atan2(c[1] - q[1], c[0] - q[0]), j = Math.floor(t * 24) % 2 ? 4 : -4, fade = 1 - seg(a, .16, .24);
+    boilSeed('shakearcs');
+    for (const s2 of [-1, 1]) for (let i = 0; i < 3; i++) {
+      if (i === 2 && a > .12) continue;
+      const r = 62 + 18 * i + j, P = [];
+      for (let k = 0; k <= 6; k++) { const b = ang + s2 * Math.PI / 2 + (k / 6 - .5) * .9; P.push([c[0] + Math.cos(b) * r * 1.35, c[1] + Math.sin(b) * r]); }
+      inkLine(P, 3 * fade, PAL.ink, 'ink', .3);
+    }
   }
   // vibration rings round the clanged mask: arcs either side, spreading and fading
   function rings(x, y, age) {
@@ -844,7 +878,7 @@
       dx: N3() + .03 * Math.sin(t * 47), lookX: t < 14.3 ? .2 : .6, lookY: t < 14.3 ? -1 : lerp(-.2, -.8, ease(seg(t, 14.9, 15.4))), dy: .03 * Math.sin(t * 40) };
     Object.assign(No, clutch(No));
     if (t < 14.3) { No.eyes = 'cross'; No.squint = 0; No.mouth = 'wobble'; }
-    No.face = nakedFace({ xOn: 1, grin: t >= 14.3 });
+    No.face = nakedFace({ xOn: 1, grin: t >= 14.3 }); No.draw = armInk(No);
     spawnling(NX2, G, U, No);
     camEnd();
   }

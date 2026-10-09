@@ -755,7 +755,7 @@
     // the eoka, the flash, the shot and its smoke: all behind him
     const E = eokaFree(t), LM = eokaFreePt(EOKA_LAND[0], EOKA_LAND[1], 0, MUZZLE), [px, py] = maskFront(sleeperAt(17.66));
     if (E) eokaAt(E.x, E.y, E.aim, 'free');
-    if (t >= 17.6) { muzzleFlash(LM[0], LM[1], 1.1, clamp(1 - (t - 17.6) / .12), 0, 'b'); gunSmoke(LM[0] + 30, LM[1], .9, t - 17.6, 'b', .35, 1); }
+    if (t >= 17.6) { muzzleFlash(LM[0], LM[1], 1.1, clamp(1 - (t - 17.6) / .12), 0, 'b'); gunSmoke(LM[0] + 30, LM[1], .9, t - 17.6, 'b', .35); }
     tracer(LM[0], LM[1], px, py, seg(t, 17.6, 17.66), 'b');
     // the Naked: slumped, eyes shut; the bang makes him jump; then he turns to look back down at it
     const jp = jump(t, 17.62, 17.86, 1.8), tk = take(t, 17.62, 1.1), turned = t > 17.92, view3b = t < 17.84 ? 'side' : t < 17.88 ? 'q' : t < 17.92 ? 'qf' : 'front';   // a drawn turn
