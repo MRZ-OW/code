@@ -305,6 +305,7 @@
   function face(t, keys) { const E = emotions(t, keys), F = {}; for (const k of FACE) if (E[k] !== undefined) F[k] = E[k]; return F; }
   // the rock in the Naked's near hand, along his forearm (the fist wraps it: handOver)
   const rockHand = (u, sw, info) => { push(); rotate(info.ang); translate(-.12 * u, 0); rockProp(u, sw); pop(); };
+  const rockOut = k => (u, sw, info) => { push(); rotate(info.ang); translate((-.12 + .62 * k) * u, 0); rockProp(u, sw); pop(); };   // k 1: the rock's face out past the fist
   // ---------- on the head: o.face(u, sw, V, head) hooks (drawn on the head, under the arms). head.pt(lon, lat, k) puts a
   // spot on the turned head (lon 0 = the middle of the face, − = the near side; lat − = up) in every view, and returns
   // [x, y, depth]; depth ≤ 0 has turned away from us.
@@ -382,12 +383,12 @@
   const armInk = o => (u, sw, V) => {
     if (V !== SV.q) return;
     const drop = clamp(o.crouch || 0) * 1.2 * u + clamp(o.sit || 0) * 2.05 * u, a = o.aL, b = o.bendL ?? .22, ak = o.armKL ?? 1, a2 = a - b;
-    const sh = [-1.1 * u, -7.75 * u + drop], d1 = [-Math.cos(a), -Math.sin(a)], d2 = [-Math.cos(a2), -Math.sin(a2)];
+    const sh = [-1.1 * u, -7.75 * u + drop], d1 = [Math.cos(a), -Math.sin(a)], d2 = [Math.cos(a2), -Math.sin(a2)];   // 3/4 is a side view: +x forward for both arms
     const el = [sh[0] + d1[0] * 1.85 * u * ak, sh[1] + d1[1] * 1.85 * u * ak], hd = [el[0] + d2[0] * 1.75 * u * ak, el[1] + d2[1] * 1.75 * u * ak];
     if (hd[0] < -.2 * u) return;   // only while the hand is forward, across the body
     boilSeed('armink' + (o.boilKey || ''));
     for (const P of limbSides(sh, el, hd, .95 * u, .78 * u)) {
-      const Q = densify(P, 8).filter(p => Math.hypot(p[0] - sh[0], p[1] - sh[1]) > .62 * u && Math.hypot(p[0] - hd[0], p[1] - hd[1]) > .6 * u);
+      const Q = densify(P, 8).filter(p => Math.hypot(p[0] - sh[0], p[1] - sh[1]) > .5 * u && Math.hypot(p[0] - hd[0], p[1] - hd[1]) > .6 * u);
       if (Q.length > 1) inkLine(Q, sw * .8, PAL.ink, 'ink', 0);
     }
   };
@@ -633,7 +634,7 @@
   // swerves away from us round behind the bush and stops there (the bush shakes: it scrapes the X off), then trots out
   // of the far side without it (8.3). The Naked runs in after it, skids to a stop by the bush and looks round: "?" (8.4).
   // Behind his back, the X peeks out of the top of the bush (8.5–8.72) and ducks before he turns.
-  const WIDE = cam(800, 1010, 1.02);
+  const WIDE = cam(800, 1050, 1.02);
   const B2A = [[7.0, -80, 1462], [7.2, 160, 1440], [7.5, 520, 1376], [7.72, 760, 1324], [7.88, 890, 1302], [8.1, 970, 1298], [8.32, 1150, 1314], [8.7, 1420, 1334], [9.0, 1600, 1344]];
   function boar2A(t) {
     const p = pathAt(B2A, t), q = pathAt(B2A, t + .02), sp = Math.hypot(q[0] - p[0], q[1] - p[1]) / .02;
@@ -716,7 +717,7 @@
     camBegin(c.cx, c.cy, c.z);
     floor();
     bushX();
-    const C = { ...chad2B(10.5) }; C.x += 14;   // a closer framing cheat: his mask clear of the left edge
+    const C = { ...chad2B(10.5) }; C.x += 18;   // a closer framing cheat: his mask clear of the left edge
     geared(C.x, CY, U, { ...C.o, face: chadFace(1, 0) });
     const No = { ...face(t, [[10.5, 'determined', { eyes: 'determined', mouth: 'flat' }]]), boilKey: NK, seed: 1, prop: 'none', handOver: true, handL: rockHand, view: 'q', flip: true, rawArms: true,
       aL: CHEST[0] + .04 * Math.sin(t * 9), bendL: CHEST[1] - .1, aR: -1.2, bendR: .3, lookX: .9, lookY: .05, squint: .28 * ease(seg(t, 10.6, 11.0)) };
@@ -769,7 +770,8 @@
     }
     const F = face(t, [[11.5, 'determined', { eyes: 'determined', mouth: 'teeth' }], [12.05, 'surprised', { emote: null, mouth: 'flat' }], [12.6, 'neutral', { eyes: 'look' }], [13.05, 'nervous', { emote: 'sweat', mouth: 'wobble' }]]);
     const look = t < 12.6 ? [.9, 0] : t < 13.0 ? [.45, -1] : t < 13.6 ? [.9, -.3] : [.2, -1];
-    const o = { ...F, boilKey: NK, seed: 1, prop: 'none', handOver: true, handL: rockHand, ...base, aL, bendL, armKL: armK, dx, rot, aR: -1.2, bendR: .3, lookX: look[0], lookY: look[1], crouch: t > 13.1 ? .12 * ease(seg(t, 13.1, 13.5)) : 0, emoteDx: 4.8, emoteDy: .3 };
+    const out = seg(t, 11.88, CLANG) * (1 - seg(t, CLANG + HOLD, 12.2));
+    const o = { ...F, boilKey: NK, seed: 1, prop: 'none', handOver: true, handL: out > 0 ? rockOut(out) : rockHand, ...base, aL, bendL, armKL: armK, dx, rot, aR: -1.2, bendR: .3, lookX: look[0], lookY: look[1], crouch: t > 13.1 ? .12 * ease(seg(t, 13.1, 13.5)) : 0, emoteDx: 4.8, emoteDy: .3 };
     if (hug > 0) Object.assign(o, clutch(o, hug));
     return { x: NX2, o };
   }
@@ -793,13 +795,12 @@
     // the contact: a pale burst on the mask behind the rock (the rock's face sits on it while the hit holds)
     if (t >= CLANG && t < CLANG + .11) {
       const f = alongArm(N.x, G, N.o, 1.2), k = 1 - seg(t, CLANG + .06, CLANG + .11);
-      glow(f[0], f[1], 150 * k, '#FFF2C8', .9 * k);
-      boilSeed('clangburst'); paint(starPts(f[0], f[1], 96 * k, .42, 9, .3), { wash: '#FFF4CC', ink: '#B08A2E', sw: 1.6 });
+      boilSeed('clangburst'); paint(starPts(f[0] - 10, f[1], 88 * k, .45, 9, .3), { wash: '#FFC93A', ink: '#A0661E', sw: 1.6 });
     }
     spawnling(N.x, G, U, No);
     shakeArcs(t, N);
     // CLANG: sparks, ring lines round the mask, a short flash
-    if (t >= CLANG) { sparks(mx + 30, my - 10, 1.1, t - CLANG, { dir: -Math.PI * .6, spread: 2.6, n: 11, key: 'clang' }); rings(mx + 10, my, t - CLANG); }
+    if (t >= CLANG) { sparks(mx - 10, my - 45, 1.1, t - CLANG, { dir: -Math.PI * .6, spread: 2.6, n: 11, key: 'clang' }); rings(mx + 10, my, t - CLANG - HOLD); }
     // the X: pops off the mask, floats between them (above their heads), hops onto his forehead
     if (t >= CLANG && t < XHEADLAND) {
       let p, o = { key: 'float' };
@@ -818,9 +819,9 @@
     boilSeed('shakearcs');
     for (const s2 of [-1, 1]) for (let i = 0; i < 3; i++) {
       if (i === 2 && a > .12) continue;
-      const r = 62 + 18 * i + j, P = [];
-      for (let k = 0; k <= 6; k++) { const b = ang + s2 * Math.PI / 2 + (k / 6 - .5) * .9; P.push([c[0] + Math.cos(b) * r * 1.35, c[1] + Math.sin(b) * r]); }
-      inkLine(P, 3 * fade, PAL.ink, 'ink', .3);
+      const r = 50 + 14 * i + j, P = [];
+      for (let k = 0; k <= 6; k++) { const b = ang + s2 * Math.PI / 2 + (k / 6 - .5) * .8; P.push([c[0] + Math.cos(b) * r * 1.3, c[1] + Math.sin(b) * r]); }
+      inkLine(P, 1.8 * fade, PAL.ink, 'inkfine', .2);
     }
   }
   // vibration rings round the clanged mask: arcs either side, spreading and fading
@@ -842,7 +843,7 @@
   // The Naked smiles a wobbly, awkward smile, hugging his own rock.
   const slungAK = (u, sw) => { push(); translate(-.6 * u, -6.6 * u); rotate(-2.3); akProp(u, sw * .9, 0); pop(); };
   const N3 = () => naked2D(13.99).o.dx || 0;   // where 2E left him
-  const UP3 = [-1.25, -13.45];                 // the Chad's rock hand at the top: up and back, clear of his mask
+  const UP3 = [-.95, -13.75];                 // the Chad's rock hand at the top: up and back, clear of his mask
   function s3a(t, lt) {
     const c = cam(668, 990, lerp(1.24, 1.3, ease(lt / 1.5)));
     backdrop(c);
@@ -865,7 +866,7 @@
       const reach = ease(seg(t, 14.5, 14.66)), up = ease(seg(t, 14.8, 15.33));
       const hp = up > 0 ? kf(up, [[0, [-1.3, -4.9]], [.35, [-2.75, -7.7]], [.72, [-2.55, -10.9]], [1, UP3]], k => k) : [lerp(-.4, -1.3, reach), lerp(-5.6, -4.9, reach)];
       const H = reachArm(U, { view: 'q', rawArms: true }, 'L', hp[0] * U, hp[1] * U, up < .3);
-      CA = { aL: H.aL, bendL: H.bendL, armKL: H.armKL, rot: -.08 * up, noGun: true, twoHand: false, aR: -1.3, behind: slungAK, handOver: true,
+      CA = { aL: H.aL, bendL: H.bendL, armKL: H.armKL, rot: -.03 * up, noGun: true, twoHand: false, aR: -1.3, behind: slungAK, handOver: true,
         handL: t >= 14.72 ? (u, sw) => { push(); rotate(-.6 - .95 * up); translate(-.1 * u, 0); rockProp(u * .95, sw); pop(); } : null };
     }
     const Co = { ...C0, ...CA, rawArms: true, view: 'q', face: chadFace(0, 1) };

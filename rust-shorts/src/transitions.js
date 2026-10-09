@@ -565,8 +565,11 @@ function trHeliAt(p) {
     const k = p / .5, kk = clamp(k / .8), s = .45 * Math.pow(S / .45, kk), zd = Math.sqrt(Math.max(0, (S / s) ** 2 - 1));
     return { s, elev: Math.atan2(1, zd), yaw: lerp(1.28, Math.PI / 2, ease(kk)), y: lerp(560, 960, ease(kk)), light: 1 - seg(kk, .62, .85), k: kk, disc: seg(kk, .7, .9) };
   }
-  const q = seg(p, .5, 1);
-  return { s: S * Math.pow(.6 / S, q * q), elev: Math.PI / 2, yaw: Math.PI / 2, y: 960 - 1700 * Math.pow(q, 1.5), light: 0, k: 1, disc: 1 - .75 * seg(q, .1, .45) };   // climbs away up the frame
+  // The exit: it climbs away fast, shrinking, and peels off to the upper right, swinging its nose round to the right so
+  // the tail boom trails out sideways along the top of the frame (never down through the middle of the next shot).
+  const q = seg(seg(p, .5, 1), .09, 1), m = easeOut(clamp(q / .55));   // (it holds right overhead for a frame or two after the cut)
+  return { s: S * Math.pow(.42 / S, Math.pow(q, .7)), elev: Math.PI / 2, yaw: Math.PI / 2, rot: -1.55 * ease(clamp(q / .28)),
+    x: 540 + 1250 * Math.pow(q, 1.2), y: 960 - 760 * m - 500 * q * q, light: 0, k: 1, disc: 1 - .85 * seg(q, .05, .32) };
 }
 // The main rotor's blur seen from below: a dark disc (op 255 blots out the sky), soft lighter blade sweeps turning in it
 // and a faint line where the yellow tips run.
@@ -604,25 +607,27 @@ TRANS_FX.heliFlyover = {
   dur: .7,
   draw(p, d, o, t) {
     const S = trHeliAt(p);
-    const ho = { yaw: S.yaw, elev: S.elev, t, key: 'tr', light: S.light > .01 ? { on: S.light, aim: Math.PI / 2 + .55 * Math.sin(p * 9 - 1), len: 700 + 900 * S.k, w: .2 } : null };
+    const X = S.x ?? 540, ho = { yaw: S.yaw, rot: S.rot || 0, elev: S.elev, t, key: 'tr', light: S.light > .01 ? { on: S.light, aim: Math.PI / 2 + .55 * Math.sin(p * 9 - 1), len: 700 + 900 * S.k, w: .2 } : null };
     const C = heliCam(ho), under = clamp((hFacing(C, [0, -1, 0]) - .5) / .4);
     // its shadow darkens the frame as it comes over
     const sh = seg(p, .3, .46) * (1 - seg(p, .6, .85));
     if (sh > 0) { boilSeed('tr-heli-shade'); paint(rectPts(-60, -60, W + 120, H + 120), { wash: '#1E2230', washOp: 90 * sh, ink: null }); }
     // the rotor blur behind it (it's above the heli, and we're below)
-    const [mx, my] = hWorld(540, S.y, S.s, ho, hProj(C, [0, 134, 0])), R = 280 * S.s * .93;
+    const [mx, my] = hWorld(X, S.y, S.s, ho, hProj(C, [0, 134, 0])), R = 280 * S.s * .93;
     trRotorBlur(mx, my, R, 255 * S.disc * under, t, 'tr-rotor');
-    patrolHeli(540, S.y, S.s, ho);
+    patrolHeli(X, S.y, S.s, ho);
     if (under > .02) {
       // the belly in its own shade
-      const hull = hThin(hullOf(hLoft(HCAB, HCAB_CUTS, 2, 16).map(q => hWorld(540, S.y, S.s, ho, hProj(C, q.P)))), 6);
+      const hull = hThin(hullOf(hLoft(HCAB, HCAB_CUTS, 2, 16).map(q => hWorld(X, S.y, S.s, ho, hProj(C, q.P)))), 6);
       boilSeed('tr-belly-shade'); paint(hull, { wash: '#141A26', washOp: 85 * under, ink: null });
       // the tail rotor, edge-on from below: a small blurred disc at the end of the boom
-      const [tx, ty] = heliPt(540, S.y, S.s, ho, 'tail');
-      boilSeed('tr-trotor'); paint(ellPts(tx, ty, 14 * S.s, 50 * S.s, 18), { wash: '#3C4148', washOp: 110 * under, ink: null });
-      inkLine([[tx, ty - 48 * S.s], [tx, ty + 48 * S.s]], clamp(S.s * .5, .8, 3), '#B89A4E', 'inkfine', 0);
+      const [tx, ty] = heliPt(X, S.y, S.s, ho, 'tail');
+      push(); translate(tx, ty); rotate(-ho.rot);
+      boilSeed('tr-trotor'); paint(ellPts(0, 0, 14 * S.s, 50 * S.s, 18), { wash: '#3C4148', washOp: 110 * under, ink: null });
+      inkLine([[0, -48 * S.s], [0, 48 * S.s]], clamp(S.s * .5, .8, 3), '#B89A4E', 'inkfine', 0);
+      pop();
     }
-    trHeliBelly(540, S.y, S.s, ho);
+    trHeliBelly(X, S.y, S.s, ho);
     // blade shadows sweeping across the belly while we're under it
     if (under * S.disc > .05) {
       const a0 = (t * 3.3 + .4) * TAU;

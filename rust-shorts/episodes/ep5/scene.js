@@ -236,9 +236,10 @@
     boilSeed('e5crater');
     for (let i = 0; i < 11; i++) { const a = i / 11 * TAU + .3, l = r * (1.6 + .6 * hash(i)); paint([[x + Math.cos(a - .1) * r * .9, y + Math.sin(a - .1) * r * .3], [x + Math.cos(a) * l, y + Math.sin(a) * l * .3], [x + Math.cos(a + .1) * r * .9, y + Math.sin(a + .1) * r * .3]], { wash: '#2E2A26', washOp: 170, ink: null }); }
     paint(ellPts(x, y, r * 1.22, r * .38, 24, 2), { wash: '#3A322C', washOp: 210, ink: null });   // the scorch
-    paint(ellPts(x, y - r * .03, r, r * .31, 22, 2), { wash: '#B98E62', ink: PAL.ink, sw: 1.3 });   // the lip of turned-up earth
+    paint(ellPts(x, y - r * .03, r * 1.06, r * .34, 22, 2), { wash: '#D9A86C', ink: PAL.ink, sw: 1.8 });   // the lip of turned-up earth, bright against the grass
     paint(ellPts(x, y + r * .03, r * .76, r * .2, 20, 2), { wash: '#1E1A18', ink: PAL.ink, sw: .9 });   // the pit
-    paint(ellPts(x - r * .12, y - r * .21, r * .62, r * .07, 14), { wash: '#DDB98A', washOp: 230, ink: null });   // sun on the far lip
+    paint(ellPts(x - r * .1, y - r * .22, r * .7, r * .075, 14), { wash: '#F6DDAA', ink: null });   // sun on the far lip
+    paint(ellPts(x + r * .1, y + r * .25, r * .6, r * .05, 12), { wash: '#EAC38A', washOp: 220, ink: null });   // and on the near one
     for (let i = 0; i < 6; i++) paint(ellPts(x + (hash(i + 5) - .5) * r * 2.3, y - r * .32 + hash(i + 8) * r * .12, r * .1, r * .065, 8), { wash: '#8C6C4A', ink: PAL.ink, sw: .6 });
   }
   // What's left of the AK after the rockets: still an AK (the red D-handle stock and its blue tape, the black receiver,
@@ -248,16 +249,19 @@
     const u = U * .8 * s, sw = clamp(2.2 * s, .8, 2.6);
     boilSeed('e5bentak');
     push(); translate(x, y); rotate(rot);
-    inkLine(U2(u, [[-1.05, -.3], [-2.75, -.5], [-2.9, .6], [-1.05, .28]]), sw * 1.3, '#A3352A', 'ink', 0);   // the red D-handle stock
+    inkLine(U2(u, [[-1.05, -.3], [-2.75, -.5], [-2.9, .6], [-1.05, .28]]), sw * 2.4, PAL.ink, 'ink', 0);
+    inkLine(U2(u, [[-1.05, -.3], [-2.75, -.5], [-2.9, .6], [-1.05, .28]]), sw * 1.7, '#C8402E', 'ink', 0);   // the red D-handle stock
     for (const k of [-.22, .06, .34]) inkLine(U2(u, [[-3.0, k - .08], [-2.66, k + .02]]), sw * 1.15, '#3E6FB8', 'ink', 0);   // its blue tape
     paint(rectPts(-1.1 * u, -.55 * u, 2.6 * u, .8 * u, u * .02), { wash: '#26252B', ink: PAL.ink, sw: sw * .55 });   // receiver
     paint(ellPts(.15 * u, -.2 * u, .16 * u, .16 * u, 10), { wash: '#B8962A', ink: null });   // the smiley sticker, scorched
     paint(U2(u, [[-.55, .2], [-.15, .2], [-.25, 1.0], [-.65, 1.0]]), { wash: '#7A5034', ink: PAL.ink, sw: sw * .45 });   // grip
-    paint(U2(u, [[.3, .22], [.85, .22], [1.3, .85], [1.62, 1.35], [1.18, 1.55], [.82, 1.02]]), { wash: '#2E2D33', ink: PAL.ink, sw: sw * .5, curv: .35 });   // the magazine
+    paint(U2(u, [[.3, .22], [.85, .22], [1.3, .85], [1.62, 1.35], [1.18, 1.55], [.82, 1.02]]), { wash: '#B5432E', ink: PAL.ink, sw: sw * .6, curv: .35 });   // the magazine (red-brown, like the stock)
+    inkLine(U2(u, [[.5, .35], [.95, .95], [1.25, 1.35]]), sw * .5, '#E07A5E', 'inkfine', .4);   // its highlight
     inkLine(U2(u, [[.98, .9], [.62, 1.0]]), sw * .9, '#8E949A', 'ink', 0);   // its tape
     paint(rectPts(1.4 * u, -.38 * u, 1.35 * u, .5 * u, u * .02), { wash: '#A55E36', ink: PAL.ink, sw: sw * .5 });   // the handguard, singed
     const B = U2(u, [[2.65, -.13], [3.35, -.15], [3.95, -.32], [4.3, -.8], [4.2, -1.4], [3.75, -1.72], [3.15, -1.72], [2.75, -1.45]]);
-    paint(ribbon(B, .3 * u, .26 * u), { wash: '#2A292E', ink: PAL.ink, sw: sw * .45 });   // the barrel, bent back on itself
+    paint(ribbon(B, .34 * u, .3 * u), { wash: '#55545C', ink: PAL.ink, sw: sw * .6 });   // the barrel, bent back on itself
+    inkLine(B.map(([bx, by]) => [bx, by - .08 * u]), sw * .45, '#A8ADB4', 'inkfine', .4);   // a shine along the bend
     paint(ellPts(B[B.length - 1][0], B[B.length - 1][1], .15 * u, .15 * u, 8), { wash: '#121014', ink: null });   // the muzzle, looking back at the gun
     for (let i = 0; i < 4; i++) paint(ellPts((-2.2 + i * 1.3) * u, (-.15 + .25 * hash(i)) * u, .45 * u, .2 * u, 9, u * .05), { wash: '#1E1C1E', washOp: 100, ink: null });   // soot
     pop();
@@ -299,11 +303,23 @@
     if (k <= .01 || op <= .01) return;
     const f = Math.floor(t * 12);
     if (op > .55) for (let i = 0; i < 4; i++) {   // limbs poking out, a new pose every boil
-      const a = hash(f * 3 + i) * TAU, l = r * (1 + .25 * hash(f + i * 7)), skin = SKIN_TONES.light.col;
+      // inked, skin-coloured limbs: arms (i even) end in a fist, legs (i odd, thicker, low) in a bare foot
+      const leg = i % 2 === 1, a = leg ? Math.PI * (.15 + .7 * hash(f * 3 + i)) : hash(f * 3 + i) * TAU, l = r * (.95 + .2 * hash(f + i * 7)), sk = SKIN_TONES.light;
       boilSeed('e5limb' + i);
-      const P = [[x + Math.cos(a) * r * .5, y + Math.sin(a) * r * .45], [x + Math.cos(a + .15) * l * .85, y + Math.sin(a + .15) * l * .7], [x + Math.cos(a - .1) * l * 1.08, y + Math.sin(a - .1) * l * .86]];
-      paint(ribbon(P, 26 * k, 20 * k), { wash: skin, ink: PAL.ink, sw: 1.3 });
-      paint(ellPts(P[2][0], P[2][1], 15 * k, 15 * k, 10), { wash: i % 2 ? skin : '#F0E3C8', ink: PAL.ink, sw: 1.1 });
+      const P = [[x + Math.cos(a) * r * .45, y + Math.sin(a) * r * .4], [x + Math.cos(a + .18) * l * .8, y + Math.sin(a + .18) * l * .68], [x + Math.cos(a - .08) * l * 1.05, y + Math.sin(a - .08) * l * .84]];
+      const w = (leg ? 40 : 32) * k, e = P[2], d = Math.atan2(e[1] - P[1][1], e[0] - P[1][0]);
+      paint(ribbon(P, w, w * .82), { wash: sk.col, ink: PAL.ink, sw: 2.2 });
+      inkLine(P.slice(1).map(([px, py]) => [px - Math.sin(d) * w * .28, py + Math.cos(d) * w * .28]), 2.2, sk.dk, 'inkfine', .3);   // a shaded edge
+      push(); translate(e[0], e[1]); rotate(d);
+      if (leg) {   // a foot: the sole across the end of the leg, toes forward
+        paint(ellPts(w * .35, 0, w * .62, w * .95, 14), { wash: sk.col, ink: PAL.ink, sw: 2 });
+        for (let j = 0; j < 4; j++) paint(ellPts(w * .9, (-.6 + j * .4) * w * .8, w * .16, w * .13, 8), { wash: sk.col, ink: PAL.ink, sw: 1.2 });
+      } else {   // a fist, its knuckles
+        paint(ellPts(w * .3, 0, w * .72, w * .66, 14), { wash: sk.col, ink: PAL.ink, sw: 2 });
+        inkLine([[w * .55, -w * .35], [w * .75, 0], [w * .55, w * .35]], 1.4, sk.dk, 'inkfine', .5);
+        paint(ellPts(w * .05, -w * .55, w * .28, w * .2, 8), { wash: sk.col, ink: PAL.ink, sw: 1.2 });   // the thumb
+      }
+      pop();
     }
     const B = []; for (let i = 0; i < 9; i++) { const a = i / 9 * TAU + f * .4, d = r * .5 * (.8 + .3 * hash(f + i)) * (1 + (1 - op) * .5); B.push([x + Math.cos(a) * d, y + Math.sin(a) * d * .8, r * (.42 + .12 * hash(i + f * 2)) * k * (.7 + .3 * op)]); }
     if (op > .6) { boilSeed('e5cloudrim'); for (const [px, py, pr] of B) paint(ellPts(px, py, pr + 4, pr * .9 + 4, 14), { wash: PAL.ink, washOp: 255 * op, ink: null }); }
@@ -450,6 +466,16 @@
       paint(cloudPts(px - pr * .12, py - pr * .25, pr * .62, pr * .4, i + 5), { wash: mixCol('#8E8A94', '#C4C0C8', kk), washOp: op * .7, ink: null, curv: .4 });
     }
   }
+  // Soft smoke wisps rising off something that's still smoking (no outlines): pale puffs that swell, drift and thin out
+  // as they rise. op fades the whole lot.
+  function wisps(x, y, s, t, key, op = 1) {
+    if (op <= .02) return;
+    for (let i = 0; i < 4; i++) {
+      const k = frac(t * .6 + i / 4), px = x + 18 * s * Math.sin(k * 5 + i * 2), py = y - 150 * s * k, r = (12 + 26 * k) * s;
+      boilSeed('e5wisp' + key + i);
+      paint(cloudPts(px, py, r, r * .75, i + 2), { wash: mixCol('#6E6A74', '#B4B0BA', k), washOp: 120 * op * Math.sin(Math.PI * k), ink: null, curv: .4 });
+    }
+  }
   // A low dust puff kicked up along the ground (no outlines, so it never reads as bubbles): flat lumps that spread
   // sideways, lift a little and thin out over life s.
   function dust(x, y, r, age, key, life = .4, col = '#E2D8BC') {
@@ -537,10 +563,11 @@
     // under the UI column): forward and left, bigger as he comes; he dives out of frame left at 5.08
     const run = seg(t, 3.5, 5.08), dive = seg(t, 5.08, 5.36);
     const [rsx, rsy] = t < 5.08 ? [lerp(660, 190, run), lerp(670, 885, run)] : [lerp(190, -230, easeIn(dive)), lerp(885, 905, dive)];
-    const [rx, RY] = ws(rsx, rsy), RU = depthU(RY), lit = t > 4.45 && t < 5.28, aimY = rsy - 6 * RU * CAM.zoom;
+    const [rx, RY] = ws(rsx, rsy), RU = 1.4 * depthU(RY), lit = t > 4.45 && t < 5.28, aimY = rsy - 6 * RU * CAM.zoom;
     if (lit) beam(h, rsx, aimY, 1, { over: 1.12 });
     clothesPile(...PILE, .85);
-    if (dive < 1) geared(rx, RY, RU, { ...CHAD_GEAR, ...feel('scared', t, { emote: null }), boilKey: 'runner', seed: 3, view: 'q', flip: true, walk: (t - 3.5) * 3.6, rawArms: true, aL: -.5, bendL: 1.2, aR: -.15, bendR: 1.5, gunRot: -.8, rot: -1.3 * easeOut(dive), dy: -2.2 * Math.sin(Math.PI * dive) });
+    // (3/4 front, the AK held low at his side, so the steel chestplate and the road-sign kilt read in silhouette)
+    if (dive < 1) geared(rx, RY, RU, { ...CHAD_GEAR, gear: { ...CHAD_GEAR.gear, hoodieCol: '#3F4A38' }, ...feel('scared', t, { emote: null }), boilKey: 'runner', seed: 3, view: 'qf', flip: true, walk: (t - 3.5) * 3.6, rawArms: true, aL: -1.0 + .25 * Math.sin((t - 3.5) * 22), bendL: .5, aR: -.7 - .3 * Math.sin((t - 3.5) * 22), bendR: 1.1, gunRot: 1.05, rot: -1.3 * easeOut(dive), dy: -2.2 * Math.sin(Math.PI * dive) });
     // the rocket's blast, far left (5.4), inside the frame
     const [bx, by] = ws(175, 880), br = 105 / CAM.zoom;
     clods(bx, by + 8, br, t - 5.4, 6, 'clod1c');
@@ -590,11 +617,11 @@
   // where his hands go while he dresses (body-local targets for reachArm), and what the left hand carries
   function dressing(t, o) {
     const B = (wx, wy) => toBody(NX, G, U, o, wx, wy);
-    const hatP = B(PILE[0] + 26, PILE[1] - 34), hoodP = B(PILE[0] + 30, PILE[1] - 22), pantsP = B(PILE[0] - 30, PILE[1] - 12);
+    const hatP = B(PILE[0] + 42, PILE[1] - 41), hoodP = B(PILE[0] + 30, PILE[1] - 22), pantsP = B(PILE[0] - 30, PILE[1] - 12);
     const d = dropOf(o, U), rest = { L: [-1.95 * U, -4.25 * U + d], R: [1.95 * U, -4.25 * U + d] }, HB = [-2.75 * U, -12.5 * U];
     let L = rest.L, R = rest.R, carry = null;
     if (t < 6.18) L = kf(t, [[6.0, rest.L], [6.18, hatP]]);
-    else if (t < 6.4) { L = kf(t, [[6.18, hatP], [6.32, [-2.4 * U, -15.0 * U]], [6.4, HB]]); carry = 'hat'; }
+    else if (t < 6.4) { L = kf(t, [[6.18, hatP], [6.27, [-3.7 * U, -13.2 * U]], [6.33, [-2.5 * U, -15.2 * U]], [6.4, HB]]); carry = 'hat'; }   // up and out at his side (the hat clear of his face), then over onto his head
     else if (t < 6.75) L = kf(t, [[6.45, HB], [6.65, rest.L]]);
     else if (t < 6.92) L = kf(t, [[6.75, rest.L], [6.92, hoodP]]);
     else if (t < 7.2) { L = kf(t, [[6.92, hoodP], [7.06, [-1.5 * U, -14.8 * U]], [7.2, [-1.3 * U, -14.4 * U]]]); R = kf(t, [[6.92, rest.R], [7.06, [1.5 * U, -14.8 * U]], [7.2, [1.3 * U, -14.4 * U]]]); carry = t < 7.08 ? 'hoodieUp' : 'hoodieOn'; }
@@ -639,7 +666,10 @@
         const dr = dressing(t, No);
         reach(No, U, 'L', ...dr.L); reach(No, U, 'R', ...dr.R);
         Object.assign(No, dressOpts(t, No));
-        if (dr.carry === 'hat') No.handL = (uu, sw) => boonie(2.75 * uu, .2 * uu, 1.3 * 2.35 * uu, { rot: .1 });
+        if (dr.carry === 'hat') {   // held by the brim's edge: it hangs out beside his hand, then swings over his head as it goes on
+          const sw2 = ease(seg(t, 6.27, 6.36)), gr = lerp(.4, 1, ease(seg(t, 6.18, 6.3)));
+          No.handL = (uu, sw) => boonie(lerp(-1.15 * gr, 2.75, sw2) * uu, .2 * uu, 1.3 * 2.35 * uu * gr, { rot: lerp(-.25, .1, sw2) });
+        }
         if (dr.carry === 'pants') No.handL = (uu, sw) => flyPants(1.4 * uu, 1.8 * uu, uu / 36 * 1.95, 0, .1);   // held open by the waistband
         if (dr.carry === 'hoodieUp') No.handL = (uu, sw) => flyHoodie(1.45 * uu, -2.2 * uu, uu / 36 * 1.9, 0);   // held up by the hem, over his head
         if (dr.carry === 'hoodieOn') {   // mid-pull: the hoodie hangs from his raised fists over his head, sliding down to his shoulders
@@ -671,8 +701,8 @@
     scr(() => {
       const [bx, by] = sc(NX, G - 6.3 * U), ck = seg(t, 9.4, 9.46), cop = 1 - seg(t, 9.86, 10.08);
       if (t >= 9.4 && t < 10.08) fightCloud(bx, by, 260, t, .6 + .4 * ck, cop);
-      if (t >= 9.4 && t < 9.85) { const k = seg(t, 9.4, 9.85), p = arcPt([bx - 40, by - 320], [-160, 240], 160, k); boilSeed('flyhat'); boonieTumble(p[0], p[1], 120, 1.2 + k * 9, -k * 5); }
-      if (t >= 9.65 && t < 10.15) { const k = seg(t, 9.65, 10.15), p = arcPt([bx + 60, by - 40], [1320, 1150], 170, k); flyHoodie(p[0], p[1], 1.45, k * 9); }
+      if (t >= 9.4 && t < 9.85) { const k = seg(t, 9.4, 9.85), p = arcPt([bx - 40, by - 320], [-160, 240], 160, k); boilSeed('flyhat'); boonie(p[0], p[1], 105, { view: 'side', rot: -.4 - k * 7.5 }); }   // spinning in profile: crown and brim always read
+      if (t >= 9.65 && t < 10.15) { const k = seg(t, 9.65, 10.15), p = arcPt([bx + 60, by - 40], [580, -300], 110, k); flyHoodie(p[0], p[1], 1.45, k * 7); }   // up and out the top, clear of the right-hand UI column
       if (t >= 9.9 && t < 10.4) { const k = seg(t, 9.9, 10.4), p = arcPt([bx - 60, by + 110], [-280, 1260], 120, k); flyPants(p[0], p[1], 1.45, -k * 8, Math.sin(k * 30)); }
       // the heli's "?"
       if (t > 10.05 && t < 10.55) emote('?', h.x + 110 * h.s / .5, h.y - 150 * h.s / .5, 26, seg(t, 10.05, 10.2) * (1 - seg(t, 10.45, 10.55)), t - 10.05);
@@ -830,7 +860,7 @@
     ground(t);
     sack(...SACK, .8, { ak: false });
     towel(...TOWEL, 300, 58);
-    const h = heliAt({ x: 680, y: 380 + 5 * Math.sin(t * 2.1), s: .74, hd: 2.1, elev: .3, pitch: -.15, spin: t > 20.0 ? 1 : 0, spinAng: spinUp(t, 20.0, 1.0), pods: ease(seg(t, 20.5, 20.7)), key: 'h3d' });
+    const h = heliAt({ x: 680, y: 455 + 5 * Math.sin(t * 2.1), s: .96, hd: 2.1, elev: .3, pitch: -.15, spin: t > 20.0 ? 1 : 0, spinAng: spinUp(t, 20.0, 1.0), pods: ease(seg(t, 20.5, 20.7)), key: 'h3d' });
     const [tx, ty] = sc(NX3, G - 6.5 * U);
     beam(h, tx, ty, 1, { over: 1.12 });
     // the AK, dropped: it falls from his chest to the grass at his side
@@ -860,6 +890,21 @@
     spawnling(NX3, G, U, No);
     light(tx, ty, 230, 1);
     drawHeli(h);
+    // the threat, made readable: a pale spinning blur round the minigun's barrels as it spins up (20.0), and the rocket
+    // pods' mouths pulsing hot orange once they arm (20.5)
+    scr(() => {
+      const sp = ease(seg(t, 20.0, 20.8)), arm = ease(seg(t, 20.5, 20.7));
+      if (sp > .02) {
+        const [gx, gy] = heliPt(h.x, h.y, h.s, h, 'gun'), r = 34 * h.s, a0 = h.spinAng;
+        boilSeed('e5gunblur'); paint(ellPts(gx, gy, r, r * .8, 16), { wash: '#E8ECF0', washOp: 110 * sp, ink: null });
+        for (let i = 0; i < 3; i++) { const a = a0 + i * TAU / 3, A = []; for (let j = 0; j <= 6; j++) { const b = a + j * .2; A.push([gx + Math.cos(b) * r * 1.25, gy + Math.sin(b) * r]); } boilSeed('e5gunarc' + i); inkLine(A, 3.4 * sp, '#3E434B', 'ink', .4); }
+      }
+      if (arm > .02) for (const pd of ['podL', 'podR']) {
+        const [px, py] = heliPt(h.x, h.y, h.s, h, pd), pl = .55 + .45 * Math.sin(t * 16 + (pd === 'podL' ? 0 : 1.6));
+        glow(px, py, (60 + 40 * pl) * h.s, '#FF8A2A', arm * (.6 + .4 * pl));
+        boilSeed('e5podhot' + pd); paint(ellPts(px, py, 16 * h.s, 16 * h.s, 12), { wash: mixCol('#FF6A1E', '#FFE08A', pl), washOp: 220 * arm, ink: null });
+      }
+    });
     camEnd();
   }
   // 3E wide: four rockets (21.0) streak at the AK at his side; a white flash and BOOM (21.4).
@@ -906,8 +951,8 @@
     ground(t, { wind: [hx, windK] });
     downwash(t, hx, G, windK * .7);
     clods(AKDROP[0], AKDROP[1], 180, 9, 9, 'clod3e');   // where they landed
-    crater(AKDROP[0], AKDROP[1] + 4, 100);
-    bentAK(AKDROP[0] - 50, AKDROP[1] - 12, 1.15);   // clear of his feet
+    crater(AKDROP[0] - 42, AKDROP[1] + 6, 86);   // left of him, clear of his feet
+    push(); translate(AKDROP[0] - 72, AKDROP[1] - 20); scale(-1, 1); bentAK(0, 0, 1.15, -.24); pop();   // the U-bent barrel out to the left, the red stock toward him
     towel(...TOWEL, 300, 58, { singe: 1 });
     rockGround(...ROCK, .82);   // rocks don't burn
     const on = t > 22.3 && t < 23.2 ? 1 : t >= 23.2 && t < 23.26 ? .3 : 0, [tx, ty] = sc(NX3, G - 6.5 * U);
@@ -929,8 +974,8 @@
       for (const [ox, oy, r] of [[-2.0, .3, .32], [.4, -.9, .28], [2.2, -.2, .26], [-3.8, .8, .22], [3.9, .7, .2]]) paint(ellPts(hx + ox * U, G + oy * U * k, r * U, r * .8 * U, 9), { wash: '#5E4A36', ink: PAL.ink, sw: .8 });
     }
     if (down) dust(NX3 + 10.9 * U, G - .3 * U, 110, t - 23.6, 'faceplant', .34);   // the thud raises dust at his head and along him
-    smolder(AKDROP[0] + 20, AKDROP[1] - 40, .9, t - 21.4, { key: 'akwisp' });
-    if (fall < .2) smolder(NX3 + 6, G - 12.8 * U, 1.2, t - 21.5, { key: 'him' });
+    wisps(AKDROP[0] - 60, AKDROP[1] - 40, .9, t, 'akwisp');
+    wisps(NX3 + 6, G - 12.6 * U, 1.1, t, 'him', 1 - seg(t, 23.0, 23.3));   // thinning out before he turns and falls
     softSmoke(NX3 - 40, G - 5 * U, 170, t - 21.62, 'clear3f', 5, .9);   // the blast's smoke, thinning off him as the shot opens
     light(tx, ty, 170, on);
     drawHeli(h);

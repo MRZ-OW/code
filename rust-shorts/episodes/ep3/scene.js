@@ -94,7 +94,7 @@
   // with a ghostly star in it).
   function skyPaint(t, sky, sun, moon) {
     boilSeed('sky'); paint(rectPts(-1600, -1800, W + 3200, 4400), { wash: sky.top, ink: null });
-    for (let i = 0; i < 7; i++) { staticSeed('skyband' + i); const y0 = HZ - 560 + i * 78; paint([[-1600, y0 + 14], [540, y0 - 10], [W + 1600, y0 + 14], [W + 1600, HZ + 60], [-1600, HZ + 60]], { wash: sky.low, washOp: 58 + 8 * i, ink: null, curv: .2 }); }
+    for (let i = 0; i < 12; i++) { staticSeed('skyband' + i); const y0 = HZ - 580 + i * 48; paint([[-1600, y0 + 10], [540, y0 - 8], [W + 1600, y0 + 10], [W + 1600, HZ + 60], [-1600, HZ + 60]], { wash: sky.low, washOp: 34 + 4 * i, ink: null, curv: .2 }); }
     const nk = sky.night || 0;
     if (nk > .05) for (let i = 0; i < 40; i++) { boilSeed('star' + i); const x = hash(i) * 1700 - 150, y = hash(i + 50) * 950 - 150, tw = .6 + .4 * Math.sin(t * (2 + 2 * hash(i + 3)) + i); paint(starPts(x, y, (3 + 4 * hash(i + 9)) * tw, .35, 4), { wash: PAL.cream, washOp: 230 * nk, ink: null }); }
     if (sun && sun[1] < HZ + 80) {
@@ -485,7 +485,7 @@
       puff(top[0], top[1] - 6, 22, t - 7.12, { col: '#EAE4D4', key: 'canpop', n: 4, life: .4, noInk: true });
     }
     // ----- the Naked: kiss, then the rock drops and he prays -----
-    const KISS = holdAt([2.35, -1.5], [2.55, -9.45], -Math.PI / 2, -1), PRAY = holdAt([2.35, -1.5], [2.95, -7.9], -Math.PI / 2 + .12, -1);
+    const KISS = holdAt([2.35, -1.5], [2.55, -9.45], -Math.PI / 2, -1), PRAY = holdAt([2.35, -1.5], [3.0, -9.2], -Math.PI / 2 + .12, -1);
     const e = t < 6.42 ? eBlend(REST, KISS, ease(seg(t, 6.0, 6.17))) : eBlend(KISS, PRAY, ease(seg(t, 6.42, 6.62)));
     const N = emotions(t, [[5.74, 'determined', { emote: null }], [6.08, 'love', { eyes: 'closed', mouth: 'pout', emote: null }], [6.45, 'proud', { eyes: 'closed', mouth: 'smile', emote: null }]], { take: .25 });
     const pray = ease(seg(t, 6.42, 6.62)), drop = t >= 6.42;
@@ -515,7 +515,7 @@
   // shadows, and the colour grade.
   function lapse(t) {
     const tod = kf(t, [[8, 0], [9.6, .1], [10.4, .6], [10.9, 1.0], [11.5, 1.4], [12.2, 1.9], [12.5, 2], [14, 2], [14.4, 1.4], [14.9, .9], [15.6, .45], [16, .25], [99, .25]], lin);
-    const sun = t < 12.5 ? kf(t, [[8, [120, 330]], [9, [560, 200]], [10, [990, 395]], [10.7, [1140, 820]], [11.15, [1190, 1250]]], lin) : kf(t, [[14.1, [40, 1260]], [14.6, [110, 1110]], [16, MSUN], [99, MSUN]], lin);
+    const sun = t < 12.5 ? kf(t, [[8, [120, 330]], [9, [560, 200]], [10, [990, 395]], [10.7, [1140, 820]], [11.15, [1190, 1250]]], lin) : kf(t, [[14.1, [20, 1260]], [14.6, [55, 1040]], [15.3, [110, 640]], [16, MSUN], [99, MSUN]], lin);
     const moon = kf(t, [[11.6, [110, 900]], [12.4, [200, 470]], [13.4, [560, 300]], [14.5, [950, 450]]], lin), mk = seg(t, 11.7, 12.3) * (1 - seg(t, 14.0, 14.5));
     const sky = {
       top: kfCol(t, [[8, '#86C3DD'], [9.6, '#7DB0D8'], [10.2, '#9A9AC8'], [10.7, '#D88A88'], [11.2, '#B05A78'], [11.7, '#5A3A78'], [12.1, '#2C2F66'], [12.5, '#1E2550'], [14.0, '#1E2550'], [14.4, '#5A4080'], [14.9, '#D88A96'], [15.4, '#9EB8DC'], [16, MORNING.top]]),
@@ -560,12 +560,13 @@
       const fl = ease(seg(t, 9.45, 9.52)) * (1 - ease(seg(t, 9.55, 9.75)));   // the flick back over his shoulder
       Object.assign(o, reachArm(U, o, 'L', lerp(2.6, -.4, fl) * U, lerp(-3.1, -8.4, fl) * U), { aR: -1.0, bendR: .4 });
     } else {
-      const belly = [1.15, -5.25 + 2.05 * sitK];
-      Object.assign(o, reachArm(U, o, 'L', belly[0] * U, belly[1] * U), reachArm(U, o, 'R', (belly[0] + .2) * U, (belly[1] - .5) * U));
+      Object.assign(o, napArms(o, sitK));
       o.sy = 1 + .02 * Math.sin((t - 10) * TAU * .55);   // breathing
     }
     return B;
   }
+  // Asleep on his back, hands folded on his belly.
+  const napArms = (o, sitK = 0) => ({ ...reachArm(U, o, 'L', 1.15 * U, (-5.25 + 2.05 * sitK) * U), ...reachArm(U, o, 'R', 1.35 * U, (-5.75 + 2.05 * sitK) * U) });
   // The tossed can: from his hand (9.52) over his shoulder to the road (9.6, clatter), a bounce, then lying there.
   function canFlight(t, from) {
     if (t < 9.52) return;
@@ -729,7 +730,7 @@
     return { x: EOKA_REST[0], y: EOKA_REST[1], aim: EOKA_REST[2] };
   }
   // the Chad asleep, as the time-lapse left him; a point on his mask's face plate; where the chicken burst
-  const sleeperAt = t => { const B = chadDown(1, { ...feel('sleepy', t, { eyes: 'closed', emote: null }), boilKey: CH, seed: 2 }); Object.assign(B.o, reachArm(U, B.o, 'L', 1.15 * U, -5.25 * U), reachArm(U, B.o, 'R', 1.35 * U, -5.75 * U)); return B; };
+  const sleeperAt = t => { const B = chadDown(1, { ...feel('sleepy', t, { eyes: 'closed', emote: null }), boilKey: CH, seed: 2 }); Object.assign(B.o, napArms(B.o)); return B; };
   const maskFront = B => ptOf(B, 1.6, -10.4 + 2.05 * B.o.sit);
   const BURST = (() => { const c = ptOf(sleeperAt(17.75), 1.25, -6.05); return [c[0] + 10, c[1] - 40]; })();
   // 3B (WIDE): the eoka drops in behind him and fires as it lands (17.6): the shot passes behind his legs and pings off
@@ -741,7 +742,7 @@
     // the Chad: asleep, then the ping (17.66) and up he jolts (17.78–17.92), stunned, arms up
     const up = ease(seg(t, 17.78, 17.92)), jt = take(t, 17.86, 1);
     const B = chadDown(1 - up, { ...(t < 17.78 ? feel('sleepy', t, { eyes: 'closed', emote: null }) : { eyes: 'wide' }), boilKey: CH, seed: 2, sq: jt.sq, lookX: .8 });
-    const belly = [1.15, -5.25 + 2.05 * B.o.sit], lie = { ...reachArm(U, B.o, 'L', belly[0] * U, belly[1] * U), ...reachArm(U, B.o, 'R', (belly[0] + .2) * U, (belly[1] - .5) * U) }, startled = { aL: .35, bendL: 1.0, aR: .15, bendR: .9 };
+    const lie = napArms(B.o, B.o.sit), startled = { aL: .35, bendL: 1.0, aR: .15, bendR: .9 };
     Object.assign(B.o, armLerp(lie, startled, up, 'L'), armLerp(lie, startled, up, 'R'));
     cobweb(1);
     groundAK();
