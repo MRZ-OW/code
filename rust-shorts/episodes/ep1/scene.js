@@ -322,15 +322,16 @@
     grade('#1A2348', 50);
     camEnd();
   }
-  // 3B: close on the sleeping Chad: happy shut eyes in the mask, the can hugged, a big sleep bubble, a small Zzz
+  // 3B: close on the sleeping Chad: happy shut eyes in the mask, the can hugged, a Zzz
   function s3b(t, lt) {
     const [hx, hy] = chadHead();
     camBegin(hx - 10, hy + 130, 2.7);
     nightCamp(t);
     camLog();
     sleeper(t);
-    sleepBubble(hx + 30, hy + 100, 2.0, (t - 16) * 1.0);   // from under the mask's flat bottom edge, at his chin
-    emote('zzz', hx - 140, hy - 60, 30, 1, t);
+    // no sleep bubble: under the facemask there's no nose or mouth for it to come from (at the mask's bottom edge it
+    // read as a white ball stuck on his chest), so the snore is a bigger Zzz
+    emote('zzz', hx - 125, hy - 15, 36, 1, t);
     grade('#1A2348', 44); glow(hx, hy, 240, '#FFB46A', .2);
     camEnd();
   }
