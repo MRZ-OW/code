@@ -20,6 +20,8 @@ $names = @{ 1 = 'friendly'; 2 = '1234'; 3 = 'eoka'; 4 = 'hit_the_x'; 5 = 'naked_
 # ── tools ──
 $missing = @()
 if (-not (Get-Command node -ErrorAction SilentlyContinue)) { $missing += 'Node.js   ->  winget install OpenJS.NodeJS.LTS' }
+elseif ([int]((node -v) -replace '^v(\d+).*', '$1') -lt 20) {
+  $missing += "Node.js 20+ (you have $(node -v), npm $(npm -v))  ->  winget upgrade OpenJS.NodeJS.LTS   (or: winget install OpenJS.NodeJS.LTS)" }
 if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) { $missing += 'ffmpeg    ->  winget install Gyan.FFmpeg' }
 $chrome = @("$env:ProgramFiles\Google\Chrome\Application\chrome.exe", "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
             "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe") | Where-Object { Test-Path $_ } | Select-Object -First 1
