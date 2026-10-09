@@ -218,6 +218,9 @@ function survivor(x, y, u, o = {}) {
   }
   }
   if (gear.mask === 'metal' && !V.back) metalMaskGear(u, sw, V, hcx, hcy, R, o);
+  // o.face(u, sw, V, head): drawn on the head, after hair and gear but under the arms (plasters, paint, overlays).
+  // head = { hcx, hcy, R, th, pt(lon, lat, k) } where pt places a point on the turned head (see turnPt).
+  if (o.face) { rs('face'); const th = V === SV.side ? HEAD_TURN.side : V === SV.q ? HEAD_TURN.q : 0; o.face(u, sw, V, { hcx, hcy, R, th, pt: (lon, lat, k = 1) => turnPt(hcx, hcy, R, th, lon, lat, k) }); }
 
   if (o.farFront) for (const w of V.far) arm(w, true, true);   // over the body, under the near arm and what it holds
   for (const w of V.near) arm(w, false);
@@ -279,6 +282,11 @@ function humanEye(k, s, u, o, sw) {
     return;
   }
   if (k === 'closed' || k === 'sleep') { inkLine([[-.85 * u, -.1 * u], [0, .55 * u], [.85 * u, -.1 * u]], sw * .5, EYE_INK, 'ink', .7); return; }
+  if (k === 'cross') {   // cross-eyed: each pupil rolls in toward the nose
+    paint(ellPts(0, 0, .7 * u, 1.0 * u, 18), { wash: PAL.cream, ink: EYE_INK, sw: sw * .35 });
+    paint(ellPts(-s * .32 * u, .1 * u, .42 * u, .6 * u, 14), { wash: EYE_INK, ink: null });
+    return;
+  }
   if (!['normal', 'look', 'wide'].includes(k)) return eye(k, s, u, o, sw);
   if (((T * .9 + (o.seed || 0) * 1.7) % 3.3) < .12) { inkLine([[-.75 * u, .3 * u], [.75 * u, .3 * u]], sw * .6, EYE_INK, 'ink', 0); return; }
   const lx = (o.lookX || 0) * u * .5, ly = (o.lookY || 0) * u * .4, w = k === 'wide' ? 1.2 : 1;
