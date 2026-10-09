@@ -5,7 +5,7 @@
   const G = 1360, U = 36, NX = 450;     // the Naked's ground line, unit and spot (the wide shots of S1)
   const NK = 'naked';
   const CHAD_GEAR = { gear: { mask: 'metal', chest: 'metal', kilt: 'roadsign', hoodie: true, hoodieCol: '#5F6B52', pants: true, boots: true, gloves: true }, skin: 'tan', hair: 'buzz', hairCol: 'dark' };
-  const SOOT = { tint: '#2E2622', tintK: .85, tintBody: true, briefs: '#3E3C3A', frizz: 1 };
+  const SOOT = { tint: '#2E2622', tintK: .85, tintBody: true, briefs: mixCol(BRIEFS.col, '#2E2622', .7), frizz: 1 };   // scorched: his briefs too, whatever colour the rig gives them
   const HOODIE = '#A8382E', HOODIE_LN = '#B9B6AE', PANTS = '#3D4248', HAT = '#9A9C96', HAT_DK = '#74766F', HAT_BAND = '#45453F';
 
   // ---------- camera helpers ----------
@@ -120,26 +120,30 @@
   // Sunglasses (reference: the sunglasses icon): black wayfarers with dark lenses and a glint. A draw hook on the face;
   // slide 0..1 slides them down the nose so the eyes show over the top.
   function shadesOn(u, sw, V, drop = 0, slide = 0) {
-    const F = V.face; if (!F) return;
-    const hcy = -10.85 * u + drop, R = 2.35 * u, fx = F.cx * u, dy = slide * .78 * u, ey = hcy - .02 * u + dy;
+    if (V.back) return;
+    const hcy = -10.85 * u + drop, R = 2.35 * u, dy = slide * .78 * u;
     boilSeed('e5shades');
-    const lens = (cx, w) => [[cx - w, ey - .42 * u], [cx + w, ey - .46 * u], [cx + w * .92, ey + .12 * u], [cx + w * .55, ey + .4 * u], [cx - w * .6, ey + .4 * u], [cx - w * .95, ey + .1 * u]];
-    if (V === SV.side) {   // profile: one lens, the arm back to the ear
-      const cx = fx + .85 * u * F.fw;
-      inkLine([[cx - .4 * u, ey - .3 * u], [-.2 * u, ey - .2 * u - dy * .3]], sw * 1.1, '#1C1A20', 'ink', 0);
-      paint(lens(cx, .42 * u), { wash: '#26232C', ink: PAL.ink, sw: sw * .7 });
-      inkLine([[cx - .2 * u, ey - .25 * u], [cx + .05 * u, ey - .02 * u]], sw * .4, PAL.cream, 'inkfine', 0);
-      return;
+    const lens = (cx, cy, w) => [[cx - w, cy - .42 * u], [cx + w, cy - .46 * u], [cx + w * .92, cy + .12 * u], [cx + w * .55, cy + .4 * u], [cx - w * .6, cy + .4 * u], [cx - w * .95, cy + .1 * u]];
+    const pane = (cx, cy, w) => {
+      paint(lens(cx, cy, w), { wash: '#26232C', ink: PAL.ink, sw: sw * .8 });
+      inkLine([[cx - w * .55, cy - .2 * u], [cx - w * .15, cy - .36 * u]], sw * .45, PAL.cream, 'inkfine', 0);   // glints
+      inkLine([[cx + w * .1, cy + .18 * u], [cx + w * .35, cy + .02 * u]], sw * .3, '#8A8794', 'inkfine', 0);
+    };
+    let eyes, ear;
+    if (V.side && typeof turnPt === 'function' && typeof HEAD_TURN !== 'undefined') {   // the rig's turned head: eyes on the sphere
+      const th = V === SV.side ? HEAD_TURN.side : HEAD_TURN.q, P = (lon, lat, k) => turnPt(0, hcy, R, th, lon, lat, k);
+      eyes = [-1, 1].map(sd => ({ p: P(sd * .4, -.02, .9), f: clamp(Math.cos(sd * .4 + th), .3, 1) })).filter(e => e.p[2] > .08).map(e => ({ x: e.p[0], y: e.p[1], w: (.62 * e.f + .08) * u }));
+      ear = P(-Math.PI / 2, .1);
+    } else {
+      const F = V.face; if (!F) return;
+      eyes = F.eyes.map(sd => ({ x: F.cx * u + sd * .85 * u * F.fw, y: hcy - .02 * u, w: (.62 * F.fw + .08) * u * (V === SV.q && sd < 0 ? .8 : 1) }));
+      ear = V.side ? [-.2 * u, hcy] : null;
     }
-    const xs = F.eyes.map(s => fx + s * .85 * u * F.fw), w = .62 * u * F.fw + .08 * u;
-    for (const s of V.ears) inkLine([[fx + s * (.85 * F.fw + .55) * u, ey - .32 * u], [s * R * .97 + (V === SV.q ? .2 * u : 0), ey - .25 * u - dy * .3]], sw * 1.1, '#1C1A20', 'ink', 0);
-    inkLine([[xs[0] + w * .8, ey - .3 * u], [(xs[0] + xs[1]) / 2, ey - .38 * u], [xs[1] - w * .8, ey - .3 * u]], sw * 1.1, '#1C1A20', 'ink', .4);   // bridge
-    xs.forEach((cx, i) => {
-      const ww = V === SV.q && i === 0 ? w * .8 : w;
-      paint(lens(cx, ww), { wash: '#26232C', ink: PAL.ink, sw: sw * .8 });
-      inkLine([[cx - ww * .55, ey - .2 * u], [cx - ww * .15, ey - .36 * u]], sw * .45, PAL.cream, 'inkfine', 0);   // glints
-      inkLine([[cx + ww * .1, ey + .18 * u], [cx + ww * .35, ey + .02 * u]], sw * .3, '#8A8794', 'inkfine', 0);
-    });
+    eyes.sort((a, b) => a.x - b.x);
+    if (V.side) inkLine([[eyes[0].x - eyes[0].w * .9, eyes[0].y - .3 * u + dy], [ear[0], ear[1] - .25 * u + dy * .3]], sw * 1.1, '#1C1A20', 'ink', 0);   // the arm back to his ear
+    else for (const sd of [-1, 1]) { const e = eyes[sd < 0 ? 0 : eyes.length - 1]; inkLine([[e.x + sd * e.w * .9, e.y - .3 * u + dy], [sd * R * .97, e.y - .25 * u + dy * .3]], sw * 1.1, '#1C1A20', 'ink', 0); }
+    if (eyes.length > 1) inkLine([[eyes[0].x + eyes[0].w * .8, eyes[0].y - .3 * u + dy], [(eyes[0].x + eyes[1].x) / 2, Math.min(eyes[0].y, eyes[1].y) - .38 * u + dy], [eyes[1].x - eyes[1].w * .8, eyes[1].y - .3 * u + dy]], sw * 1.1, '#1C1A20', 'ink', .4);   // bridge
+    for (const e of eyes) pane(e.x, e.y + dy, e.w);
   }
   // The beach towel (reference: the beachtowel icon): teal with paler stripes and orange anchors, lying flat on the
   // grass. (x, y) = its centre on the ground, w = width, d = how deep it looks (foreshortened), sk = skew.
@@ -164,7 +168,7 @@
     push(); translate(x, y); scale(s);
     paint(ellPts(0, 4, 72, 12, 16), { fill: PAL.ink, fillOp: 70, bleed: .2, ink: null });
     paint(ellPts(-6, -78, 34, 12, 14), { wash: '#3A2A1E', ink: PAL.ink, sw: sw * .6 });   // the dark mouth
-    if (o.ak !== false) { push(); translate(-2, -82); rotate(-.95); akProp(22, sw * .8, 0); pop(); }
+    if (o.ak !== false) { push(); translate(-10, -82); scale(-1, 1); rotate(-.95); akProp(22, sw * .8, 0); pop(); }   // barrel up and out to the left
     const B = [[-62, -6], [-70, -40], [-50, -70], [-30, -76], [-6, -70], [18, -78], [40, -72], [62, -46], [66, -12], [40, 2], [-30, 2]];
     paint(B, { wash: '#8A6440', ink: PAL.ink, sw, curv: .4 });
     paint([[-52, -14], [-58, -44], [-40, -64], [-26, -40]], { wash: '#A07A52', washOp: 160, ink: null, curv: .4 });
@@ -174,16 +178,17 @@
     inkLine([[-40, -66], [-8, -62], [26, -70]], sw * 1.2, '#C9B48A', 'ink', .5);   // the drawstring
     inkLine([[26, -70], [38, -54], [32, -40]], sw * .9, '#C9B48A', 'ink', .5);
     pop();
-    if ((o.glint || 0) > .02) { const g = o.glint, gx = x + 30 * s, gy = y - 128 * s; glow(gx, gy, 60 * s, '#FFF6D8', g); boilSeed('e5sackglint'); paint(starPts(gx, gy, 26 * s * g, .25, 4), { wash: '#FFFDF2', ink: null }); }
+    if ((o.glint || 0) > .02) { const g = o.glint, gx = x - 45 * s, gy = y - 128 * s; glow(gx, gy, 60 * s, '#FFF6D8', g); boilSeed('e5sackglint'); paint(starPts(gx, gy, 26 * s * g, .25, 4), { wash: '#FFFDF2', ink: null }); }
   }
   // A blast crater in the grass: scorched rays, a dark pit, a lip of turned-up dirt.
   function crater(x, y, r, k = 1) {
     boilSeed('e5crater');
-    for (let i = 0; i < 9; i++) { const a = i / 9 * TAU + .3, l = r * (1.5 + .5 * hash(i)); paint([[x + Math.cos(a - .12) * r * .8, y + Math.sin(a - .12) * r * .25], [x + Math.cos(a) * l, y + Math.sin(a) * l * .28], [x + Math.cos(a + .12) * r * .8, y + Math.sin(a + .12) * r * .25]], { wash: '#3E3A34', washOp: 150 * k, ink: null }); }
-    paint(ellPts(x, y, r * 1.12, r * .34, 22, 2), { wash: '#7A5E42', ink: PAL.ink, sw: 1.1 });
-    paint(ellPts(x, y + r * .02, r * .86, r * .22, 20, 2), { wash: '#2E2622', ink: null });
-    paint(ellPts(x - r * .1, y - r * .02, r * .55, r * .1, 14), { wash: '#4A3A30', ink: null });
-    for (let i = 0; i < 5; i++) paint(ellPts(x + (hash(i + 5) - .5) * r * 2.2, y - r * .3 + hash(i + 8) * r * .1, r * .1, r * .06, 8), { wash: '#8C6C4A', ink: PAL.ink, sw: .6 });
+    for (let i = 0; i < 11; i++) { const a = i / 11 * TAU + .3, l = r * (1.55 + .6 * hash(i)); paint([[x + Math.cos(a - .1) * r * .9, y + Math.sin(a - .1) * r * .3], [x + Math.cos(a) * l, y + Math.sin(a) * l * .3], [x + Math.cos(a + .1) * r * .9, y + Math.sin(a + .1) * r * .3]], { wash: '#2E2A26', washOp: 170 * k, ink: null }); }   // scorch rays
+    paint(ellPts(x, y, r * 1.18, r * .36, 24, 2), { wash: '#3A322C', washOp: 200, ink: null });   // the scorched ground
+    paint(ellPts(x, y - r * .03, r, r * .3, 22, 2), { wash: '#A07E58', ink: PAL.ink, sw: 1.2 });   // the lip of turned-up dirt
+    paint(ellPts(x, y + r * .02, r * .78, r * .2, 20, 2), { wash: '#1E1A18', ink: PAL.ink, sw: .8 });   // the pit
+    paint(ellPts(x - r * .15, y - r * .2, r * .5, r * .07, 14), { wash: '#C29A6C', washOp: 220, ink: null });   // light on the far lip
+    for (let i = 0; i < 6; i++) paint(ellPts(x + (hash(i + 5) - .5) * r * 2.3, y - r * .32 + hash(i + 8) * r * .12, r * .1, r * .065, 8), { wash: '#8C6C4A', ink: PAL.ink, sw: .6 });
   }
   // What's left of the AK: a blackened stick with its barrel curled into a loop and the stock bent over.
   function twistedAK(x, y, s = 1) {
@@ -265,8 +270,8 @@
   // the AK hugged to his chest like a baby, both arms wrapped round it
   function hugAK(o, u) {
     const d = dropOf(o, u), cy = -6.25 * u + d;
-    o.under = (uu, sw) => { push(); translate(-.45 * uu, cy + .1 * uu); rotate(-.32); akProp(uu * .8, sw, 0); pop(); };   // cradled: the stock out left, the barrel out right
-    reach(o, u, 'L', 1.15 * u, cy - .55 * u); reach(o, u, 'R', -1.05 * u, cy + .35 * u);
+    o.under = (uu, sw) => { push(); translate(.45 * uu, cy + .1 * uu); scale(-1, 1); rotate(-.32); akProp(uu * .8, sw, 0); pop(); };   // cradled: the barrel out left, the stock out right
+    reach(o, u, 'L', 1.05 * u, cy + .35 * u); reach(o, u, 'R', -1.15 * u, cy - .55 * u);
     return o;
   }
   // both index fingers point down at his briefs: "see? naked"
@@ -390,7 +395,7 @@
   const rockAt = (x, y, uu, sw, r = 0) => { push(); translate(x, y); rotate(r); translate(-.7 * uu, .17 * uu); rockProp(uu, sw); pop(); };
   function rockGround(x, y, s = 1) { boilSeed('e5rockground'); rockAt(x, y - .55 * U * s, U * s, 2.2 * s, .15); }
   // an AK lying in the grass
-  function akGround(x, y, r = 0, s = 1) { boilSeed('e5akground'); push(); translate(x, y); rotate(r); akProp(U * .8 * s, 2.2 * s, 0); pop(); }
+  function akGround(x, y, r = 0, s = 1) { boilSeed('e5akground'); push(); translate(x, y); scale(-1, 1); rotate(r); akProp(U * .8 * s, 2.2 * s, 0); pop(); }   // barrel to the left
 
   // Both hands hold the rock to his chest (k = 1); as k → 0 his left hand lowers it to his side and the right lets go.
   function clutchK(o, u, k = 1) {
@@ -408,7 +413,7 @@
   function leaving(h, t, t0) {
     const turn = ease(seg(t, t0 + .35, t0 + .7)), fly = easeIn(seg(t, t0 + .5, t0 + 1.05));
     return heliAt({ ...h, x: h.x + 1000 * fly, y: h.y - 120 * fly, hd: lerp(h.hd, .06, turn), elev: lerp(h.elev, .3, turn),
-      pitch: t < t0 + .05 ? h.pitch : t < t0 + .35 ? lerp(h.pitch, .38, ease(seg(t, t0 + .05, t0 + .3))) : lerp(.38, -.28, ease(seg(t, t0 + .35, t0 + .75))), bank: (h.bank || 0) + .3 * Math.sin(Math.PI * seg(t, t0 + .35, t0 + .95)) });
+      pitch: t < t0 + .05 ? h.pitch : t < t0 + .35 ? lerp(h.pitch, .3, ease(seg(t, t0 + .05, t0 + .3))) : lerp(.3, -.28, ease(seg(t, t0 + .35, t0 + .75))), bank: (h.bank || 0) + .3 * Math.sin(Math.PI * seg(t, t0 + .35, t0 + .95)) });
   }
 
   // ---------- S1: the scan (0–6) ----------
@@ -649,7 +654,7 @@
   }
 
   // ---------- S3: greed (14–24) ----------
-  const SACK = [275, 1352], AKDROP = [205, 1372], ROCK3 = [TOWEL[0] + 205, TOWEL[1] + 2], NX3 = 340;
+  const SACK = [275, 1352], AKDROP = [205, 1372], ROCK3 = [TOWEL[0] + 205, TOWEL[1] + 2], NX3 = 328;
   // the patrol heli, far off and busy: strafing something beyond the right edge
   function busyHeli(t, x, y, s, key) {
     const h = heliAt({ x: x + 10 * Math.sin(t * .9), y: y + 4 * Math.sin(t * 2), s, hd: .25, elev: .25, pitch: -.22, spin: 1, fire: frac(t * 1.3) < .35 ? flick(t, [1, .3, .8]) : 0, key });
@@ -702,12 +707,12 @@
     let No;
     if (!hug) {
       const view = glance ? (t < 16.6 || t > 16.85 ? 'qf' : 'front') : 'q', bend = ease(seg(t, 17.38, 17.55)) * (1 - ease(seg(t, 17.62, 17.75)));
-      No = { ...N, boilKey: NK, seed: 1, view, flip: !glance || view === 'qf', rawArms: true, prop: 'none', crouch: .3 + .6 * bend, rot: -.08 - .25 * bend, dy: (N.dy || 0) - (moving ? .25 * Math.abs(Math.sin(ph * Math.PI)) : 0),
+      No = { ...N, boilKey: NK, seed: 1, view, flip: !glance || view === 'qf', rawArms: true, prop: 'none', crouch: .3 + .7 * bend, rot: -.08 - .32 * bend, dy: (N.dy || 0) - (moving ? .25 * Math.abs(Math.sin(ph * Math.PI)) : 0),
         liftL: moving ? Math.max(0, Math.sin(ph * Math.PI)) * .7 : 0, liftR: moving ? Math.max(0, -Math.sin(ph * Math.PI)) * .7 : 0, aL: -.6, bendL: -1.5, aR: -.5, bendR: -1.6, emoteDx: .3, emoteDy: .6 };
       if (glance) Object.assign(No, { aL: -1.2, bendL: .3, aR: -1.2, bendR: .3, rot: 0 });
       if (t >= 17.15 && t < 17.4) { const k = seg(t, 17.15, 17.38); reach(No, U, 'L', lerp(.55 * U, 1.7 * U, k), lerp(-9.2 * U, -9.7 * U, k)); }   // the wipe
-      if (t >= 17.38 && t < 17.62) { const [tx, ty] = toBody(x, G, U, No, SACK[0] + 22, SACK[1] - 62); reach(No, U, 'L', tx, ty); }
-      if (t >= 17.6) { reach(No, U, 'L', lerp(1.2 * U, .9 * U, seg(t, 17.6, 17.75)), lerp(-4.6 * U, -6.4 * U, seg(t, 17.6, 17.75))); No.handOver = true; No.handL = (uu, sw) => { push(); rotate(-.5 - .4 * seg(t, 17.6, 17.75)); translate(-.6 * uu, 0); akProp(uu * .8, sw, 0); pop(); }; }
+      if (t >= 17.38 && t < 17.62) { const [tx, ty] = toBody(x, G, U, No, SACK[0] - 22, SACK[1] - 100); reach(No, U, 'L', tx, ty); }
+      if (t >= 17.6) { reach(No, U, 'L', lerp(1.2 * U, .9 * U, seg(t, 17.6, 17.75)), lerp(-4.6 * U, -6.4 * U, seg(t, 17.6, 17.75))); No.handOver = true; No.handL = (uu, sw) => { push(); rotate(lerp(-.95, -.32, ease(seg(t, 17.6, 17.75)))); translate(.3 * uu, -.45 * uu); akProp(uu * .8, sw, 0); pop(); }; }   // out by the grip, barrel up and forward, as it lay in the sack
     } else {
       const rock = .05 * Math.sin((t - 17.75) * 9);
       No = { ...N, boilKey: NK, seed: 1, view: 'front', rawArms: true, prop: 'none', rot: rock, sq: (N.sq || 0) + .05 * Math.exp(-(t - 17.75) * 8), emoteDx: .3, emoteDy: .2 };
@@ -759,7 +764,7 @@
     beam(h, tx, ty, 1, { over: 1.12 });
     // the AK, dropped: it falls from his chest to the grass at his side
     const fall = seg(t, 19.1, 19.32);
-    if (t >= 19.1) { const p = arcPt([NX3 - 10, G - 6.2 * U], [AKDROP[0], AKDROP[1] - 10], 30, easeIn(fall)); akGround(p[0], p[1], lerp(-1.0, .12, fall) + (fall >= 1 ? .03 * spring(t, 19.32, 8, 30) : 0)); }
+    if (t >= 19.1) { const p = arcPt([NX3 + .45 * U, G - 6.15 * U], [AKDROP[0], AKDROP[1] - 10], 30, easeIn(fall)); akGround(p[0], p[1], lerp(-.32, .12, fall) + (fall >= 1 ? .03 * spring(t, 19.32, 8, 30) : 0)); }
     if (t >= 19.32) puff(AKDROP[0], AKDROP[1], 40, t - 19.32, { col: '#D9CDB4', key: 'akthud', n: 5, life: .45 });
     const N = emotions(t, [[19.0, 'scared', { emote: null }], [19.45, 'hopeful', { eyes: 'look', mouth: 'o', lookX: -.5, lookY: -.95, emote: 'music', blush: .3 }], [20.35, 'nervous', { mouth: 'o', emote: 'sweat', lookX: .95, lookY: -.75 }], [20.85, 'scared', { mouth: 'wobble', emote: 'sweat', lookX: .95, lookY: -.75 }]], { take: .45 });
     const No = { ...N, boilKey: NK, seed: 1, view: 'front', rawArms: true, prop: 'none', emoteDx: t < 20.35 ? -.3 : .4, emoteDy: .5 };
@@ -819,8 +824,8 @@
     const h = leaving(heliAt(hov), t, 23.2), windK = arrive * (1 - seg(t, 23.6, 24.1)), hx = ws(h.x, 0)[0];
     ground(t, { wind: [hx, windK] });
     downwash(t, hx, G, windK * .7);
-    crater(AKDROP[0], AKDROP[1] + 2, 72);
-    twistedAK(AKDROP[0] + 8, AKDROP[1] - 4, .8);
+    crater(AKDROP[0], AKDROP[1] + 4, 92);
+    twistedAK(AKDROP[0] + 6, AKDROP[1] - 2, 1.05);
     clods(AKDROP[0], AKDROP[1], 200, 9, 9, 'clod3e');   // where they landed
     // the towel, singed, and his rock (rocks don't burn)
     towel(TOWEL[0], TOWEL[1], 380, 66);

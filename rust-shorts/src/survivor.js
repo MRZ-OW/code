@@ -1,6 +1,6 @@
 // survivor.js: the Rust player, painted. A small cartoon human with a big head and short limbs. Naked by default, like a
-// fresh spawn: light skin, bare feet and Rust's worn charcoal boxer briefs with a lighter waistband (reference: Facepunch
-// devblog 193's underwear renders: mid-grey boxer briefs to mid-thigh, darker waistband). Dress it in gear with o.gear. It takes the same acting options as clawd(), so feel(),
+// fresh spawn: light skin, bare feet and Rust's Purple Underwear (the Twitch-drop recolour of the default boxer briefs:
+// to mid-thigh, darker waistband). Dress it in gear with o.gear. It takes the same acting options as clawd(), so feel(),
 // emotions(), move(), jump(), take() and stroll() all work on it.
 //
 //   survivor(x, y, u, o)   (x, y) = the ground point between the feet; u = unit. The figure is about 13.2u tall.
@@ -26,7 +26,9 @@ const SKIN_TONES = {
   dark:  { col: '#6E4630', dk: '#4E3022', lt: '#8C5E44' },
 };
 const HAIR_COLS = { brown: '#5B3D29', dark: '#2E2420', blond: '#C9A15A', ginger: '#A5552E', grey: '#8E8A86' };
-const BRIEFS = { col: '#74726D', band: '#4B4A4E', scuff: '#8E8B84' };   // Rust's default underwear: worn mid-grey boxer briefs, dark waistband
+// The hero's underwear: Rust's Purple Underwear (the first Twitch drop), the default boxer-brief cut in Twitch purple
+// with a darker waistband.
+const BRIEFS = { col: '#8C55E6', band: '#4F2C93', scuff: '#B08CF2' };
 
 // Emotion bodies were written for Clawd's little arm nubs (.2 = resting, 1.5 = straight up). A person's arms hang at rest.
 const humanArm = a => a >= .2 ? -1.3 + 2.4 * Math.pow(clamp((a - .2) / 1.3, 0, 1.4), 1.6) : -1.3 + (a - .2) * .5;
@@ -58,7 +60,11 @@ function survivor(x, y, u, o = {}) {
   const dy = bodyDy(o) * u, sq = bodySq(o), sm = clamp(o.smear || 0);
   const sw = clamp(u / 16, .45, 2.4) * (o.swMul || 1);
   // mood tints colour the face only (a flushed face, not a different skin tone); o.tintBody tints all of him (soot)
-  const S = skinCols(o), SB = o.tintBody ? S : skinCols({ ...o, tint: null, tintMix: null }), gear = o.gear || {}, crouch = clamp(o.crouch || 0);
+  const soot = clamp(o.soot || 0);   // blackened by a blast or a zap: ash-grey skin with darker soot patches, singed hair
+  if (soot > 0) o = { ...o, hairCol: mixCol(hairCol(o), '#2B2724', .55 * soot) };
+  const ash = c => soot > 0 ? { col: mixCol(c.col, '#77757C', .32 * soot), dk: mixCol(c.dk, '#4A484E', .32 * soot), lt: mixCol(c.lt, '#9A989E', .3 * soot) } : c;
+  const S = ash(skinCols(o)), SB = o.tintBody ? S : ash(skinCols({ ...o, tint: null, tintMix: null })), gear = o.gear || {}, crouch = clamp(o.crouch || 0);
+  const suitOf = g => g.hazmat ? HAZ.suit : g.scientist ? (SCI[g.scientist] || SCI.peacekeeper) : null, suit = suitOf(gear);
   const aL = o.rawArms ? (o.aL ?? -1.32) : humanArm(o.aL ?? .2), aR = o.rawArms ? (o.aR ?? -1.32) : humanArm(o.aR ?? .2);
   const legC = mixCol(SB.col, SB.dk, .15);
 
@@ -99,12 +105,12 @@ function survivor(x, y, u, o = {}) {
     const ck = clamp(i === 0 ? o.clutchL || 0 : o.clutchR || 0);
     if (ck > 0) [kx, ky, ax, ay] = clutchLeg(u, hx, hy, ck, kx, ky, ax, ay, V.side);
     const col = far ? mixCol(legC, SB.dk, .45) : st > .5 ? mixCol(legC, SB.dk, .55) : legC;   // seated legs sit in the body's shade
-    if (gear.pants || gear.hazmat) {
-      const pc = gear.hazmat ? '#D8B83C' : (gear.pantsCol || '#3D4248');
+    if (gear.pants || suit) {
+      const pc = suit || (gear.pantsCol || '#3D4248');
       paint(limb([hx, hy], [kx, ky], [ax, ay], 1.45 * u, 1.15 * u), { wash: far ? mixCol(pc, PAL.ink, .25) : pc, ink: PAL.ink, sw: sw * .8, curv: .15 });
     } else paint(limb([hx, hy], [kx, ky], [ax, ay], 1.2 * u, .95 * u), { wash: col, ink: PAL.ink, sw: sw * (st > .5 ? .9 : .8), curv: .15 });
     // foot (or boot)
-    const boot = gear.boots || gear.hazmat, fcol = boot ? (gear.hazmat ? '#2E2B30' : '#6B4A30') : col;
+    const boot = gear.boots || suit, fcol = boot ? (gear.hazmat ? HAZ.boot : gear.scientist ? '#232227' : '#6B4A30') : col;
     if (V.side && o.legsOut && st > .5) paint(ellPts(ax + .15 * u, ay - .35 * u, (boot ? 1.05 : .9) * u, .42 * u, 14, 0, -1.35), { wash: far ? mixCol(fcol, PAL.ink, .25) : fcol, ink: PAL.ink, sw: sw * .7 });   // heel down, toes up
     else if (V.side && hk > .3) paint(ellPts(ax - .35 * u, ay + .25 * u, .9 * u, .42 * u, 14, 0, -.54), { wash: fcol, ink: PAL.ink, sw: sw * .7 });   // sole up, toes down behind him
     else if (V.side) paint(ellPts(ax + .45 * u, ay + .02 * u, (boot ? 1.05 : .9) * u, .42 * u, 14, 0, swing * .3), { wash: far ? mixCol(fcol, PAL.ink, .25) : fcol, ink: PAL.ink, sw: sw * .7 });
@@ -125,7 +131,7 @@ function survivor(x, y, u, o = {}) {
     const shx = shoulderX(V, sideSign, far, u), shy = -7.75 * u + drop;
     const d1 = [sideSign * Math.cos(a), -Math.sin(a)], a2 = a - b, d2 = [sideSign * Math.cos(a2), -Math.sin(a2)], ak = (which === 'L' ? o.armKL : o.armKR) ?? 1;
     const ex = shx + d1[0] * 1.85 * u * ak, ey = shy + d1[1] * 1.85 * u * ak, hx = ex + d2[0] * 1.75 * u * ak, hy = ey + d2[1] * 1.75 * u * ak;
-    const top = gear.hoodie || gear.hazmat, col = top ? (gear.hazmat ? '#D8B83C' : (gear.hoodieCol || '#A8382E')) : SB.col;
+    const top = gear.hoodie || suit, col = top ? (suit || (gear.hoodieCol || '#A8382E')) : SB.col;
     const w0 = (top ? 1.15 : .95) * u, [SA, SBd] = limbSides([shx, shy], [ex, ey], [hx, hy], w0, (top ? .95 : .78) * u), RB = SA.concat([...SBd].reverse());
     if (far && !inFront) paint(RB, { wash: mixCol(col, PAL.ink, .28), ink: PAL.ink, sw: sw * .8 });
     else {   // a near arm grows out of a round shoulder: no outline across the joint
@@ -138,7 +144,7 @@ function survivor(x, y, u, o = {}) {
       const backIsA = V.side && meanX(sideA) < meanX(sideB), soft = [sw * .45, mixCol(SB.dk, PAL.ink, .45)];   // the edge toward his back
       inkLine(sideA, backIsA ? soft[0] : sw * .8, backIsA ? soft[1] : PAL.ink, 'ink', 0); inkLine(sideB, V.side && !backIsA ? soft[0] : sw * .8, V.side && !backIsA ? soft[1] : PAL.ink, 'ink', 0);
     }
-    const hand = gear.hazmat ? '#2E2B30' : (gear.gloves ? '#5A4A3A' : SB.col), hc = far && !inFront ? mixCol(hand, PAL.ink, .28) : hand, open = which === 'L' ? o.openL : o.openR;
+    const hand = gear.hazmat ? (which === 'L' ? HAZ.gloveA : HAZ.gloveB) : gear.scientist ? '#26252A' : (gear.gloves ? '#5A4A3A' : SB.col), hc = far && !inFront ? mixCol(hand, PAL.ink, .28) : hand, open = which === 'L' ? o.openL : o.openR;
     const fist = () => {
       if (!open) { paint(ellPts(hx, hy, .55 * u, .55 * u, 14), { wash: hc, ink: PAL.ink, sw: sw * .7 }); return; }
       // an open palm, fingers spread along the forearm, thumb out to the side
@@ -162,8 +168,8 @@ function survivor(x, y, u, o = {}) {
   // ---------- underwear (over the tops of the legs) ----------
   rs('briefs');
   const bw = 2.05 * u * V.torsoW, wy = -5.15 * u + drop, briefsCol = o.briefs || BRIEFS.col;
-  if (gear.pants || gear.hazmat) {
-    const pc = gear.hazmat ? '#D8B83C' : (gear.pantsCol || '#3D4248');
+  if (gear.pants || suit) {
+    const pc = suit || (gear.pantsCol || '#3D4248');
     paint([[-bw, wy], [bw, wy], [bw * 1.02, hipY + .35 * u], [0, hipY + .6 * u], [-bw * 1.02, hipY + .35 * u]], { wash: pc, ink: PAL.ink, sw: sw * .8, curv: .15 });
   } else {
     // boxer legs to mid-thigh, then the seat, then the waistband
@@ -177,14 +183,16 @@ function survivor(x, y, u, o = {}) {
   rs('torso');
   const tw = 2.1 * u * V.torsoW, shY = -8.35 * u + drop;
   const torso = [[-tw * .88, wy + .1 * u], [tw * .88, wy + .1 * u], [tw * .98, wy - 1.4 * u], [tw, shY + .55 * u], [tw * .78, shY], [-tw * .78, shY], [-tw, shY + .55 * u], [-tw * .98, wy - 1.4 * u]];
-  const topCol = gear.hazmat ? '#D8B83C' : gear.hoodie ? (gear.hoodieCol || '#A8382E') : SB.col;
+  const topCol = suit || (gear.hoodie ? (gear.hoodieCol || '#A8382E') : SB.col);
   paint(torso, { wash: topCol, ink: PAL.ink, sw: sw * .9, curv: .2 });
-  if (!gear.hoodie && !gear.hazmat && !V.back) {   // a little anatomy so it reads as a bare chest
+  if (!gear.hoodie && !suit && !V.back) {   // a little anatomy so it reads as a bare chest
     const cx = view === 'side' ? .2 * u : view === 'q' ? .25 * u : 0, reach = tw * .82 - Math.abs(cx);   // pec lines end inside the torso
     for (const s of view === 'side' ? [1] : [-1, 1]) { const L = Math.min(1.5 * u, reach) * (view === 'q' && s < 0 ? .8 : 1); inkLine([[cx + s * .2 * u, shY + 1.15 * u], [cx + s * (.2 * u + (L - .2 * u) * .55), shY + 1.45 * u], [cx + s * L, shY + 1.15 * u]], sw * .45, SB.dk, 'inkfine', .5); }
     paint(ellPts(cx + (view === 'side' ? .5 * u : 0), wy - .55 * u, .11 * u, .14 * u, 8), { wash: SB.dk, ink: null });
   }
-  if (gear.hazmat && !V.back) { paint(rectPts(-tw * .5, shY + .6 * u, tw, .5 * u), { wash: '#4F83B8', ink: null }); }
+  if (soot > 0 && !suit && !gear.hoodie) sootPatches(0, (shY + wy) / 2, tw * .8, (wy - shY) * .42, soot, 'torso' + (o.boilKey || ''), u);
+  if (gear.hazmat) hazmatBodyGear(u, sw, V, tw, shY, wy);
+  if (gear.scientist) scientistBodyGear(u, sw, V, tw, shY, wy, bw);
   if (o.under) { rs('under'); o.under(u, sw, V); }
   if (gear.chest === 'metal') chestplateGear(u, sw, V, tw, shY, wy);
   if (gear.kilt === 'roadsign') roadsignKiltGear(u, sw, V, bw, wy);
@@ -193,18 +201,23 @@ function survivor(x, y, u, o = {}) {
   rs('head');
   const hcx = 0, hcy = -10.85 * u + drop, R = 2.35 * u;
   paint(rectPts(-.5 * u, shY - 1.1 * u, 1.0 * u, 1.2 * u), { wash: mixCol(SB.col, SB.dk, .45), ink: null });
-  if (gear.hazmat) paint(ellPts(hcx - .1 * u, hcy - .1 * u, R * 1.14, R * 1.12, 26), { wash: '#A82E22', ink: PAL.ink, sw: sw * .9 });   // the red hood around the head
-  if (!gear.hazmat && !V.side) for (const e of V.ears) paint(ellPts(hcx + e * R * .98, hcy + .1 * u, .48 * u, .62 * u, 12), { wash: S.col, ink: PAL.ink, sw: sw * .6 });
-  paint(ellPts(hcx, hcy, R, R * .98, 28, u * .02), { wash: gear.hazmat ? '#B3352A' : S.col, ink: gear.hazmat ? null : PAL.ink, sw: sw * .9 });
-  if (V.face && !gear.hazmat) faceOf(u, sw, o, V, S, hcx, hcy, R);
-  if (!gear.hazmat) hairOf(u, sw, o, V, hcx, hcy, R);
-  if (!gear.hazmat && V.side) {   // in profile and 3/4 the ear sits on the side of the head, over the hair
-    const ex = hcx + (V === SV.q ? -.5 : -.1) * R, ey = hcy + .12 * u;
-    paint(ellPts(ex, ey, .44 * u, .6 * u, 12), { wash: S.col, ink: mixCol(S.dk, PAL.ink, .55), sw: sw * .4 });
-    inkLine([[ex + .1 * u, ey - .3 * u], [ex - .14 * u, ey - .02 * u], [ex + .06 * u, ey + .26 * u]], sw * .4, S.dk, 'inkfine', .5);
+  const hooded = gear.hazmat || gear.scientist;
+  if (hooded) { suitHeadGear(u, sw, o, V, S, hcx, hcy, R, gear, shY); }
+  else {
+  if (!V.side) for (const e of V.ears) paint(ellPts(hcx + e * R * .98, hcy + .1 * u, .48 * u, .62 * u, 12), { wash: S.col, ink: PAL.ink, sw: sw * .6 });
+  paint(ellPts(hcx, hcy, R, R * .98, 28, u * .02), { wash: S.col, ink: PAL.ink, sw: sw * .9 });
+  if (soot > 0 && !V.back) sootFace(u, V, hcx, hcy, R, soot, 'face' + (o.boilKey || ''));
+  if (V.side) {   // 3/4 and profile: features placed on the turned head (turnedHead)
+    turnedHead(u, sw, o, V, S, hcx, hcy, R, 'face');
+    turnedHead(u, sw, o, V, S, hcx, hcy, R, 'hair');
+    if (o.frizz > 0) frizzHalo(u, sw, o, hcx, hcy, R);   // electrocuted
+    turnedHead(u, sw, o, V, S, hcx, hcy, R, 'ear');
+  } else {
+    if (V.face) faceOf(u, sw, o, V, S, hcx, hcy, R);
+    hairOf(u, sw, o, V, hcx, hcy, R);
+  }
   }
   if (gear.mask === 'metal' && !V.back) metalMaskGear(u, sw, V, hcx, hcy, R, o);
-  if (gear.hazmat && !V.back) gasMaskGear(u, sw, V, hcx, hcy, R);
 
   if (o.farFront) for (const w of V.far) arm(w, true, true);   // over the body, under the near arm and what it holds
   for (const w of V.near) arm(w, false);
@@ -330,18 +343,111 @@ function hairOf(u, sw, o, V, hcx, hcy, R) {
     const fringe = style === 'messy' ? 6 : style === 'buzz' ? 2 : 4; inner = [];
     for (let i = 0; i <= fringe; i++) { const fxx = lerp(hcx + R * .95, hcx - R * .95, i / fringe), up = (i % 2 ? .1 : .3) * u * (style === 'messy' ? 1.6 : 1); inner.push([fxx, hcy - R * .6 + up]); }
   }
-  if (o.frizz > 0 && !V.back) {   // electrocuted: a spiky halo of hair standing on end, behind the hairline
-    const F = [], n = 26, fz = clamp(o.frizz), a0 = Math.PI * .92, a1 = Math.PI * 2.08;
-    for (let i = 0; i <= n; i++) { const a = lerp(a0, a1, i / n), rr = R * (1.1 + (i % 2 ? .12 : .42 + .1 * hash(i + 3)) * fz); F.push([hcx + Math.cos(a) * rr, hcy + Math.sin(a) * rr]); }
-    for (let i = n; i >= 0; i--) { const a = lerp(a0, a1, i / n); F.push([hcx + Math.cos(a) * R * .97, hcy + Math.sin(a) * R * .97]); }   // a ring: the face stays clear
-    paint(F, { wash: col, ink: null });
-    inkLine(F.slice(0, n + 1), sw * .7, PAL.ink, 'ink', 0);
-  }
+  if (o.frizz > 0 && !V.back) frizzHalo(u, sw, o, hcx, hcy, R);
   const O = through(outer, 3), I = through([outer[outer.length - 1], ...inner, outer[0]], 3);
   paint([...O, ...I], { wash: col, ink: null });
   inkLine(O, sw * .7, PAL.ink, 'ink', 0);
   inkLine(I, sw * .32, hairLine(o), 'inkfine', 0);
   if (style === 'bun') paint(ellPts(hcx - R * (V.side ? .75 : .6), hcy - R * .95, .8 * u, .7 * u, 12), { wash: col, ink: PAL.ink, sw: sw * .7 });
+}
+
+// Electrocuted: a spiky halo of hair standing on end, round the crown (a ring, so the face stays clear).
+function frizzHalo(u, sw, o, hcx, hcy, R) {
+  const F = [], n = 26, fz = clamp(o.frizz), a0 = Math.PI * .92, a1 = Math.PI * 2.08;
+  for (let i = 0; i <= n; i++) { const a = lerp(a0, a1, i / n), rr = R * (1.1 + (i % 2 ? .12 : .42 + .1 * hash(i + 3)) * fz); F.push([hcx + Math.cos(a) * rr, hcy + Math.sin(a) * rr]); }
+  for (let i = n; i >= 0; i--) { const a = lerp(a0, a1, i / n); F.push([hcx + Math.cos(a) * R * .97, hcy + Math.sin(a) * R * .97]); }
+  paint(F, { wash: hairCol(o), ink: null });
+  inkLine(F.slice(0, n + 1), sw * .7, PAL.ink, 'ink', 0);
+  if (o.soot > .3) for (let i = 0; i <= n; i += 4) { const [x, y] = F[i], fl = .5 + .5 * Math.sin(T * 14 + i); glow(x, y, .5 * u, '#FF9A3A', .5 * fl * o.soot); paint(ellPts(x, y, .1 * u, .1 * u, 6), { wash: '#FFB04A', ink: null }); }   // singed tips still glowing
+}
+
+// ---------- turned heads (3/4 and profile) ----------
+// The head is a sphere seen turned by th (0 = facing us, π/2 = a profile facing right). A feature sits at longitude
+// lon (0 = the middle of the face, − = the near side, + = the far side) and latitude lat (− up, + down) on a surface
+// set in (k < 1: eyes) or pushed out (k > 1: the nose) from the skull. turnPt gives [x, y, depth]: depth > 0 faces us.
+// Everything (eyes, brows, nose, mouth, ear, hairline, beard) is placed this way, so the views always agree: a profile
+// shows one eye and one ear, a 3/4 shows the far eye foreshortened beside the nose, and the hair and beard stay on the
+// skull and jaw.
+const HEAD_TURN = { q: .62, side: Math.PI / 2 };
+function turnPt(hcx, hcy, R, th, lon, lat, k = 1) {
+  const X = Math.sin(lon) * Math.cos(lat), Y = Math.sin(lat), Z = Math.cos(lon) * Math.cos(lat) * k;
+  return [hcx + R * (X * Math.cos(th) + Z * Math.sin(th)), hcy + R * Y, -X * Math.sin(th) + Z * Math.cos(th)];
+}
+// a point on the skull, or (if it has turned away) the silhouette at the same height on that side
+function turnPtClamped(hcx, hcy, R, th, lon, lat, k = 1) {
+  const p = turnPt(hcx, hcy, R, th, lon, lat, k);
+  if (p[2] >= 0) return p;
+  const Y = Math.sin(lat) * k, w = Math.sqrt(Math.max(0, 1 - Math.min(1, Y * Y))) * R, side = Math.sin(lon + th) >= 0 ? 1 : -1;
+  return [hcx + side * w, hcy + R * Math.min(1, Y), 0];
+}
+const lerpKeys = (K, x) => { x = Math.abs(x); for (let i = 1; i < K.length; i++) if (x <= K[i][0]) return lerp(K[i - 1][1], K[i][1], (x - K[i - 1][0]) / (K[i][0] - K[i - 1][0])); return K[K.length - 1][1]; };
+// the hairline (latitude of the hair's edge, by |longitude|): forehead, temple, sideburn, up over the ear, nape
+const HAIRLINE = [[0, -.5], [.6, -.46], [.9, -.3], [1.12, .02], [1.28, .3], [1.36, .3], [1.42, -.06], [1.57, -.2], [1.74, -.06], [1.95, .3], [2.4, .55], [Math.PI, .62]];
+// the beard: its top edge (under the lip, up to the mouth corners, the cheek, into the sideburn) and its jaw edge
+const BEARD_TOP = [[0, .86], [.18, .84], [.3, .66], [.55, .46], [.9, .31], [1.2, .24], [1.36, .2]];
+const BEARD_JAW = [[0, 1.26], [.6, 1.16], [1.0, 1.04], [1.2, .94], [1.36, .84]], BEARD_JAW_K = [[0, 1.13], [.6, 1.07], [1.36, 1.0]];
+function turnedHead(u, sw, o, V, S, hcx, hcy, R, part) {
+  const th = V === SV.side ? HEAD_TURN.side : HEAD_TURN.q, P = (lon, lat, k) => turnPt(hcx, hcy, R, th, lon, lat, k);
+  const fore = lon => clamp(Math.cos(lon + th), .3, 1);   // how flat-on a spot of the face is to us
+  if (part === 'hair') {
+    const style = o.hair || 'short'; if (style === 'bald') return;
+    const col = hairCol(o), loV = -Math.PI / 2 - th + .02, hiV = Math.PI / 2 - th - .02, line = [];
+    for (let i = 0; i <= 40; i++) { const lon = lerp(-Math.PI, Math.PI, i / 40); if (lon < loV || lon > hiV) continue; const p = P(lon, lerpKeys(HAIRLINE, lon) - (style === 'buzz' ? .04 : 0)); line.push([p[0], p[1]]); }
+    for (const lon of [loV, hiV]) { const p = turnPtClamped(hcx, hcy, R, th, lon, lerpKeys(HAIRLINE, lon)); if (lon === loV) line.unshift([p[0], p[1]]); else line.push([p[0], p[1]]); }
+    const r = style === 'buzz' ? 1.01 : style === 'messy' ? 1.08 : 1.04, a0 = Math.atan2(line[line.length - 1][1] - hcy, line[line.length - 1][0] - hcx), a1 = Math.atan2(line[0][1] - hcy, line[0][0] - hcx);
+    let da = a1 - a0; while (da > 0) da -= TAU;   // over the top: from the front end, anticlockwise, round to the back end
+    const arc = []; for (let i = 0; i <= 22; i++) { const a = a0 + da * i / 22, rr = R * (r + (style === 'messy' ? .05 * Math.sin(i * 2.7) : 0)); arc.push([hcx + Math.cos(a) * rr, hcy + Math.sin(a) * rr]); }
+    const I = through(line, 3);
+    paint([...I, ...arc], { wash: col, ink: null });
+    inkLine(arc, sw * .7, PAL.ink, 'ink', 0);
+    inkLine(I, sw * .32, hairLine(o), 'inkfine', 0);
+    return;
+  }
+  if (part === 'ear') {   // the near ear, in the notch of the hairline
+    const p = P(-Math.PI / 2, .1), w = .46 * u * clamp(Math.sin(th), .35, 1);
+    paint(ellPts(p[0], p[1], w, .6 * u, 12), { wash: S.col, ink: mixCol(S.dk, PAL.ink, .55), sw: sw * .4 });
+    inkLine([[p[0] + .25 * w, p[1] - .3 * u], [p[0] - .3 * w, p[1] - .02 * u], [p[0] + .15 * w, p[1] + .26 * u]], sw * .4, S.dk, 'inkfine', .5);
+    return;
+  }
+  // ---- the face ----
+  const e = o.eyes || 'normal', kinds = Array.isArray(e) ? e : [e, e], sq = clamp(o.squint || 0);
+  const browOf = k => ['angry', 'determined', 'red', 'sly'].includes(k) ? 'angry' : ['sad', 'teary', 'cry', 'scared'].includes(k) ? 'worried' : ['wide', 'shine', 'spark', 'blank'].includes(k) ? 'up' : 'flat';
+  if (o.blush) for (const s of [-1, 1]) { const p = P(s * .62, .3, .96); if (p[2] > .1) paint(ellPts(p[0], p[1], .5 * u * fore(s * .62), .26 * u, 12), { fill: PAL.rose, fillOp: 170 * clamp(o.blush === true ? 1 : o.blush), bleed: .2, ink: null }); }
+  EYE_INK = o.eyeCol || PAL.ink;
+  for (const s of [-1, 1]) {
+    const lon = s * .4, p = P(lon, -.02, .84); if (p[2] <= .08) continue;   // the far eye is hidden in profile
+    const f = fore(lon), k = kinds[s < 0 ? 0 : 1];
+    push(); translate(p[0], p[1]); scale(.5 * f, .38);
+    if (sq > .8) inkLine([[-.8 * u, 0], [.8 * u, 0]], sw * 2.2, EYE_INK, 'ink', 0);
+    else { if (sq > 0) scale(1, 1 - sq); humanEye(k, s, u, o, sw * 2.2); }
+    pop();
+    const b = browOf(k), bp = P(lon, b === 'up' ? -.45 : -.36, .9), tilt = b === 'angry' ? .28 : b === 'worried' ? -.25 : 0, arch = b === 'flat' || b === 'up' ? .12 * u : .04 * u, bw = .44 * u * f;
+    inkLine([[bp[0] - bw, bp[1] + tilt * s * .5 * u], [bp[0], bp[1] - arch], [bp[0] + bw, bp[1] - tilt * s * .5 * u]], sw * .95, hairCol(o), 'ink', .5);
+  }
+  EYE_INK = PAL.ink;
+  // the nose: a hook toward the far cheek in 3/4; in profile it stands out past the head's outline
+  const n0 = P(0, .02, 1.0), n1 = P(0, .2, 1.17), n2 = P(0, .29, 1.02);
+  if (V === SV.side) { const N = through([n0, n1, n2, P(.02, .3, .94)].map(p => [p[0], p[1]]), 4); paint(N, { wash: S.col, ink: null }); inkLine(N.slice(0, -2), sw * .45, mixCol(S.dk, PAL.ink, .5), 'inkfine', 0); }
+  else inkLine([[n0[0] - .05 * u, n0[1] + .12 * u], [n1[0], n1[1]], [n2[0] - .1 * u, n2[1]]], sw * .55, S.dk, 'inkfine', .5);
+  // beard and moustache, under the mouth
+  const mp = P(0, .64, .96), mw = clamp(Math.cos(th) * 1.05, .3, 1);
+  if (o.beard && o.beard !== 'stubble') {
+    const col = hairCol(o), top = [], jaw = [];
+    for (let i = -14; i <= 14; i++) { const lon = i / 14 * 1.36, a = turnPtClamped(hcx, hcy, R, th, lon, lerpKeys(BEARD_TOP, lon)), b = turnPtClamped(hcx, hcy, R, th, lon, lerpKeys(BEARD_JAW, lon), lerpKeys(BEARD_JAW_K, lon)); top.push([a[0], a[1]]); jaw.push([b[0], b[1]]); }
+    let J = jaw.slice().reverse();
+    if (o.frizz > 0) J = J.map(([x, y], i) => { const dx = x - hcx, dy = y - hcy, d = Math.hypot(dx, dy) || 1, kk = (i % 2 ? .05 : .2) * o.frizz * R; return [x + dx / d * kk, y + dy / d * kk]; });
+    const T = through(top, 2), Jt = o.frizz > 0 ? J : through(J, 2);
+    paint([...T, ...Jt], { wash: col, ink: null });
+    inkLine(Jt, sw * .6, PAL.ink, 'ink', 0);
+    inkLine(T, sw * .32, hairLine(o), 'inkfine', 0);
+  } else if (o.beard === 'stubble') for (let i = 0; i < 16; i++) { const lon = lerp(-1.2, 1.2, i / 15), p = P(lon, lerp(.55, .95, hash(i)), 1); if (p[2] > .05) paint(ellPts(p[0], p[1], .07 * u, .07 * u, 6), { wash: hairCol(o), ink: null }); }
+  const MS = .42, m = o.mouth;
+  if (m) { push(); translate(mp[0], mp[1] + 4.3 * u * MS); scale(MS * mw + .06, MS); mouth(u, m, sw * 2.2); pop(); }
+  else inkLine([[mp[0] - .26 * u * mw, mp[1] - .01 * u], [mp[0], mp[1] + .07 * u], [mp[0] + .26 * u * mw, mp[1] - .01 * u]], sw * .45, mixCol(S.dk, PAL.ink, .5), 'inkfine', .5);
+  if (o.beard && o.beard !== 'stubble') {   // the moustache rides the upper lip and meets the beard at the mouth corners
+    const up = [], lo = []; for (let i = -6; i <= 6; i++) { const lon = i / 6 * .34, a = P(lon, .545 - .03 * Math.cos(i / 6 * Math.PI / 2), .99), b = P(lon, .605, .98); if (a[2] > .02) { up.push([a[0], a[1]]); lo.push([b[0], b[1]]); } }
+    if (up.length > 2) { const pts = [...up, ...lo.reverse()]; paint(pts, { wash: hairCol(o), ink: null, curv: .3 }); inkLine(up, sw * .3, hairLine(o), 'inkfine', .4); }
+  }
 }
 
 // ---------- gear (reference: the in-game item icons) ----------
@@ -368,6 +474,92 @@ function metalMaskGear(u, sw, V, hcx, hcy, R, o = {}) {
   const e = o.eyes || 'normal', kinds = Array.isArray(e) ? e : [e, e];
   for (const s of V.face ? V.face.eyes : [-1, 1]) { const ex = fx + s * .85 * u * F.fw; paint(rrPts(ex - .32 * u, hcy - .4 * u, .64 * u, .42 * u, .15 * u), { wash: '#1E1B22', ink: PAL.ink, sw: sw * .4 }); maskEye(ex + .02 * u, hcy - .19 * u, u, sw, (o.squint || 0) > .8 ? 'closed' : kinds[s < 0 ? 0 : 1], s, o); }
   for (const [rx, ry] of [[-.8, -1], [.8, -1], [-.8, 1.3], [.8, 1.3]]) paint(ellPts(fx + rx * w, hcy + ry * u, .12 * u, .12 * u, 6), { wash: '#5E656B', ink: null });
+}
+// ---- soot (o.soot 0..1): patchy ash-grey smudges, kept off the eyes so the face still acts ----
+function sootPatches(cx, cy, w, h, k, key, u) {
+  for (let i = 0; i < 6; i++) {
+    boilSeed('soot' + key + i);
+    const x = cx + (hash(i * 7.3 + 1) - .5) * w * 1.6, y = cy + (hash(i * 3.1 + 5) - .5) * h * 1.6, r = (.45 + .5 * hash(i + 11)) * u;
+    paint(ellPts(x, y, r * 1.3, r, 9, r * .35, hash(i) * 3), { wash: '#3E3D43', washOp: 150 * k, ink: null });
+  }
+  for (let i = 0; i < 2; i++) { const x = cx + (hash(i + 21) - .5) * w, y = cy + (hash(i + 31) - .5) * h; inkLine([[x - .3 * u, y], [x, y + .15 * u], [x + .25 * u, y - .1 * u]], .5, '#B7B4BC', 'inkfine', 0); }   // ash cracks
+}
+function sootFace(u, V, hcx, hcy, R, k, key) {
+  const off = V === SV.side ? .55 : V === SV.q ? .3 : 0;
+  for (const [dx, dy, r] of [[-.55, .45, .55], [.6, .5, .5], [.1, -.75, .5], [-.3, .9, .4]]) { boilSeed('sootf' + key + dx); paint(ellPts(hcx + (dx + off) * R * .7, hcy + dy * R * .7, r * u * 1.2, r * u, 9, r * u * .3), { wash: '#3E3D43', washOp: 130 * k, ink: null }); }
+}
+
+// ---- hazmat suit and scientist suits (reference: rust-app.com hazmatsuit and hazmatsuit_scientist_* icons) ----
+// Hazmat: a red hood that drapes over the shoulders, a big grey visor window, a mustard-yellow coverall with worn blue
+// patches, a dark belt, a black breathing hose, one black rubber gauntlet and one blue glove, dark boots with a yellow band.
+const HAZ = { suit: '#D3AA36', hood: '#B83A2D', hoodDk: '#8C2A22', visor: '#8D99A2', visorLt: '#D2DCE2', patch: '#4F7FC0', belt: '#36302E', boot: '#2E3631', gloveA: '#2A2729', gloveB: '#4F86C8' };
+// Scientists: a full coverall in the variant colour, a black helmet-hood, a gas mask with two dark lenses and a round
+// filter, chest webbing, a belt with pouches, black gloves and boots.
+const SCI = { peacekeeper: '#4E5843', arctic: '#B9BDBE', naval: '#4F5E6E', nvgm: '#2E2E33', outbreak: '#3E77B6' };
+function hazmatBodyGear(u, sw, V, tw, shY, wy) {
+  if (!V.back) for (const [px, py, pw, ph, r] of [[-.55, .35, .5, .32, .4], [.1, .5, .42, .28, -.3], [-.2, .72, .36, .2, .2]]) paint(ellPts(px * tw, shY + py * (wy - shY), pw * tw, ph * (wy - shY) * .5, 9, .1 * u, r), { wash: HAZ.patch, washOp: 200, ink: null });   // worn blue patches
+  paint(rectPts(-tw * .92, wy - .45 * u, tw * 1.84, .5 * u), { wash: HAZ.belt, ink: PAL.ink, sw: sw * .5 });   // belt
+  const s = V.side ? -1 : -1;   // the breathing hose: from behind the hood on the near side, looping down to the belt
+  inkLine(through([[s * tw * .7, shY + .3 * u], [s * tw * 1.08, shY + 1.8 * u], [s * tw * .95, wy - 1.0 * u], [s * tw * .7, wy - .3 * u]], 4), sw * 1.6, '#232025', 'ink', 0);
+}
+function scientistBodyGear(u, sw, V, tw, shY, wy, bw) {
+  const web = '#232227';
+  if (!V.back) {   // chest webbing: two straps over the shoulders to the belt, a radio pouch on the chest
+    for (const s of V.side ? [1] : [-1, 1]) inkLine([[s * tw * .45, shY + .1 * u], [s * tw * .4, wy - .4 * u]], sw * 1.5, web, 'ink', 0);
+    paint(rrPts(-tw * .25 + (V.side ? .4 * u : 0), shY + 1.1 * u, tw * .5, .9 * u, .15 * u), { wash: mixCol(web, '#555', .25), ink: PAL.ink, sw: sw * .45 });
+  }
+  paint(rectPts(-tw * .94, wy - .5 * u, tw * 1.88, .55 * u), { wash: web, ink: PAL.ink, sw: sw * .5 });   // belt
+  for (const s of [-1, 1]) paint(rrPts(s * tw * .62 - .38 * u, wy - .3 * u, .76 * u, .8 * u, .12 * u), { wash: mixCol(web, '#5A5650', .3), ink: PAL.ink, sw: sw * .4 });   // pouches
+}
+function suitHeadGear(u, sw, o, V, S, hcx, hcy, R, gear, shY) {
+  const turned = V.side, th = V === SV.side ? HEAD_TURN.side : HEAD_TURN.q;
+  // the window or mask outline on the face, projected on the turned head (lon −.78..+.78, lat −.5..+.62)
+  const panel = (l0, l1, a0, a1) => {
+    const P = [], push_ = (lon, lat) => { const p = turned ? turnPtClamped(hcx, hcy, R, th, lon, lat, 1.04) : [hcx + Math.sin(lon) * Math.cos(lat) * R * 1.04, hcy + Math.sin(lat) * R]; P.push([p[0], p[1]]); };
+    for (let i = 0; i <= 8; i++) push_(lerp(l0, l1, i / 8), a0);
+    for (let i = 0; i <= 6; i++) push_(l1, lerp(a0, a1, i / 6));
+    for (let i = 0; i <= 8; i++) push_(lerp(l1, l0, i / 8), a1);
+    for (let i = 0; i <= 6; i++) push_(l0, lerp(a1, a0, i / 6));
+    return P;
+  };
+  if (gear.hazmat) {
+    // the hood drapes over the shoulders like a bib, then domes over the head
+    paint([[-2.1 * u, shY + .4 * u], [2.1 * u, shY + .4 * u], [1.5 * u, shY + 1.9 * u], [0, shY + 2.4 * u], [-1.5 * u, shY + 1.9 * u]], { wash: HAZ.hood, ink: PAL.ink, sw: sw * .8, curv: .3 });
+    paint(ellPts(hcx, hcy - .05 * u, R * 1.1, R * 1.1, 28, u * .03), { wash: HAZ.hood, ink: PAL.ink, sw: sw * .9 });
+    if (!V.back) {
+      paint(ellPts(hcx - (turned ? .3 * R : 0), hcy - .7 * R, R * .5, R * .25, 12, 0, -.3), { wash: mixCol(HAZ.hood, '#FFFFFF', .2), washOp: 120, ink: null });   // a sheen on the hood
+      const W_ = panel(-.8, .8, -.48, .58);
+      paint(W_, { wash: HAZ.visor, ink: PAL.ink, sw: sw * .8, curv: .25 });
+      // the face shows faintly through the visor, so he can still act
+      const e = o.eyes || 'normal', kinds = Array.isArray(e) ? e : [e, e];
+      for (const s of [-1, 1]) {
+        const lon = s * .4, p = turned ? turnPt(hcx, hcy, R, th, lon, -.02, .84) : [hcx + s * .85 * u, hcy - .05 * u, 1];
+        if (p[2] <= .08) continue;
+        push(); translate(p[0], p[1]); scale(.46 * (turned ? clamp(Math.cos(lon + th), .3, 1) : 1), .38); humanEye(kinds[s < 0 ? 0 : 1], s, u, { ...o, eyeCol: '#2A2F36' }, sw * 2.2); pop();
+      }
+      const c = W_.reduce((a, p) => [a[0] + p[0] / W_.length, a[1] + p[1] / W_.length], [0, 0]);
+      paint([[c[0] - .9 * u, c[1] - .9 * u], [c[0] - .45 * u, c[1] - .95 * u], [c[0] - 1.3 * u, c[1] + .6 * u], [c[0] - 1.6 * u, c[1] + .4 * u]], { wash: HAZ.visorLt, washOp: 150, ink: null });   // reflection
+    }
+    return;
+  }
+  // scientist: a black helmet-hood and a gas mask
+  const sc = SCI[gear.scientist] || SCI.peacekeeper;
+  paint(ellPts(hcx, hcy - .05 * u, R * 1.06, R * 1.06, 28, u * .02), { wash: '#1F1E23', ink: PAL.ink, sw: sw * .9 });
+  inkLine(headArc(hcx, hcy, R, .9, Math.PI * 1.1, Math.PI * 1.9, 12), sw * .5, '#3A3940', 'inkfine', 0);   // helmet seam
+  if (V.back) return;
+  const M = panel(-.82, .82, -.42, .9);
+  paint(M, { wash: '#2C2B31', ink: PAL.ink, sw: sw * .8, curv: .25 });   // the rubber mask
+  for (const s of [-1, 1]) {   // two dark lenses
+    const lon = s * .42, p = turned ? turnPt(hcx, hcy, R, th, lon, -.05, .95) : [hcx + s * .95 * u, hcy - .12 * u, 1];
+    if (p[2] <= .08) continue;
+    const f = turned ? clamp(Math.cos(lon + th), .3, 1) : 1;
+    paint(ellPts(p[0], p[1], .58 * u * f, .52 * u, 14), { wash: '#4A5662', ink: PAL.ink, sw: sw * .6 });
+    paint(ellPts(p[0] - .16 * u * f, p[1] - .16 * u, .14 * u * f, .1 * u, 8), { wash: '#C6D2DA', ink: null });   // glint
+  }
+  const fp = turned ? turnPt(hcx, hcy, R, th, 0, .62, 1.22) : [hcx, hcy + 1.45 * u, 1];   // the round filter canister
+  paint(ellPts(fp[0], fp[1], .72 * u * (turned ? .8 : 1), .66 * u, 16), { wash: '#56545C', ink: PAL.ink, sw: sw * .7 });
+  paint(ellPts(fp[0], fp[1], .38 * u * (turned ? .8 : 1), .34 * u, 12), { wash: '#34333A', ink: PAL.ink, sw: sw * .4 });
+  if (gear.scientist === 'arctic' || gear.scientist === 'outbreak') paint(ellPts(hcx - (turned ? .5 * R : 0), hcy - .75 * R, R * .4, R * .2, 10), { wash: sc, washOp: 160, ink: null });   // a coloured stripe on the hood
 }
 function gasMaskGear(u, sw, V, hcx, hcy, R) {   // reference: hazmatsuit icon — a black respirator mask framed by the red hood
   const F = V.face, fx = hcx + F.cx * u * .9;

@@ -90,7 +90,7 @@ function akProp(u, sw, fire = 0, o = {}) {
 }
 
 // ---------- players (survivor.js draws them) ----------
-// The hero: a fresh spawn. Light skin, short brown hair, a short beard, Rust's grey boxer briefs, a rock in the near hand.
+// The hero: a fresh spawn. Light skin, short brown hair, a short beard, Rust's Purple Underwear (Twitch-purple boxer briefs), a rock in the near hand.
 const HERO = { skin: 'light', hair: 'short', hairCol: 'brown', beard: 'full' };
 const PROPS = { rock: (u, sw) => rockProp(u, sw), torch: (u, sw) => { push(); translate(.35 * u, 0); torchProp(u, sw, T, 1); pop(); }, ak: (u, sw) => akProp(u, sw, 0) };
 // hold: { R: 'rock' } or { L: fn } — a prop name or a function drawn at that hand (+x = forward). propRot rotates it.

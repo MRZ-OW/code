@@ -125,7 +125,7 @@ function bigLock(cx, cy, s = 1, o = {}) {
   const digits = (o.digits || '').slice(0, 4), blinkOff = state === 'error' && frac(T * 6) < .5;
   for (let i = 0; i < 4; i++) {
     const x = dx0 + dw * (i + .5) / 4, y = dy0 + dh / 2;
-    if (i < digits.length && !blinkOff) { glow(x, y, 50 * s, on, .35); sevenSeg(digits[i], x, y, dh * .6, on, sw * 1.6, '#3A2224'); }
+    if (i < digits.length && !blinkOff) { glow(x, y, 50 * s, on, .35); sevenSeg(digits[i], x, y, dh * .6, on, sw * 1.6); }   // no ghost segments in a lit digit (a 0 must not read as 8)
     else sevenSeg(8, x, y, dh * .6, '#3A2224', sw * 1.6);
   }
   // the status LED, right of the display

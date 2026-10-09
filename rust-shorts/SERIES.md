@@ -1,6 +1,6 @@
 # Rock Bottom: series bible
 
-A wordless, hand-painted cartoon series of YouTube Shorts about the survival game **Rust**. Every episode follows **the Naked**: a fresh spawn in grey boxer briefs with nothing but a rock, an open heart and terrible luck. Everyone else on the server is better armed.
+A wordless, hand-painted cartoon series of YouTube Shorts about the survival game **Rust**. Every episode follows **the Naked**: a fresh spawn in Rust's Twitch-purple underwear with nothing but a rock, an open heart and terrible luck. Everyone else on the server is better armed.
 
 *Unofficial fan animation, not affiliated with Facepunch Studios. Everything is painted in code; no game art, UI, logos, sounds or music are used.*
 
@@ -17,7 +17,7 @@ Research behind every choice below: [research/](research/) (Shorts craft, the Ru
 
 | | Look (from the official game models and item icons) | Personality |
 |---|---|---|
-| **The Naked** (hero) | Light skin, short brown hair, a short full beard, Rust's mid-grey boxer briefs with a dark waistband, barefoot. He holds the cream rock with its famous red smear. Big head, oval eyes, thick brows. | Earnest, hopeful, kind and gullible. A little smug when he thinks he's figured something out. Never gives up. |
+| **The Naked** (hero) | Light skin, short brown hair, a short full beard, Rust's Purple Underwear (the Twitch-drop boxer briefs: Twitch purple, darker purple waistband), barefoot. He holds the cream rock with its famous red smear. Big head, oval eyes, thick brows. | Earnest, hopeful, kind and gullible. A little smug when he thinks he's figured something out. Never gives up. |
 | **The Chad** (recurring foil) | The standard top kit: a metal facemask on a leather cap, a metal chestplate, a road-sign kilt, an olive hoodie, pants, boots and gloves. His AK has the red D-handle stock wrapped in blue tape. Only his eyes show, through the mask's slits. | Silent, deadpan, ruthless, sometimes lazy. Rust in human form. |
 | Recurring extras | Other nakeds (any skin tone), the patrol helicopter, scientists, boars, chickens. | |
 

@@ -299,8 +299,17 @@
   const rockHand = (u, sw, info) => { push(); rotate(info.ang); translate(-.12 * u, 0); rockProp(u, sw); pop(); };
   // the plaster cross on his forehead (a draw hook, body-local, facing +x); big: the one he wears after the bonk
   const dropU = (o, u) => (clamp(o.crouch || 0) * 1.2 + clamp(o.sit || 0) * 2.05) * u;
+  // Where the rig paints a spot of the head (body-local, facing +x): on the turned head in 3/4 and profile (survivor.js
+  // turnPt: lon 0 = the middle of the face, lat − = up), on the flat face otherwise. [x, y, how flat-on it is to us]
+  function headPt(u, V, drop, lon, lat, k = 1) {
+    const hcy = -10.85 * u + drop, R = 2.35 * u;
+    if (V.side && typeof turnPt === 'function') { const th = V === SV.side ? HEAD_TURN.side : HEAD_TURN.q, p = turnPt(0, hcy, R, th, lon, lat, k); return [p[0], p[1], clamp(Math.cos(lon + th), .3, 1)]; }
+    const F = V.face || { cx: 0, fw: 1 };
+    return [F.cx * u + Math.sin(lon) * R * F.fw * .9, hcy + Math.sin(lat) * R, F.fw];
+  }
+  const browPt = (u, V, drop) => headPt(u, V, drop, .05, -.48);   // the plaster's spot: on the hairline above the brows
   const plaster = (big, xOn = 0, o = {}) => (u, sw, V) => {
-    const hcy = -10.85 * u + dropU(o, u), fx = V.face ? V.face.cx * u : 0, cx = fx + .25 * u, cy = hcy - 1.32 * u, L = (big ? 1.05 : .72) * u, wd = (big ? .38 : .28) * u;
+    const [cx, cy] = browPt(u, V, dropU(o, u)), L = (big ? 1.05 : .72) * u, wd = (big ? .38 : .28) * u;
     if (big) paint(ellPts(cx, cy + .1 * u, L * .7, L * .45, 14), { wash: '#F2A890', ink: null });   // the bump under it
     for (const a of [.62, -.62]) {
       push(); translate(cx, cy); rotate(a);
@@ -518,7 +527,7 @@
 
   // 2A wide: the boar runs back in and behind the bush; the Naked chases it in. The boar comes out without the X
   // (8.2) and trots off happy; the Naked stops, looks round: "?"
-  const WIDE = cam(745, 1040, .72);
+  const WIDE = cam(830, 1040, .72);
   function boar2A(t) {
     const run = seg(t, 7.2, 8.2), x = t < 8.2 ? lerp(-420, 1290, 1 - Math.pow(1 - run, 1.6)) : t < 8.55 ? 1290 : 1290 + 460 * (t - 8.55);
     const rumpX = x - 108, hasX = rumpX < BUSH.x - 20, gait = t < 8.05 ? 'run' : 'trot';
@@ -583,14 +592,14 @@
 
   // 2C close: his eyes lock on the X. Tunnel vision: the world darkens to a ring, pulsing with his heartbeat.
   function s2c(t, lt) {
-    const c = cam(768, 960, lerp(2.25, 2.6, ease(lt)));
+    const c = cam(lerp(768, 762, ease(lt)), lerp(960, 945, ease(lt)), lerp(2.3, 3.0, ease(lt)));
     backdrop(c);
     camBegin(c.cx, c.cy, c.z);
     floor();
     bushX();
-    const up = ease(seg(t, 10.75, 11.4));
+    const up = ease(seg(t, 10.95, 11.45));   // a backward windmill (down, back, up behind his head): the rock never crosses his face
     const No = { ...face(t, [[10.5, 'determined', { eyes: 'determined', mouth: 'flat' }]]), boilKey: NK, seed: 1, prop: 'none', handOver: true, handL: rockHand, view: 'q', flip: true, rawArms: true,
-      aL: lerp(-7.0, COCK[0], up), bendL: lerp(-.9, COCK[1], up), aR: -1.2, bendR: .3, lookX: .9, lookY: .05, rot: .04 * up };
+      aL: lerp(-7.0, COCK[0] - TAU + .2, up), bendL: lerp(-.9, COCK[1] + .2, up), aR: -1.2, bendR: .3, lookX: .9, lookY: .05, rot: .04 * up, squint: .28 * ease(seg(t, 10.6, 11.0)) };
     No.draw = (u, sw, V) => { plaster(false)(u, sw, V); eyeX(u, V, No, 1); };
     spawnling(NX2, G, U, No);
     camEnd();
@@ -599,15 +608,20 @@
   }
   // the red X reflected in his pupils (body-local, in a draw hook)
   function eyeX(u, V, o, k) {
-    const hcy = -10.85 * u + dropU(o, u), fx = V.face.cx * u, fw = V.face.fw;
-    for (const s2 of V.face.eyes) {
-      const ex = fx + s2 * .85 * u * fw + (o.lookX || 0) * u * .5 * (.46 * fw + .04), ey = hcy - .05 * u + (o.lookY || 0) * u * .4 * .38;
-      xMark(ex - .06 * u, ey - .1 * u, .075 * u * k, { key: 'eyex' + s2, glow: .2 });
+    for (const s2 of [-1, 1]) {
+      const [x0, y0, f] = headPt(u, V, dropU(o, u), s2 * .4, -.02, .84), ex = x0 + (o.lookX || 0) * u * .5 * .5 * f, ey = y0 + (o.lookY || 0) * u * .4 * .38;
+      xMark(ex - .06 * u * f, ey - .1 * u, .075 * u * k, { key: 'eyex' + s2, glow: .2 });
     }
   }
   // tunnel vision: everything outside a soft ellipse round (cx, cy) darkens (screen space)
   function tunnel(r, [cx, cy]) {
-    for (let i = 0; i < 7; i++) { staticSeed('tunnel' + i); softOutside(ellPts(cx, cy, r * (1 + i * .16) * 1.1, r * (1 + i * .16) * 1.45, 28), '#221A1C', 46 + 8 * i); }
+    for (let i = 0; i < 14; i++) { staticSeed('tunnel' + i); ringOutside(cx, cy, r * (1 + i * .09) * 1.1, r * (1 + i * .09) * 1.45, '#221A1C', 26 + 1.5 * i); }
+  }
+  // everything outside an ellipse, as ONE polygon (the hole joined to the outer frame by a hairline slit), translucent
+  function ringOutside(cx, cy, rx, ry, col, op, far = 3000) {
+    const P = []; for (let i = 0; i <= 48; i++) { const a = i / 48 * TAU; P.push([cx + Math.cos(a) * rx, cy + Math.sin(a) * ry]); }
+    P.push([cx + far, cy], [cx + far, cy - far], [cx - far, cy - far], [cx - far, cy + far], [cx + far, cy + far], [cx + far, cy + .01]);
+    paint(P, { wash: col, washOp: op, ink: null });
   }
   // like irisShape (everything outside a star-shaped hole), but a translucent wash: stack a few for a soft vignette
   function softOutside(pts, col, op, far = 4000) {
@@ -619,7 +633,7 @@
   // 2D/2E two-shot: the swing, CLANG (12.0): the mask dents, the X pops off, ring lines, his arm buzzes. Freeze. The
   // Chad's eyes narrow; the Naked looks at the X, at the Chad, sweats; the X hops onto his forehead (13.6).
   const TWO = cam(672, 1010, 1.3), CLANG = 12.0, XFLOAT = [668, 818], XHEAD = 13.6, XHEADLAND = 13.76;
-  const nakedForehead = (o) => bodyPt(NX2, G, o, .95 * U, -10.85 * U + dropOf(o) - 1.32 * U);
+  const nakedForehead = (o) => { const [lx, ly] = browPt(U, SV[o.view || 'q'], dropOf(o)); return bodyPt(NX2, G, o, lx, ly); };
   function chad2D(t) {
     const hitK = t > CLANG ? Math.exp(-(t - CLANG) * 9) * Math.sin((t - CLANG) * 40) : 0;
     const eyes = t < 12.6 ? 'normal' : t < 13.3 ? 'blank' : 'angry';
@@ -689,11 +703,11 @@
   }
   // cross-eyed: white eyes with the pupils turned in and up (body-local)
   function crossEyes(u, V, o, t) {
-    const hcy = -10.85 * u + dropU(o, u), fx = V.face.cx * u, fw = V.face.fw, wob = .03 * u * Math.sin(t * 30);
-    V.face.eyes.forEach(s2 => {
-      const ex = fx + s2 * .85 * u * fw, ey = hcy - .05 * u;
-      paint(ellPts(ex - s2 * .12 * u + wob, ey - .17 * u, .13 * u, .17 * u, 10), { wash: PAL.ink, ink: null });
-    });
+    const wob = .03 * u * Math.sin(t * 30);
+    for (const s2 of [-1, 1]) {
+      const [ex, ey, f] = headPt(u, V, dropU(o, u), s2 * .4, -.02, .84);
+      paint(ellPts(ex - s2 * .14 * u * f + wob, ey - .17 * u, .14 * u * Math.max(.6, f), .17 * u, 10), { wash: PAL.ink, ink: null });
+    }
   }
 
   // ---------- S3: bonk (14–20) ----------
@@ -728,9 +742,9 @@
     geared(CX, CY, U, { ...C0, ...CA, rawArms: true, view: 'q', draw: chadFace(0, 1, [1, 1], C0) });
     if (t > 14.8 && t < 15.2) { const [hx, hy] = survivorHand(CX, CY, U, { ...C0, ...CA }, 'L'), g = Math.sin(seg(t, 14.8, 15.2) * Math.PI); glow(hx + 20, hy - 40, 70, '#FFF6D8', g); boilSeed('rockglint'); paint(starPts(hx + 24, hy - 44, 30 * g, .25, 4), { wash: '#FFFDF2', ink: null }); }
     // the Naked: still holding his rock to his chest, the X on his forehead; a wobbly smile, sweat
-    const F = face(t, [[14.0, 'nervous', { emote: 'sweat', mouth: 'wobble', eyes: 'wide' }], [14.75, 'scared', { mouth: 'wobble', emote: 'sweat', tint: 'pale' }]]);
+    const F = face(t, [[14.0, 'nervous', { emote: 'sweat', mouth: 'teeth', eyes: 'wide' }], [14.75, 'scared', { mouth: 'teeth', emote: 'sweat', tint: 'pale' }]]);   // an awkward, trembling grin
     const No = { ...F, boilKey: NK, seed: 1, prop: 'none', handOver: true, handL: rockHand, view: 'q', flip: true, rawArms: true, aL: -6.95, bendL: -2.0, aR: -1.0, bendR: .9, crouch: .12 + .08 * ease(seg(t, 14.8, 15.4)), emoteDx: 4.8, emoteDy: .3,
-      dx: (naked2D(13.99).o.dx || 0), lookX: t < 14.3 ? .2 : .6, lookY: t < 14.3 ? -1 : lerp(-.2, -.8, ease(seg(t, 14.9, 15.4))), dy: .03 * Math.sin(t * 40) };
+      dx: (naked2D(13.99).o.dx || 0) + .03 * Math.sin(t * 47), lookX: t < 14.3 ? .2 : .6, lookY: t < 14.3 ? -1 : lerp(-.2, -.8, ease(seg(t, 14.9, 15.4))), dy: .03 * Math.sin(t * 40) };
     const cross = t < 14.3;
     if (cross) { No.eyes = 'blank'; No.squint = 0; }
     No.draw = (u, sw, V) => { plaster(false, 1, No)(u, sw, V); if (cross) crossEyes(u, V, No, t); };

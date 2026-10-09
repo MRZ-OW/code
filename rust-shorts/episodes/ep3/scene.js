@@ -129,7 +129,7 @@
   function castShadow(x, y, len, dir, w, op, key) {
     if (op <= .02 || len < 4) return;
     boilSeed('cast' + key);
-    paint(ellPts(x + dir * len / 2, y + 4, len / 2 + w * .5, w * .3, 20), { wash: '#2B2233', washOp: 62 * op, ink: null });
+    paint(ellPts(x + dir * len / 2, y + 4, len / 2 + w * .5, w * .3, 20), { wash: '#2B2233', washOp: 220 * op, ink: null });
   }
 
   // ---------- the eoka (reference: the pistol.eoka icon) ----------
@@ -247,8 +247,8 @@
       boilSeed('spark' + key + i);
       const a = dir + (hash(i + (o.seed || 0) * 17) - .5) * spread, sp = (80 + 130 * hash(i + 5 + (o.seed || 0))) * s, d = sp * easeOut(k), g = 170 * s * k * k;
       const px = x + Math.cos(a) * d, py = y + Math.sin(a) * d + g, tl = 30 * s * (1 - k * .5), P = [[px - Math.cos(a) * tl, py - Math.sin(a) * tl], [px, py]];
-      inkLine(P, 2.3 * s * (1 - k * .4), '#C8642A', 'inkfine', 0);
-      inkLine(P, 1.2 * s * (1 - k * .4), i % 3 ? '#FFE07A' : '#FFF8DA', 'inkfine', 0);
+      inkLine(P, 3.0 * s * (1 - k * .4), '#C8642A', 'inkfine', 0);
+      inkLine(P, 1.7 * s * (1 - k * .4), i % 3 ? '#FFE07A' : '#FFF8DA', 'inkfine', 0);
     }
   }
   // Sparks for every strike in the list (at the flint), each with its own scatter.
@@ -279,7 +279,7 @@
   const ROCK_DOWN = [.75, -4.75];                       // the rock hand resting in front of his hip (body, u)
   const kick = (t, t0, k = 6) => t > t0 ? Math.exp(-(t - t0) * k) * Math.min(1, (t - t0) / .04) : 0;   // a flinch, a recoil
   // Blend two eoka holds; the y-scale passes through 0 when it turns over, so the gun flips in his hand.
-  const eBlend = (A, B, k) => ({ g: [lerp(A.g[0], B.g[0], k), lerp(A.g[1], B.g[1], k)], aim: lerp(A.aim, B.aim, k), ys: lerp(A.ys ?? 1, B.ys ?? 1, k) });
+  const eBlend = (A, B, k) => ({ g: [lerp(A.g[0], B.g[0], k), lerp(A.g[1], B.g[1], k)], aim: lerp(A.aim, B.aim, k), ys: lerp(A.ys ?? 1, B.ys ?? 1, clamp((k - .44) / .12)) });   // the turn-over is a quick flip
   // A hold gripped at g whose muzzle points at m (body frame, u).
   const aimAt = (g, m) => { const mir = m[0] < g[0]; return { g, aim: Math.atan2(m[1] - g[1], m[0] - g[0]) - Math.atan2(mir ? -MUZZLE[1] : MUZZLE[1], MUZZLE[0]), ys: mir ? -1 : 1 }; };
   // The Chad's far hand on the AK's handguard, for a near-arm pose o (with o.gunRot).
@@ -291,12 +291,12 @@
   function s1a(t, lt) {
     STAND();
     meadow(t, { tod: 0 });
-    const strikes = [.3, 1.2], fl = kick(t, .3, 5);
+    const strikes = [.3, 1.2, 2.0], fl = kick(t, .3, 5);   // 2.0's wind-up starts before the cut
     const N = emotions(t, [[0, 'determined'], [.3, 'scared', { eyes: 'squeeze', mouth: 'wobble', emote: null }], [.68, 'determined'], [1.32, 'hopeful', { eyes: 'wide', mouth: 'o' }], [1.62, 'confused', { emote: null }]], { take: .25 });
     const watching = t > .68 && t < 1.32;
-    const No = nakedPose(U, { ...N, view: 'side', rot: -.08 * fl, dx: -.3 * fl, lookX: watching ? .5 : N.lookX, lookY: watching ? .45 : N.lookY }, AIM, { strikes, t });
+    const No = nakedPose(U, { ...N, view: 'side', rot: -.08 * fl, dx: -.3 * fl, lookX: watching ? .5 : N.lookX, lookY: watching ? .45 : N.lookY }, AIM, { strikes, t, sp: t > 1.8 ? .85 : 1 });
     survivor(NX, G, U, No);
-    strikeSparks(t, NX, G, U, No, strikes, .9, 10);
+    strikeSparks(t, NX, G, U, No, [.3, 1.2], 1.25, 12);
     if (t > 1.32) { const [hx, hy] = eokaPt(NX, G, U, No, No._e, HOLE); gunSmoke(hx, hy, .5, t - 1.32, 'click', .9); }
     const C = emotions(t, [[0, 'determined'], [.3, 'neutral', { eyes: 'closed' }], [.62, 'determined'], [1.42, 'confused', { emote: '?' }]], { take: .3 });
     const cf = kick(t, .3, 5), lean = ease(seg(t, 1.42, 1.7));
@@ -317,7 +317,7 @@
     const e = { ...e0, g: [e0.g[0] + .1 * sh, e0.g[1] - .08 * Math.abs(sh)], aim: e0.aim + .25 * sh };
     const No = nakedPose(U, { ...N, view: 'side', lookX: look > .4 ? .55 : N.lookX, lookY: look > .4 ? .1 : N.lookY }, e, { strikes, sp: .85, t, at: ROCK_DOWN, atK: ease(seg(t, 3.05, 3.4)) });
     survivor(NX, G, U, No);
-    strikeSparks(t, NX, G, U, No, strikes, .85, 9);
+    strikeSparks(t, NX, G, U, No, strikes, 1.15, 11);
     // the Chad: the '?' fades; he gives up, lowers the AK (2.9–3.2) and checks his wrist (3.2–4.0), a tick on 3.3, 3.55
     const C = emotions(t, [[1.42, 'confused', { emote: '?' }], [2.5, 'neutral', { emote: '?' }], [3.05, 'bored', { emote: null }]], { take: .3 });
     const lower = ease(seg(t, 2.88, 3.2)), watch = ease(seg(t, 3.15, 3.45)), base = { view: 'side', flip: true, rawArms: true };
@@ -340,7 +340,7 @@
     const pin = .14 * ease(seg(t, 4.6, 5.15)) * (1 - ease(seg(t, 5.25, 5.6)));
     camBegin(300, 1000, 1.78 + pin);
     meadow(t, { tod: 0 });
-    const SHAKE = { g: [2.8, -8.5], aim: -.55, ys: 1 }, PEER = aimAt([3.2, -7.8], [2.3, -10.6]), BLOW = aimAt([3.5, -6.8], [2.2, -9.45]);
+    const SHAKE = { g: [3.0, -8.1], aim: -.55, ys: 1 }, PEER = aimAt([3.2, -7.8], [2.3, -10.6]), BLOW = aimAt([3.5, -6.8], [2.2, -9.45]);
     const sh = t < 4.62 ? Math.sin((t - 3.6) * TAU * 7) * (1 - ease(seg(t, 4.45, 4.6))) : 0;
     let e = t < 4.5 ? SHAKE : t < 5.18 ? eBlend(SHAKE, PEER, ease(seg(t, 4.5, 4.66))) : t < 5.62 ? eBlend(PEER, BLOW, ease(seg(t, 5.18, 5.3))) : eBlend(BLOW, REST, ease(seg(t, 5.62, 5.78)));
     e = { ...e, g: [e.g[0] + .1 * sh, e.g[1] - .08 * Math.abs(sh)], aim: e.aim + .25 * sh };
@@ -389,10 +389,10 @@
     if (t >= 7.5) { const [cx, cy] = handWorld(B); puff(cx - 8, cy - 34, 20, t - 7.5, { col: '#EAE4D4', key: 'canpop', n: 4, life: .45 }); }
     // ----- the Naked -----
     const KISS = { g: [1.45, -8.5], aim: -.04, ys: 1 }, PRAY = { g: [2.25, -6.15], aim: -Math.PI / 2, ys: -1 };
-    const e = t < 6.4 ? eBlend(REST, KISS, ease(seg(t, 6.0, 6.17))) : eBlend(KISS, PRAY, ease(seg(t, 6.42, 6.62)));
-    const N = emotions(t, [[5.74, 'determined', { emote: null }], [6.08, 'love', { eyes: 'closed', mouth: 'pout', emote: null }], [6.45, 'proud', { eyes: 'closed', mouth: 'smile', emote: null }]], { take: .25 });
+    const back = ease(seg(t, 7.6, 7.85)), e = t < 6.4 ? eBlend(REST, KISS, ease(seg(t, 6.0, 6.17))) : t < 7.6 ? eBlend(KISS, PRAY, ease(seg(t, 6.42, 6.62))) : eBlend(PRAY, AIM, back);
+    const N = emotions(t, [[5.74, 'determined', { emote: null }], [6.08, 'love', { eyes: 'closed', mouth: 'pout', emote: null }], [6.45, 'proud', { eyes: 'closed', mouth: 'smile', emote: null }], [7.62, 'determined', { emote: null }]], { take: .25 });
     const pray = ease(seg(t, 6.42, 6.62));
-    const No = nakedPose(U, { ...N, view: 'side', farFront: true, rot: .04 * pray, lookX: N.lookX, lookY: N.lookY }, e, { at: [lerp(ROCK_DOWN[0], 2.5, pray), lerp(ROCK_DOWN[1], -5.75, pray)], rot: -.7 * pray });
+    const No = nakedPose(U, { ...N, view: 'side', farFront: true, rot: .04 * pray, lookX: N.lookX, lookY: N.lookY }, e, t < 7.6 ? { at: [lerp(ROCK_DOWN[0], 2.5, pray), lerp(ROCK_DOWN[1], -5.75, pray)], rot: -.7 * pray } : { strikes: [8.0], t, sp: .5, at: [2.5, -5.75], atK: 1 - back, rot: -.7 });
     survivor(NX, G, U, No);
     const [kx, ky] = bodyPt(NX, G, U, No, 2.3 * U, -10.6 * U);
     if (t > 6.2) emote('heart', kx + 14, ky - 40 - 60 * seg(t, 6.2, 6.9), U * .6, seg(t, 6.2, 6.32) * (1 - seg(t, 6.75, 6.95)), t - 6.2);
@@ -435,7 +435,7 @@
   // seated L, so his legs swing up into the air instead (the KO). Placed by his hips. Returns { x, y, o } for survivor().
   function chadDown(k, o = {}, legsUp = false) {
     const sit = legsUp ? 1 : 1 - k, P = { ...o, dx: 0, dy: 0, view: 'side', flip: true, rawArms: true, sit, legsOut: true, rot: 1.43 * k, noShadow: k > .3 };
-    const hip = [0, -4.4 * U + 2.05 * U * sit], at = [CX + .25 * U * k, G - .05 * U - 1.25 * U * k], [ox, oy] = bodyPt(0, 0, U, P, ...hip);
+    const hip = [0, -4.4 * U + 2.05 * U * sit], at = [CX + .25 * U * k, G - .05 * U - 1.25 * U * Math.min(1, k) - 1.0 * U * Math.sin(Math.PI * clamp(k))], [ox, oy] = bodyPt(0, 0, U, P, ...hip);   // lifted mid-way, so the legs swing clear of the road
     return { x: at[0] - ox, y: at[1] - oy, o: P };
   }
   const chadAt = B => survivor(B.x, B.y, U, { ...CHAD_GEAR, boilKey: CH, seed: 2, handOver: true, ...B.o, gear: CHAD_GEAR.gear });
@@ -477,9 +477,9 @@
   // The chicken: wanders in (10.0), hops onto his chest (10.62), settles (11.0), sleeps (12.2), wakes (14.3), crows (14.8).
   function henLapse(t, chest) {
     if (t < 10) return;
-    const start = [1330, G + 10], foot = [chest[0] + 85, G + 10];
+    const start = [1450, G + 10], foot = [chest[0] + 85, G + 10];
     let p, pose, ph;
-    if (t < 10.62) { const k = seg(t, 10.0, 10.62); p = [lerp(start[0], foot[0], k), start[1]]; pose = 'walk'; ph = (t - 10) * 3.2; }
+    if (t < 10.62) { const k = seg(t, 10.0, 10.62); p = [lerp(start[0], foot[0], k), start[1]]; pose = 'walk'; ph = (t - 10) * 3.6; }
     else if (t < 10.85) { p = arcPt(foot, chest, 110, ease(seg(t, 10.62, 10.85))); pose = 'flap'; ph = (t - 10.62) * 6; }
     else { p = chest; pose = t < 11.0 ? 'stand' : t < 12.2 ? 'sit' : t < 14.3 ? 'sleep' : t < 14.75 ? 'stand' : t < 15.45 ? 'crow' : 'stand'; }
     chicken(p[0], p[1], 1.05, { pose, phase: ph, flip: true, boilKey: 77, noShadow: t >= 10.62 });   // a numeric key: chicken() hashes it
@@ -554,7 +554,7 @@
   // ---------- S3: gave up (16–21) and S4: true faith (21–28), the next morning ----------
   const MORNING = { top: '#8EC4DE', low: '#DDEDE6', night: 0 }, MSUN = [655, 760];
   const morning = t => meadow(t, { tod: .25, sun: MSUN, sky: MORNING, ct: 216 + (t - 16) });
-  const SEATX = 200, SCAM = () => camBegin(250, 1160, 1.78);   // after his dive he sits at SEATX: the N framing for that
+  const SEATX = 200, SCAM = () => camBegin(250, 1160, 1.78), HCAM = () => camBegin(262, 1118, 2.05);   // after his dive he sits at SEATX: the N framing for that
   const SEAT = { sit: 1, legsOut: true, dy: 2.3 };
   const akHook = g => (uu, sw) => { push(); rotate(g); akProp(uu, sw, 0); pop(); };
   // the eoka on its own: grip at (x, y)
@@ -592,7 +592,7 @@
     const sigh = t < 16.6 ? Math.sin(seg(t, 16.0, 16.6) * Math.PI) : 0;
     // the throw: a dip forward (16.78), then up and back over his shoulder (16.86–17.0); the arm falls back to his side
     const LOOK = { g: [2.45, -5.85], aim: .12, ys: 1 }, DIP = { g: [2.7, -5.6], aim: .3, ys: 1 }, BACK = { g: [-.6, -12.6], aim: -2.6, ys: 1 };
-    const e = t < 16.86 ? eBlend(LOOK, DIP, ease(seg(t, 16.7, 16.86))) : eBlend(DIP, BACK, easeIn(seg(t, 16.86, 17.0)));
+    const SLUMP = { g: [2.0, -5.3], aim: .95, ys: 1 }, e = t < 16.5 ? eBlend(SLUMP, LOOK, ease(seg(t, 16.05, 16.4))) : t < 16.86 ? eBlend(LOOK, DIP, ease(seg(t, 16.7, 16.86))) : eBlend(DIP, BACK, easeIn(seg(t, 16.86, 17.0)));
     const No = nakedPose(U, { ...N, view: 'q', farFront: t < 16.92, swMul: .8, sq: (N.sq || 0) + .07 * sigh, lookX: t < 16.62 ? .5 : -.2, lookY: t < 16.62 ? .6 : .2 }, t < 17.0 ? e : null, { at: ROCK_DOWN });
     if (t >= 17.0) Object.assign(No, armLerp(reachArm(U, No, 'R', BACK.g[0] * U, BACK.g[1] * U), { aR: TAU - 1.32, bendR: .25 }, ease(seg(t, 17.0, 17.35)), 'R'));   // down the back way, not forward
     // after the throw the eoka sails up and back, spinning, out of the top of the frame (behind him)
@@ -670,7 +670,7 @@
     const C = emotions(t, [[18.5, 'angry', { eyes: 'angry', emote: null }], [18.62, 'furious', { eyes: 'red', emote: null }]], { take: .4 });
     const grab = t >= 18.78;
     const B = grab ? chadAimSit(t, swing, { eyes: C.eyes }) : chadDown(0, { boilKey: CH, seed: 2, eyes: C.eyes });
-    if (!grab) Object.assign(B.o, { aL: -.9, bendL: .4, aR: -.95, bendR: .45 });
+    if (!grab) { const dn = ease(seg(t, 18.5, 18.7)); Object.assign(B.o, { aL: lerp(.35, -.9, dn), bendL: lerp(1.0, .4, dn), aR: lerp(.15, -.95, dn), bendR: lerp(.9, .45, dn) }); }
     B.o.sq = (C.sq || 0) * .4; B.o.dx = -.15 * rack + (t > 18.62 ? .05 * Math.sin(t * 70) : 0);
     if (!grab) groundAK(2.25);
     chadAt(B);
@@ -759,12 +759,13 @@
   function hugPose(t, o = {}) {
     const beat = [23.0, 23.5, 24.0].reduce((a, b) => a + (t > b ? Math.exp(-(t - b) * 9) : 0), 0);
     const N = feel('love', t, { eyes: 'closed', mouth: t > 24.25 && t < 24.6 ? 'pout' : 'cat', emote: 'hearts', blush: 1 });
-    const No = nakedPose(U, { ...N, ...SEAT, view: 'q', swMul: .8, farFront: true, rot: .1, dx: 0, dy: 2.3, sq: .05 * beat, lookX: .6, lookY: .5, ...o }, HUG, { at: [2.55, -5.5], rock: false, elbowDown: true });
+    const pull = ease(seg(t, 23.0, 23.3)), LOOKAT = { g: [2.05, -5.6], aim: -.42, ys: 1 };
+    const No = nakedPose(U, { ...N, ...SEAT, view: 'q', swMul: .8, farFront: true, rot: .1 * pull, dx: 0, dy: 2.3, sq: .05 * beat, lookX: .6, lookY: .5, ...o }, eBlend(LOOKAT, HUG, pull), { at: [lerp(1.75, 2.55, pull), lerp(-2.55, -5.5, pull)], rock: false, elbowDown: true });
     No.emoteK = 1; No.emoteAge = t - 23; No.emoteDx = .3; No.emoteDy = .2;
     return No;
   }
   function s4b(t, lt) {
-    SCAM();
+    HCAM();
     morning(t);
     rockAt(ROCK_GROUND[0], ROCK_GROUND[1] - .9 * U, -.2, 'a');
     const No = hugPose(t);
@@ -774,7 +775,7 @@
   }
   // 4C (N): BANG, it goes off in the hug, pointing down (25.0). His eyes go wide. Then up he springs (25.75), out of frame.
   function s4c(t, lt) {
-    SCAM();
+    HCAM();
     morning(t);
     rockAt(ROCK_GROUND[0], ROCK_GROUND[1] - .9 * U, -.2, 'a');
     const tk = take(t, 25.02, 1.2), spring_ = jump(t, 25.78, 26.4, 9);

@@ -42,3 +42,16 @@
   };
   LOOPS.naked.len = 2;
 })();
+(() => {
+  // the suits, true to the game icons: hazmat in three views, the scientist variants, and the sooted naked
+  LOOPS.suits = t => {
+    boilSeed('bg'); paint(rectPts(-50, -50, W + 100, H + 100), { wash: '#EFE6D6', ink: null });
+    for (const yy of [610, 1180, 1760]) inkLine([[0, yy], [W, yy]], .6, PAL.ink, 'inkfine', 0);
+    ['front', 'q', 'side', 'back'].forEach((v, i) => survivor(140 + i * 265, 600, 30, { ...feel('neutral', t), gear: { hazmat: true }, view: v, rawArms: true, aL: -1.25, aR: -1.25, boilKey: 'haz' + v }));
+    ['peacekeeper', 'arctic', 'naval', 'nvgm', 'outbreak'].forEach((k, i) => survivor(115 + i * 212, 1170, 25, { ...feel('neutral', t), gear: { scientist: k }, view: i % 2 ? 'q' : 'front', rawArms: true, aL: -1.25, aR: -1.25, boilKey: 'sci' + k }));
+    spawnling(180, 1750, 30, { ...feel('neutral', t), soot: .9, frizz: 1, view: 'front' });
+    spawnling(470, 1750, 30, { ...feel('surprised', t), soot: .6, frizz: .6, view: 'q' });
+    survivor(800, 1750, 30, { ...feel('determined', t), gear: { scientist: 'peacekeeper' }, view: 'side', rawArms: true, aL: -1.25, aR: -1.25, boilKey: 'sciside' });
+  };
+  LOOPS.suits.len = 2;
+})();
