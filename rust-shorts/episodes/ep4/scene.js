@@ -309,7 +309,7 @@
   // spot on the turned head (lon 0 = the middle of the face, − = the near side; lat − = up) in every view, and returns
   // [x, y, depth]; depth ≤ 0 has turned away from us.
   const fore = (head, lon) => clamp(Math.cos(lon + head.th) / Math.cos(lon), .3, 1);   // how flat-on a spot is (as heads.js's eyes)
-  const BROW = [.05, -.5], XBROW = [.05, -.8], MASKX = [0, .27, 1.17];   // the plaster, the X above it, the X on a facemask (under the slits)
+  const BROW = [.05, -.5], XBROW = [.05, -1.08], MASKX = [0, .27, 1.17];   // the plaster, the X above it, the X on a facemask (under the slits)
   function plasterOn(u, sw, head, big) {   // the plaster cross; big: the one he wears after the bonk
     const p = head.pt(...BROW); if (p[2] <= .05) return;
     const L = (big ? 1.05 : .72) * u, wd = (big ? .38 : .28) * u;
@@ -533,7 +533,8 @@
 
   function s1(t, lt) {
     const sh = [kick(t, .5, 7), kick(t, 1.6, 7), kick(t, 3.3, 4)].reduce((a, b) => [a[0] + b[0], a[1] + b[1]], [0, 0]);
-    const c0 = camLerp(BASE, cam(420, 1040, .88), ease(seg(t, 3.35, 3.85))), c = cam(c0.cx + sh[0], c0.cy + sh[1], c0.z);
+    const c0 = camLerp(BASE, cam(420, 1040, .88), ease(seg(t, 3.35, 3.85))), drift = 75 * (ease(seg(t, 5.55, 5.95)) - ease(seg(t, 6.15, 6.6)));   // follow the boar round the right end of the loop
+    const c = cam(c0.cx + drift + sh[0], c0.cy + sh[1], c0.z);
     backdrop(c);
     camBegin(c.cx, c.cy, c.z);
     floor();
@@ -581,9 +582,10 @@
   const CX = 556, CY = 1376;   // the Chad's mark once he's out from behind the trunk
   const NX2 = 790;             // the Naked's mark by the bush
   // the Chad, facing right, AK held low in both hands (o: extra options; x: where he stands)
+  const GUNROT = .9;   // the AK held low, muzzle toward the ground (clear of the Naked)
   function chadPose(o = {}) {
     const base = { view: 'q', rawArms: true, crouch: o.crouch ?? 0 }, low = reachArm(U, base, 'L', 1.25 * U, -5.75 * U + dropOf(base));
-    return { boilKey: CH, seed: 2, ...base, ...low, aR: -1.3, bendR: .3, gunRot: .62, twoHand: true, eyes: 'normal', ...o };
+    return { boilKey: CH, seed: 2, ...base, ...low, aR: -1.3, bendR: .3, gunRot: GUNROT, twoHand: true, eyes: 'normal', ...o };
   }
   // what the Chad wears on his facemask this frame (an o.face hook, so it sits on the plate in any view): the X, and
   // the dent after the CLANG
@@ -617,7 +619,7 @@
   // swerves away from us round behind the bush and stops there (the bush shakes: it scrapes the X off), then trots out
   // of the far side without it (8.3). The Naked runs in after it, skids to a stop by the bush and looks round: "?" (8.4).
   // Behind his back, the X peeks out of the top of the bush (8.5–8.72) and ducks before he turns.
-  const WIDE = cam(820, 930, .9);
+  const WIDE = cam(800, 1010, 1.02);
   const B2A = [[7.0, -80, 1462], [7.2, 160, 1440], [7.5, 520, 1376], [7.72, 760, 1324], [7.88, 890, 1302], [8.1, 970, 1298], [8.32, 1150, 1314], [8.7, 1420, 1334], [9.0, 1600, 1344]];
   function boar2A(t) {
     const p = pathAt(B2A, t), q = pathAt(B2A, t + .02), sp = Math.hypot(q[0] - p[0], q[1] - p[1]) / .02;
@@ -806,7 +808,7 @@
   // The Naked smiles a wobbly, awkward smile, hugging his own rock.
   const slungAK = (u, sw) => { push(); translate(-.6 * u, -6.6 * u); rotate(-2.3); akProp(u, sw * .9, 0); pop(); };
   const N3 = () => naked2D(13.99).o.dx || 0;   // where 2E left him
-  const UP3 = [-1.95, -12.27];                 // the Chad's rock hand at the top: up and back, clear of his mask
+  const UP3 = [-1.25, -13.45];                 // the Chad's rock hand at the top: up and back, clear of his mask
   function s3a(t, lt) {
     const c = cam(668, 990, lerp(1.24, 1.3, ease(lt / 1.5)));
     backdrop(c);
@@ -821,7 +823,7 @@
     if (t < 14.5) {
       const k = ease(seg(t, 14.05, 14.32)), k2 = ease(seg(t, 14.32, 14.45));
       const low = handLocal(U, C0, 'L'), high = [-3.2 * U, -8.1 * U];
-      if (t < 14.32) { const g = [lerp(low[0], high[0], k), lerp(low[1], high[1], k)]; CA = { ...reachArm(U, { view: 'q', rawArms: true }, 'L', g[0], g[1]), gunRot: lerp(.62, TAU - 1.75, k), twoHand: false, aR: -1.3 }; }
+      if (t < 14.32) { const g = [lerp(low[0], high[0], k), lerp(low[1], high[1], k)]; CA = { ...reachArm(U, { view: 'q', rawArms: true }, 'L', g[0], g[1]), gunRot: lerp(GUNROT, TAU - 1.75, k), twoHand: false, aR: -1.3 }; }
       else { const p = [lerp(high[0], -.6 * U, k2), lerp(high[1], -6.6 * U, k2)], r = lerp(TAU - 1.75, TAU - 2.3, k2), hp = reachArm(U, { view: 'q', rawArms: true }, 'L', high[0], high[1]), fall = ease(seg(t, 14.32, 14.5));
         CA = { aL: lerp(hp.aL, -1.32, fall), bendL: lerp(hp.bendL, .22, fall), armKL: lerp(hp.armKL, 1, fall), noGun: true, twoHand: false, aR: -1.3, behind: (u, sw) => { push(); translate(p[0] * u / U, p[1] * u / U); rotate(r); akProp(u, sw * .9, 0); pop(); } }; }
     } else {
@@ -877,10 +879,10 @@
     camEnd();
     if (hit) flash(.22 * (1 - seg(t, BONK, 15.74)), '#FFF6E0');
   }
-  // 3C: out cold. Black, then a ring of big KO stars spinning round (from 15.85).
+  // 3C: out cold. Black, then a ring of big KO stars spinning round (the first up by 15.85).
   function s3c(t, lt) {
     boilSeed('black'); paint(rectPts(-60, -60, W + 120, H + 120), { wash: '#1E1A24', ink: null });
-    const a = t - 15.85; if (a < 0) return;
+    const a = t - 15.8; if (a < 0) return;
     const n = 8, cx = 560, cy = 840, rx = 215, ry = 118, S = [];
     for (let i = 0; i < n; i++) { const th = i / n * TAU + a * 2.2; S.push([i, th, Math.sin(th)]); }
     S.sort((p, q) => p[2] - q[2]);   // the far side of the ring first
@@ -920,5 +922,5 @@
   }
 
   shots([[0, s1], [7, s2a], [9, s2b], [10.5, s2c], [11.5, s2d], [14, s3a], [15.5, s3b], [15.75, s3c], [17, s3d]]);
-  transitions([[7.0, 'rockSpin', { in: .3 }]]);   // his rock tumbles at the lens between S1 and S2 (covers ~6.79–7.49)
+  transitions([[7.0, 'rockSpin', { in: .3, dur: .6 }]]);   // his rock tumbles at the lens between S1 and S2 (from 6.82, with the whoosh, to 7.42)
 })();
