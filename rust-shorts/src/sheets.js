@@ -56,3 +56,13 @@
   };
   LOOPS.suits.len = 2;
 })();
+// TEMP (gear agent): hazmat drape in more poses. Removed when done.
+(() => {
+  LOOPS.geartest = t => {
+    boilSeed('bg'); paint(rectPts(-50, -50, W + 100, H + 100), { wash: '#EFE6D6', ink: null });
+    for (const yy of [610, 1180]) inkLine([[0, yy], [W, yy]], .6, PAL.ink, 'inkfine', 0);
+    ['qf', 'front', 'q', 'back'].forEach((v, i) => survivor(140 + i * 265, 600, 30, { ...feel('neutral', t), gear: { hazmat: true }, view: v, rawArms: true, ...(i === 0 ? { aL: -1.25, aR: -1.25 } : i === 1 ? { aL: 1.2, aR: -.9 } : i === 2 ? { aL: -.5, aR: -1.3 } : { aL: 1.0, aR: -1.25 }), boilKey: 'hy' + v }));
+    ['front', 'side'].forEach((v, i) => survivor(250 + i * 500, 1170, 30, { ...feel('happy', t), gear: { hazmat: true }, view: v, walk: t * 2, boilKey: 'hw' + v }));
+  };
+  LOOPS.geartest.len = 2;
+})();

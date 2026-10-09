@@ -169,20 +169,31 @@ function hazmatBodyGear(u, sw, V, tw, shY, wy) {
     inkLine([[kx + .07 * u, wy + .05 * u], [kx + .2 * u, wy + .5 * u], [kx + .26 * u, wy + .78 * u]], sw * .8, HAZ.belt, 'ink', .5);
   }
 }
-// The hood and cape, the visor, the hoses and straps (drawn after the torso, as one piece with no ink at the neck)
-function hazmatHeadGear(u, sw, o, V, hcx, hcy, R, shY) {
-  const H = { hcx, hcy, R, th: gearTurn(V, u, R) }, back = !!V.back, turned = !!V.side;
-  const tw = 2.1 * u * (V.torsoW || 1), wy = shY + 3.2 * u, cw = tw + .2 * u, ox = back ? 0 : Math.sin(H.th) * .3 * u, hemY = shY + 1.75 * u;
-  // in profile the window is cheated a little toward us (turned 1.2 rad, not π/2) so it still reads as a window
-  const Hf = H.th > 1.2 && !back ? { hcx: hcx + .45 * u, hcy, R, th: 1.2 } : H;
-  // hood (rounded monk hood, a little narrower at the top) flowing into the cape (view torso width + .2u), torn hem
+// The hood and its cape as one outline (the hood a rounded monk hood, a little narrower at the top; the cape over the
+// shoulder caps, then down to a torn hem). Shared by hazmatHeadGear and hazmatCapeOver.
+function hazmatCapeOutline(u, V, hcx, hcy, shY) {
+  const back = !!V.back, th = gearTurn(V, u, 2.35 * u), tw = 2.1 * u * (V.torsoW || 1), cw = tw + .2 * u, ox = back ? 0 : Math.sin(th) * .3 * u, hemY = shY + 1.75 * u;
+  const H = { th };
   const hoodR = [[0, -3.05], [1.15, -2.98], [1.95, -2.55], [2.38, -1.7], [2.48, -.4], [2.42, 1.0], [2.2, 1.95], [1.8, 2.5]];
   const side = s => through(hoodR.map(([x, y]) => [hcx + ox + s * x * u * (s > 0 ? 1 : 1 - .06 * Math.sin(H.th)), hcy + y * u]), 4);
   const cs = tw + .25 * u;   // over the shoulder caps
   const right = side(1).concat(through([[hcx + ox + 1.8 * u, hcy + 2.5 * u], [cs - .35 * u, shY - .02 * u], [cs, shY + .25 * u], [cs + .02 * u, shY + .9 * u], [cw + .02 * u, shY + 1.5 * u], [cw, hemY - .1 * u]], 4).slice(1));
   const left = side(-1).concat(through([[hcx + ox - 1.8 * u, hcy + 2.5 * u], [-cs + .35 * u, shY - .02 * u], [-cs, shY + .25 * u], [-cs - .02 * u, shY + .9 * u], [-cw - .02 * u, shY + 1.5 * u], [-cw, hemY - .1 * u]], 4).slice(1));
   const hem = []; for (let i = 0; i <= 10; i++) hem.push([lerp(cw, -cw, i / 10) + (hash(i + 3) - .5) * .12 * u, hemY + (i % 2 ? .26 + .1 * hash(i) : -.08 - .06 * hash(i + 7)) * u]);
-  const outline = right.concat(hem.slice(1, -1), left.slice().reverse());
+  return right.concat(hem.slice(1, -1), left.slice().reverse());
+}
+const gearInside = (P, x, y) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) if ((P[i][1] > y) !== (P[j][1] > y) && x < (P[j][0] - P[i][0]) * (y - P[i][1]) / (P[j][1] - P[i][1]) + P[i][0]) c = !c; return c; };
+// The hood and cape, the visor, the hoses and straps (drawn after the torso, as one piece with no ink at the neck)
+function hazmatHeadGear(u, sw, o, V, hcx, hcy, R, shY) {
+  const H = { hcx, hcy, R, th: gearTurn(V, u, R) }, back = !!V.back, turned = !!V.side;
+  const tw = 2.1 * u * (V.torsoW || 1), wy = shY + 3.2 * u, cw = tw + .2 * u, ox = back ? 0 : Math.sin(H.th) * .3 * u, hemY = shY + 1.75 * u;
+  // in profile the window is cheated a little toward us (turned 1.2 rad, not π/2) so it still reads as a window
+  const Hf = H.th > 1.2 && !back ? { hcx: hcx + .45 * u, hcy, R, th: 1.2 } : H;
+  const outline = hazmatCapeOutline(u, V, hcx, hcy, shY);
+  // the backpack straps go under the cape (they show below its hem)
+  const X = x => gearBodyX(V, x, u);
+  if (back) for (const s of [-1, 1]) paint(gearStrip([s * tw * .5, shY - .05 * u], [s * tw * .42, shY + 2.4 * u], .3 * u), { wash: HAZ.strap, ink: PAL.ink, sw: sw * .4 });
+  else for (const s of V === SV.side ? [-.55] : [-1, 1]) { const x0 = V === SV.side ? s * u : X(s * 1.22), x1 = V === SV.side ? s * u - .1 * u : X(s * 1.3); paint(gearStrip([x0, shY - .15 * u], [x1, shY + 2.9 * u], .3 * u), { wash: HAZ.strap, ink: PAL.ink, sw: sw * .4 }); }
   paint(outline, { wash: HAZ.hood, ink: PAL.ink, sw: sw * .85 });
   // shading and folds: a darker underside of the hood, folds down the cape
   for (const s of [-1, 1]) inkLine([[hcx + ox + s * 2.0 * u, hcy + .3 * u], [hcx + ox + s * 1.85 * u, hcy + 1.65 * u], [hcx + ox + s * 1.35 * u, hcy + 2.35 * u]], sw * .55, HAZ.hoodDk, 'inkfine', .5);
@@ -193,7 +204,6 @@ function hazmatHeadGear(u, sw, o, V, hcx, hcy, R, shY) {
     inkLine([[hcx - .3 * u, hcy - 2.7 * u], [hcx - .1 * u, hcy - .5 * u], [hcx + .2 * u, hcy + 1.9 * u]], sw * .5, HAZ.hoodDk, 'inkfine', .5);
     inkLine([[hcx + 1.2 * u, hcy - 2.0 * u], [hcx + 1.45 * u, hcy + .6 * u]], sw * .45, HAZ.hoodDk, 'inkfine', .5);
     inkLine([[hcx - 1.5 * u, hcy - 1.6 * u], [hcx - 1.6 * u, hcy + 1.4 * u]], sw * .45, HAZ.hoodDk, 'inkfine', .5);
-    for (const s of [-1, 1]) paint(gearStrip([s * tw * .5, shY - .05 * u], [s * tw * .42, shY + 2.4 * u], .3 * u), { wash: HAZ.strap, ink: PAL.ink, sw: sw * .4 });
     paint(rrPts(-1.0 * u, shY + 2.0 * u, 2.0 * u, 1.15 * u, .25 * u), { wash: '#2A2A2C', ink: PAL.ink, sw: sw * .6 });
     inkLine([[-.7 * u, shY + 2.45 * u], [.7 * u, shY + 2.45 * u]], sw * .4, '#4A4A4E', 'inkfine', 0);
     return;
@@ -222,21 +232,19 @@ function hazmatHeadGear(u, sw, o, V, hcx, hcy, R, shY) {
   const fit = gearWrap(Hf, 0, 1.68 * u, 1.18);
   paint(ellPts(fit[0], fit[1], .26 * u * clamp(fit[2], .5, 1), .22 * u, 10), { wash: HAZ.metal, ink: PAL.ink, sw: sw * .45 });
   // the black corrugated hose: from the fitting down the chest in a U and back up under the strap on the wearer's left
-  const X = x => gearBodyX(V, x, u), fx = fit[0], fy = fit[1] + .2 * u;
+  const fx = fit[0], fy = fit[1] + .2 * u;
   const hp = V === SV.side
     ? [[fx, fy], [fx - .1 * u, shY + .5 * u], [X(1.2), shY + 1.9 * u], [X(.3), wy - .7 * u], [X(-.6), wy - 1.0 * u], [X(-.9), shY + 1.4 * u], [X(-1.0), shY + .2 * u]]
-    : [[fx, fy], [fx + .05 * u, shY + .5 * u], [X(.02), shY + 1.6 * u], [X(-.05), shY + 2.5 * u], [X(.28), shY + 2.95 * u], [X(.6), shY + 2.6 * u], [X(.7), shY + 1.5 * u], [X(1.05), shY + .35 * u]];
+    : [[fx, fy], [fx + .05 * u, shY + .5 * u], [X(.02), shY + 1.6 * u], [X(-.05), shY + 2.5 * u], [X(.28), shY + 2.95 * u], [X(.6), shY + 2.6 * u], [X(.75), shY + 1.4 * u], [X(.8), shY + .2 * u], [X(.72), shY - .25 * u]];
   gearHose(hp, .28 * u, HAZ.hose, '#5A595F', .25 * u, sw);
-  // black backpack straps over both shoulders
-  const straps = V === SV.side ? [-.55] : [-1, 1];
-  for (const s of straps) { const x0 = V === SV.side ? s * u : X(s * 1.22), x1 = V === SV.side ? s * u - .1 * u : X(s * 1.3); paint(gearStrip([x0, shY - .15 * u], [x1, shY + 2.9 * u], .3 * u), { wash: HAZ.strap, ink: PAL.ink, sw: sw * .4 }); }
+  if (V !== SV.side) { const e = hp[hp.length - 1]; paint(rrPts(e[0] - .2 * u, e[1] - .12 * u, .4 * u, .24 * u, .08 * u), { wash: HAZ.metal, ink: PAL.ink, sw: sw * .4 }); }   // where it plugs into the hood
 }
 
 // The hood's cape over the tops of the near sleeves (survivor.js draws the near arms after suitHeadGear, so this goes
 // after them): a red cap over each near shoulder, down to about shY + .9u, with a torn edge. It shrinks away as the arm
 // rises (a raised arm comes out from under it). Call: if (gear.hazmat) hazmatCapeOver(u, sw, o, V, shY);
 function hazmatCapeOver(u, sw, o, V, shY) {
-  const sy = shY + .6 * u, r = .63 * u, turned = !!V.side;
+  const sy = shY + .6 * u, r = .63 * u, turned = !!V.side, C = hazmatCapeOutline(u, V, 0, shY - 2.5 * u, shY);
   for (const w of V.near) {
     const sideSign = V.side ? 1 : (w === 'R' ? 1 : -1);
     const sx = typeof shoulderX === 'function' ? shoulderX(V, sideSign, false, u) : sideSign * 1.8 * u * (V.torsoW || 1);
@@ -244,11 +252,16 @@ function hazmatCapeOver(u, sw, o, V, shY) {
     const k = clamp((-a - .25) / .75, 0, 1); if (k < .15) continue;   // 1 = arm hanging, 0 = raised to level
     const s = turned ? -1 : sideSign, R2 = r + .14 * u, drop = (.3 + .35 * k) * u;   // s: the outer side (toward the back in 3/4 and profile)
     const arc = []; for (let i = 0; i <= 10; i++) { const t = lerp(-Math.PI / 2 - s * .9, -Math.PI / 2 + s * 1.45, i / 10); arc.push([sx + Math.cos(t) * R2, sy + Math.sin(t) * R2 * .95]); }
-    const ox = sx + s * (R2 + .02 * u), ix = sx - s * .55 * u, hem = [];
+    const ox = sx + s * (turned ? .6 * u : R2 + .02 * u), ix = sx - s * .6 * u, hem = [];   // the hem spans the sleeve
     for (let i = 0; i <= 4; i++) hem.push([lerp(ox, ix, i / 4), sy + drop + (i % 2 ? .18 : -.04) * u * k + (hash(i + (w === 'L' ? 5 : 9)) - .5) * .08 * u]);
     const P = arc.concat([[ox, sy + .2 * u]], hem, [[ix - s * .2 * u, sy - .1 * u]]);
     paint(P, { wash: HAZ.hood, ink: null });
-    inkLine(arc.slice(turned ? 4 : 2).concat([[ox, sy + .2 * u]], hem), sw * .8, PAL.ink, 'ink', .3);
+    // ink: the shoulder's outline only where it sticks out past the hood and cape, then the torn hem; nothing where the
+    // drape meets the cape, so it all reads as one cloth
+    const A = arc.concat([[ox, sy + .2 * u]]), outside = p => !gearInside(C, p[0], p[1] + .02 * u);
+    let i0 = A.length; while (i0 > 0 && outside(A[i0 - 1])) i0--;   // only the run that reaches the outer side, never a stray flick
+    const out = A.length - i0 > 1 ? A.slice(i0).concat(hem) : hem;
+    inkLine(out, sw * .8, PAL.ink, 'ink', .3);
     inkLine([[sx + s * .1 * u, sy - .35 * u], [sx + s * .35 * u, sy + drop * .7]], sw * .4, HAZ.hoodDk, 'inkfine', .5);   // a fold
     paint(ellPts(sx + s * .3 * u, sy + drop * .55, .06 * u, .05 * u, 6), { wash: '#D9B23E', ink: null });   // a paint fleck
   }

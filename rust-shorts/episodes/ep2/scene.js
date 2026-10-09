@@ -324,7 +324,7 @@
     const rel = ease(seg(t, 2.55, 2.72)), back = seg(t, 2.6, 3.0), nx = NA - 95 * easeOut(back);
     const soot = .35 * clamp(a / .3), frizz = .75 * clamp(a / .08);
     const J = joltPose(t, NA, { soot, frizz, hold: { L: 'rock' }, armUp: .5 });
-    const dz = feel('dizzy', t), S = { aL: -.25 + .22 * Math.sin(t * 9), bendL: .6, aR: -.2 - .3 * Math.sin(t * 9), bendR: .5, armKL: 1, armKR: 1 };
+    const dz = feel('dizzy', t), S = { aL: -.7 + .2 * Math.sin(t * 9), bendL: 1.0, aR: -.2 - .3 * Math.sin(t * 9), bendR: .5, armKL: 1, armKR: 1 };
     const O = { ...J };
     for (const k of ['aL', 'bendL', 'aR', 'bendR', 'armKL', 'armKR']) O[k] = lerp(J[k] ?? 1, S[k], rel);
     if (rel > 0) { O.dx = 0; O.eyes = rel < 1 ? 'wide' : 'swirl'; O.mouth = rel < 1 ? 'o' : 'wobble'; }
@@ -344,7 +344,7 @@
     camBegin(R1 + 40 / Z, hy + 100 / Z, Z);   // his head at about (500, 860) on screen
     set(t);
     const idea = t >= 3.6, waggle = Math.floor(t * 7) % 2;
-    const O = { soot: .35, frizz: .6, view: 'front', hold: { L: 'rock' }, aR: -1.2, bendR: .3, aL: -.95, bendL: .65 };
+    const O = { soot: .35, frizz: .6, view: 'front', hold: { L: 'rock' }, aR: -1.2, bendR: .3, aL: -1.05, bendL: 1.45 };
     if (!idea) Object.assign(O, { eyes: 'look', lookX: .35, lookY: -.9, mouth: 'flat' }, reachArm(U, O, 'R', .45 * U, -9.15 * U));   // fist on chin, eyes up
     else Object.assign(O, { eyes: t < 3.8 ? 'shine' : waggle ? 'sly' : 'happy', lookX: .01, mouth: 'grin', dy: -.3 * Math.exp(-(t - 3.6) * 8), aR: 1.2, bendR: .75, handR: fingerUp });   // eureka finger up at the bulb, then smug
     naked(R1, G, O);
