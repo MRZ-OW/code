@@ -43,6 +43,9 @@ const SV = {
 // Where each shoulder is (body frame x): profile both near the middle; 3/4 the near one toward the back, the far one
 // toward the chest; front and back at the torso's edges.
 const shoulderX = (V, sideSign, far, u) => V === SV.q ? (far ? .7 : -.75) * u : V.side ? (far ? .25 : -.15) * u : sideSign * 1.8 * u * V.torsoW;
+// A seated body keeps its seat (no upward bob) and squashes half as much. Shared by survivor() and its helpers.
+const bodySq = o => ((o.sq || 0) + (o.take || 0)) * (1 - .5 * clamp(o.sit || 0));
+const bodyDy = o => (o.dy || 0) < 0 ? (o.dy || 0) * (1 - clamp(o.sit || 0)) : (o.dy || 0);
 function skinCols(o) {
   const base = typeof o.skin === 'object' ? o.skin : (SKIN_TONES[o.skin] || SKIN_TONES.light);
   return tintCols({ ...o, col: base.col, dk: base.dk, lt: base.lt });
@@ -52,7 +55,7 @@ function survivor(x, y, u, o = {}) {
   const id = o.boilKey ?? ++CLAWD_N, rs = part => boilSeed(`surv ${id} ${part}`);
   const V = SV[o.view] || SV.front, view = SV[o.view] ? o.view : 'front';
   x += (o.dx || 0) * u;
-  const dy = (o.dy || 0) * u, sq = (o.sq || 0) + (o.take || 0), sm = clamp(o.smear || 0);
+  const dy = bodyDy(o) * u, sq = bodySq(o), sm = clamp(o.smear || 0);
   const sw = clamp(u / 16, .45, 2.4) * (o.swMul || 1);
   // mood tints colour the face only (a flushed face, not a different skin tone); o.tintBody tints all of him (soot)
   const S = skinCols(o), SB = o.tintBody ? S : skinCols({ ...o, tint: null, tintMix: null }), gear = o.gear || {}, crouch = clamp(o.crouch || 0);
@@ -82,6 +85,8 @@ function survivor(x, y, u, o = {}) {
     }
     const lk = clamp(i === 0 ? o.liftL || 0 : o.liftR || 0);   // leg 0 is the near (L) leg in side views
     if (lk > 0) { if (V.side) { swing = lerp(swing, -1.0, lk); knee = lerp(knee, 1.7, lk); } else { lift = lerp(lift, 1, lk); knee = lerp(knee, 1.2, lk); } }
+    const hk = V.side ? clamp(i === 0 ? o.heelL || 0 : o.heelR || 0) : 0;   // the foot bent up behind him (a hurt foot held in his hand)
+    if (hk > 0) { swing = lerp(swing, 1.13, hk); knee = lerp(knee, 1.47, hk); }
     const hx = (V.side ? side * .35 : side * .9) * u * V.torsoW, hy = hipY, th = 2.05 * u, sh = 2.0 * u;
     const a1 = Math.PI / 2 + swing - (V.side ? knee * .5 : 0) * 1; let kx = hx + Math.cos(a1) * th * (V.side ? 1 : 0) + (V.side ? 0 : side * knee * .25 * u), ky = hy + Math.sin(a1) * th * (V.side ? 1 : 1 - lift * .25);
     const a2 = Math.PI / 2 + swing + (V.side ? knee : 0) * 1; let ax = kx + Math.cos(a2) * sh * (V.side ? 1 : 0) - (V.side ? 0 : side * knee * .2 * u), ay = Math.min(-.25 * u, ky + Math.sin(a2) * sh * (V.side ? 1 : 1 - lift * .3));
@@ -93,14 +98,15 @@ function survivor(x, y, u, o = {}) {
     }
     const ck = clamp(i === 0 ? o.clutchL || 0 : o.clutchR || 0);
     if (ck > 0) [kx, ky, ax, ay] = clutchLeg(u, hx, hy, ck, kx, ky, ax, ay, V.side);
-    const col = far ? mixCol(legC, SB.dk, .45) : legC;
+    const col = far ? mixCol(legC, SB.dk, .45) : st > .5 ? mixCol(legC, SB.dk, .55) : legC;   // seated legs sit in the body's shade
     if (gear.pants || gear.hazmat) {
       const pc = gear.hazmat ? '#D8B83C' : (gear.pantsCol || '#3D4248');
-      paint(ribbon([[hx, hy], [kx, ky], [ax, ay]], 1.45 * u, 1.15 * u), { wash: far ? mixCol(pc, PAL.ink, .25) : pc, ink: PAL.ink, sw: sw * .8 });
-    } else paint(ribbon([[hx, hy], [kx, ky], [ax, ay]], 1.2 * u, .95 * u), { wash: col, ink: PAL.ink, sw: sw * .8 });
+      paint(limb([hx, hy], [kx, ky], [ax, ay], 1.45 * u, 1.15 * u), { wash: far ? mixCol(pc, PAL.ink, .25) : pc, ink: PAL.ink, sw: sw * .8, curv: .15 });
+    } else paint(limb([hx, hy], [kx, ky], [ax, ay], 1.2 * u, .95 * u), { wash: col, ink: PAL.ink, sw: sw * (st > .5 ? .9 : .8), curv: .15 });
     // foot (or boot)
     const boot = gear.boots || gear.hazmat, fcol = boot ? (gear.hazmat ? '#2E2B30' : '#6B4A30') : col;
     if (V.side && o.legsOut && st > .5) paint(ellPts(ax + .15 * u, ay - .35 * u, (boot ? 1.05 : .9) * u, .42 * u, 14, 0, -1.35), { wash: far ? mixCol(fcol, PAL.ink, .25) : fcol, ink: PAL.ink, sw: sw * .7 });   // heel down, toes up
+    else if (V.side && hk > .3) paint(ellPts(ax - .35 * u, ay + .25 * u, .9 * u, .42 * u, 14, 0, -.54), { wash: fcol, ink: PAL.ink, sw: sw * .7 });   // sole up, toes down behind him
     else if (V.side) paint(ellPts(ax + .45 * u, ay + .02 * u, (boot ? 1.05 : .9) * u, .42 * u, 14, 0, swing * .3), { wash: far ? mixCol(fcol, PAL.ink, .25) : fcol, ink: PAL.ink, sw: sw * .7 });
     else if (ck > .3) paint(ellPts(ax + .2 * u, ay + .05 * u, .85 * u, .42 * u, 14, 0, .25), { wash: fcol, ink: PAL.ink, sw: sw * .7 });   // the hurt foot, held up
     else paint(ellPts(ax + side * .12 * u, ay + .05 * u, (boot ? .82 : .7) * u, .4 * u, 14), { wash: fcol, ink: PAL.ink, sw: sw * .7 });
@@ -120,24 +126,17 @@ function survivor(x, y, u, o = {}) {
     const d1 = [sideSign * Math.cos(a), -Math.sin(a)], a2 = a - b, d2 = [sideSign * Math.cos(a2), -Math.sin(a2)], ak = (which === 'L' ? o.armKL : o.armKR) ?? 1;
     const ex = shx + d1[0] * 1.85 * u * ak, ey = shy + d1[1] * 1.85 * u * ak, hx = ex + d2[0] * 1.75 * u * ak, hy = ey + d2[1] * 1.75 * u * ak;
     const top = gear.hoodie || gear.hazmat, col = top ? (gear.hazmat ? '#D8B83C' : (gear.hoodieCol || '#A8382E')) : SB.col;
-    const w0 = (top ? 1.15 : .95) * u, RB = ribbon([[shx, shy], [ex, ey], [hx, hy]], w0, (top ? .95 : .78) * u);
+    const w0 = (top ? 1.15 : .95) * u, [SA, SBd] = limbSides([shx, shy], [ex, ey], [hx, hy], w0, (top ? .95 : .78) * u), RB = SA.concat([...SBd].reverse());
     if (far && !inFront) paint(RB, { wash: mixCol(col, PAL.ink, .28), ink: PAL.ink, sw: sw * .8 });
     else {   // a near arm grows out of a round shoulder: no outline across the joint
       const r = w0 * .55, a0 = V.side ? -Math.PI - .3 : -Math.PI / 2 - .35 * sideSign, a1 = V.side ? .3 : (sideSign > 0 ? .35 : -Math.PI - .35);
       paint(ellPts(shx, shy, r, r, 16), { wash: col, ink: null });
       inkLine(Array.from({ length: 11 }, (_, i) => { const t = lerp(a0, a1, i / 10); return [shx + Math.cos(t) * r, shy + Math.sin(t) * r]; }), sw * .8, PAL.ink, 'ink', 0);   // the shoulder's outer edge
       paint(RB, { wash: col, ink: null });
-      const n = RB.length / 2, out = P => P.filter(p => Math.hypot(p[0] - shx, p[1] - shy) > w0 * .5);
-      const sideA = out(RB.slice(0, n)), sideB = out(RB.slice(n)), meanX = P => P.reduce((a, p) => a + p[0], 0) / (P.length || 1);
+      const out = P => P.filter(p => Math.hypot(p[0] - shx, p[1] - shy) > w0 * .5);
+      const sideA = out(densify(SA)), sideB = out(densify(SBd).reverse()), meanX = P => P.reduce((a, p) => a + p[0], 0) / (P.length || 1);
       const backIsA = V.side && meanX(sideA) < meanX(sideB), soft = [sw * .45, mixCol(SB.dk, PAL.ink, .45)];   // the edge toward his back
       inkLine(sideA, backIsA ? soft[0] : sw * .8, backIsA ? soft[1] : PAL.ink, 'ink', 0); inkLine(sideB, V.side && !backIsA ? soft[0] : sw * .8, V.side && !backIsA ? soft[1] : PAL.ink, 'ink', 0);
-      // a round elbow: fill the outer corner of the bend and ink its arc (a sharp fold otherwise ends in a box)
-      const ux = -d1[0], uy = -d1[1], bx = ux + d2[0], by = uy + d2[1], cosT = clamp(ux * d2[0] + uy * d2[1], -1, 1);
-      if (cosT > -.75 && Math.hypot(bx, by) > .05) {
-        const we = (w0 + (top ? .95 : .78) * u) / 4, oa = Math.atan2(-by, -bx), span = (Math.PI - Math.acos(cosT)) / 2 + .15;
-        paint(ellPts(ex, ey, we, we, 16), { wash: col, ink: null });
-        inkLine(Array.from({ length: 9 }, (_, i) => { const t = oa - span + 2 * span * i / 8; return [ex + Math.cos(t) * we, ey + Math.sin(t) * we]; }), sw * .8, PAL.ink, 'ink', 0);
-      }
     }
     const hand = gear.hazmat ? '#2E2B30' : (gear.gloves ? '#5A4A3A' : SB.col), hc = far && !inFront ? mixCol(hand, PAL.ink, .28) : hand, open = which === 'L' ? o.openL : o.openR;
     const fist = () => {
@@ -151,8 +150,9 @@ function survivor(x, y, u, o = {}) {
       paint(rrPts(-.44 * u, -.36 * u, .88 * u, .5 * u, .25 * u), { wash: hc, ink: null });   // cover the finger roots
       pop();
     };
-    if (gear.hoodie && !gear.gloves) inkLine([[hx - d2[0] * .55 * u - d2[1] * .5 * u, hy - d2[1] * .55 * u + d2[0] * .5 * u], [hx - d2[0] * .55 * u + d2[1] * .5 * u, hy - d2[1] * .55 * u - d2[0] * .5 * u]], sw * 2.4, '#9A9C98', 'ink', 0);
-    else if (gear.hoodie) { const cx = hx - d2[0] * .62 * u, cy = hy - d2[1] * .62 * u; inkLine([[cx - d2[1] * .55 * u, cy + d2[0] * .55 * u], [cx + d2[1] * .55 * u, cy - d2[0] * .55 * u]], sw * 2.2, '#8E908C', 'ink', 0); }   // the grey cuff
+    // the grey hoodie cuff, with an ink rim so it reads as a band and not a smear
+    if (gear.hoodie && !gear.gloves) { const C = [[hx - d2[0] * .55 * u - d2[1] * .5 * u, hy - d2[1] * .55 * u + d2[0] * .5 * u], [hx - d2[0] * .55 * u + d2[1] * .5 * u, hy - d2[1] * .55 * u - d2[0] * .5 * u]]; inkLine(C, sw * 3.1, PAL.ink, 'ink', 0); inkLine(C, sw * 2.3, '#9A9C98', 'ink', 0); }
+    else if (gear.hoodie) { const cx = hx - d2[0] * .62 * u, cy = hy - d2[1] * .62 * u, C = [[cx - d2[1] * .55 * u, cy + d2[0] * .55 * u], [cx + d2[1] * .55 * u, cy - d2[0] * .55 * u]]; inkLine(C, sw * 2.9, PAL.ink, 'ink', 0); inkLine(C, sw * 2.1, '#8E908C', 'ink', 0); }
     const hook = which === 'L' ? (o.handL || o.armL) : (o.handR || o.armR);
     if (!(hook && o.handOver)) fist();
     if (hook) { push(); translate(hx, hy); hook(u, sw, { ang: Math.atan2(d2[1], d2[0]), side: sideSign, far }); pop(); if (o.handOver) fist(); }   // handOver: the fist wraps a grip
@@ -411,10 +411,10 @@ function handLocal(u, o, which) {
 // crouch, sit, flip, dx, dy, rot, sq.
 function survivorHand(x, y, u, o, which) {
   let [lx, ly] = handLocal(u, o, which);
-  const sq = (o.sq || 0) + (o.take || 0);
+  const sq = bodySq(o);
   lx *= (o.flip ? -1 : 1) * (o.sx ?? 1) * (1 + sq * .55); ly *= (o.sy ?? 1) * (1 - sq);
   const r = o.rot || 0, c = Math.cos(r), s = Math.sin(r);
-  return [x + (o.dx || 0) * u + lx * c - ly * s, y + (o.dy || 0) * u + lx * s + ly * c];
+  return [x + (o.dx || 0) * u + lx * c - ly * s, y + bodyDy(o) * u + lx * s + ly * c];
 }
 // Two-bone IK in the body frame: the raw shoulder angle and elbow bend that put arm `which` (side views: +x forward)
 // on the point (tx, ty). Spread the result into a survivor's options (rawArms must be on).
@@ -431,7 +431,7 @@ function reachArm(u, o, which, tx, ty, elbowDown = true) {
 
 // The inverse: a world point in a survivor's body frame (for reachArm targets in the world).
 function toBody(x, y, u, o, wx, wy) {
-  const sq = (o.sq || 0) + (o.take || 0), dx = wx - (x + (o.dx || 0) * u), dy = wy - (y + (o.dy || 0) * u);
+  const sq = bodySq(o), dx = wx - (x + (o.dx || 0) * u), dy = wy - (y + bodyDy(o) * u);
   const r = -(o.rot || 0), c = Math.cos(r), s = Math.sin(r);
   return [(dx * c - dy * s) / ((o.flip ? -1 : 1) * (o.sx ?? 1) * (1 + sq * .55)), (dx * s + dy * c) / ((o.sy ?? 1) * (1 - sq))];
 }
@@ -444,11 +444,14 @@ function footLocal(u, o, i) {
   if (ph != null) { if (V.side) { swing = Math.sin(ph) * .5; knee = Math.max(knee, Math.max(0, -Math.cos(ph)) * .75 + .05); } else { lift = Math.max(0, Math.sin(ph)) * .75; knee = Math.max(knee, lift * .9); } }
   const lk = clamp(i === 0 ? o.liftL || 0 : o.liftR || 0);
   if (lk > 0) { if (V.side) { swing = lerp(swing, -1.0, lk); knee = lerp(knee, 1.7, lk); } else { lift = lerp(lift, 1, lk); knee = lerp(knee, 1.2, lk); } }
+  const hk = V.side ? clamp(i === 0 ? o.heelL || 0 : o.heelR || 0) : 0;
+  if (hk > 0) { swing = lerp(swing, 1.13, hk); knee = lerp(knee, 1.47, hk); }
   const hx = (V.side ? side * .35 : side * .9) * u * V.torsoW, th = 2.05 * u, sh = 2.0 * u;
   const a1 = Math.PI / 2 + swing - (V.side ? knee * .5 : 0), kx = hx + Math.cos(a1) * th * (V.side ? 1 : 0) + (V.side ? 0 : side * knee * .25 * u), ky = hipY + Math.sin(a1) * th * (V.side ? 1 : 1 - lift * .25);
   const a2 = Math.PI / 2 + swing + (V.side ? knee : 0), ax = kx + Math.cos(a2) * sh * (V.side ? 1 : 0) - (V.side ? 0 : side * knee * .2 * u), ay = Math.min(-.25 * u, ky + Math.sin(a2) * sh * (V.side ? 1 : 1 - lift * .3));
   const ck = clamp(i === 0 ? o.clutchL || 0 : o.clutchR || 0);
   if (ck > 0) { const [, , cx, cy] = clutchLeg(u, hx, hipY, ck, kx, ky, ax, ay, V.side); return V.side ? [cx + .45 * u, cy + .02 * u] : [cx + (ck > .3 ? .2 * u : side * .12 * u), cy + .05 * u]; }
+  if (hk > .3) return [ax - .35 * u, ay + .25 * u];   // the held-up foot's middle
   return V.side ? [ax + .45 * u, ay + .02 * u] : [ax + side * .12 * u, ay + .05 * u];
 }
 // A hurt leg pulled up (o.clutchL / o.clutchR 0..1): the knee comes up in front and the shin hangs under it, so the
@@ -460,8 +463,8 @@ function clutchLeg(u, hx, hipY, k, kx, ky, ax, ay, prof) {
 // The same in the world (flip, dx, dy, rot, sq).
 function survivorFoot(x, y, u, o, i) {
   let [lx, ly] = footLocal(u, o, i);
-  const sq = (o.sq || 0) + (o.take || 0);
+  const sq = bodySq(o);
   lx *= (o.flip ? -1 : 1) * (o.sx ?? 1) * (1 + sq * .55); ly *= (o.sy ?? 1) * (1 - sq);
   const r = o.rot || 0, c = Math.cos(r), s2 = Math.sin(r);
-  return [x + (o.dx || 0) * u + lx * c - ly * s2, y + (o.dy || 0) * u + lx * s2 + ly * c];
+  return [x + (o.dx || 0) * u + lx * c - ly * s2, y + bodyDy(o) * u + lx * s2 + ly * c];
 }

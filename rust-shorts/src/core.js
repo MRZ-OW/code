@@ -170,6 +170,36 @@ function through(P, n = 6) {
 }
 // Tapered ribbon around a path (w0 wide at the start, w1 at the end), as one closed outline for paint().
 // Tails, tentacles, noodly arms, painted glyphs: one shape with one outline, so nothing looks glued on.
+// A bent limb (two straight segments, hip-knee-ankle or shoulder-elbow-hand) as two clean side lines: the outer side
+// of the joint is a round arc and the inner side meets in a crease, so tight bends never loop back on themselves
+// (ribbon() smooths through the joint and can fold over at sharp knees and elbows). Returns [left, right] side lines,
+// each running from P0 to P2; limb() joins them into one outline.
+function limbSides(P0, P1, P2, w0, w1 = w0) {
+  const h0 = w0 / 2, h1 = w1 / 2, hm = (h0 + h1) / 2;
+  const dir = (a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1; return [dx / l, dy / l, l]; };
+  const A = dir(P0, P1), B = dir(P1, P2), nA = [-A[1], A[0]], nB = [-B[1], B[0]], cross = A[0] * B[1] - A[1] * B[0];
+  const off = (p, n, h, s) => [p[0] + n[0] * h * s, p[1] + n[1] * h * s];
+  const side = s => {
+    const a0 = off(P0, nA, h0, s), a1 = off(P1, nA, hm, s), b0 = off(P1, nB, hm, s), b1 = off(P2, nB, h1, s);
+    if (Math.abs(cross) < 1e-3) return [a0, a1, b1];   // straight
+    if (cross * s > 0) {   // the inner side: where the two edges cross (or the joint itself for a hairpin fold)
+      const d = (a0[0] - a1[0]) * (b0[1] - b1[1]) - (a0[1] - a1[1]) * (b0[0] - b1[0]);
+      const k = d ? ((a0[0] - b0[0]) * (b0[1] - b1[1]) - (a0[1] - b0[1]) * (b0[0] - b1[0])) / d : 1;
+      const X = [a0[0] + k * (a1[0] - a0[0]), a0[1] + k * (a1[1] - a0[1])], far = Math.hypot(X[0] - P1[0], X[1] - P1[1]);
+      return far < Math.min(A[2], B[2]) * .85 && far < hm * 3 ? [a0, X, b1] : [a0, [(a1[0] + b0[0]) / 2 * .5 + P1[0] * .5, (a1[1] + b0[1]) / 2 * .5 + P1[1] * .5], b1];
+    }
+    const t0 = Math.atan2(nA[1] * s, nA[0] * s); let dt = Math.atan2(nB[1] * s, nB[0] * s) - t0;   // the outer side: a round joint
+    while (dt > Math.PI) dt -= TAU; while (dt < -Math.PI) dt += TAU;
+    const n = Math.max(2, Math.ceil(Math.abs(dt) / .2)), arc = [];
+    for (let i = 0; i <= n; i++) { const t = t0 + dt * i / n; arc.push([P1[0] + Math.cos(t) * hm, P1[1] + Math.sin(t) * hm]); }
+    return [a0, ...arc, b1];
+  };
+  return [side(1), side(-1)];
+}
+function limb(P0, P1, P2, w0, w1 = w0) { const [L, R] = limbSides(P0, P1, P2, w0, w1); return L.concat(R.reverse()); }
+// a polyline with extra points along each segment (for side lines that get trimmed point by point)
+const densify = (P, n = 5) => P.flatMap((p, i) => i ? Array.from({ length: n }, (_, k) => [lerp(P[i - 1][0], p[0], (k + 1) / n), lerp(P[i - 1][1], p[1], (k + 1) / n)]) : [p]);
+
 function ribbon(P, w0, w1 = w0) {
   const C = through(P), n = C.length, L = [], R = [];
   for (let i = 0; i < n; i++) {

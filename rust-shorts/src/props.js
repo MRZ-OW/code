@@ -9,7 +9,7 @@
 function campfire(x, y, s = 1, t = T, o = {}) {
   const fire = o.fire ?? 1, u = 100 * s, sw = clamp(s * 2.2, .6, 3);
   boilSeed('campfire-glow');
-  if (fire > .02) glow(x, y - .5 * u, 2.6 * u * (.7 + .3 * fire), '#FFB04A', .85 * fire);
+  if (fire > .02) glow(x, y - .5 * u, 2.6 * u * (.7 + .3 * fire), '#FFB04A', .85 * fire * (o.glow ?? 1));
   // back stones
   const stone = (i, front) => {
     const a = i / 9 * TAU, sx = x + Math.cos(a) * 1.05 * u, sy = y + Math.sin(a) * .32 * u;
@@ -20,7 +20,7 @@ function campfire(x, y, s = 1, t = T, o = {}) {
   for (let i = 0; i < 9; i++) stone(i, false);
   // logs (reference: the campfire icon): two crossed logs lying in the ring, their cut ends showing, and a short
   // teepee of sticks over them, charred at the tips
-  [[-1.0, .12, .75, -.12], [.95, .14, -.7, -.1]].forEach(([x0, y0, x1, y1], i) => {
+  [[-1.0, -.13, .75, -.37], [.95, -.11, -.7, -.35]].forEach(([x0, y0, x1, y1], i) => {
     boilSeed('cf-xlog' + i);
     paint(ribbon([[x + x0 * u, y + y0 * u], [x + x1 * u, y + y1 * u]], .34 * u, .3 * u), { wash: i ? '#7A5534' : '#8C6440', ink: PAL.ink, sw: sw * .8 });
     paint(ellPts(x + x0 * u, y + y0 * u, .14 * u, .17 * u, 12), { wash: '#D9B37C', ink: PAL.ink, sw: sw * .5 });   // end grain
@@ -30,7 +30,7 @@ function campfire(x, y, s = 1, t = T, o = {}) {
   logs.forEach(([x0, y0, x1, y1], i) => {
     boilSeed('cf-log' + i);
     paint(ribbon([[x + x0 * u, y + y0 * u], [x + x1 * u, y + y1 * u]], .18 * u, .12 * u), { wash: i % 2 ? '#7A5534' : '#8C6440', ink: PAL.ink, sw: sw * .7 });
-    inkLine([[x + lerp(x0, x1, .6) * u, y + lerp(y0, y1, .6) * u], [x + x1 * u, y + y1 * u]], .12 * u, '#2E2620', 'ink', 0);
+    inkLine([[x + lerp(x0, x1, .6) * u, y + lerp(y0, y1, .6) * u], [x + x1 * u, y + y1 * u]], sw * .9, '#2E2620', 'ink', 0);   // charred tips
   });
   // flames: three layered tongues that flicker; at low fire only embers glow and smoke rises
   if (fire > .02) {

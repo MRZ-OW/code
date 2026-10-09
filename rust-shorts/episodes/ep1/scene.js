@@ -7,8 +7,8 @@
 
   // The beach. tod: 0 day → 1 sunset → 2 night (rustsets.js). The pine and the driftwood frame the left edge.
   function beach(t, tod, o = {}) {
-    rustSky(t, { tod, horizon: 730, sun: o.sun || [820, 330] });
-    seaBeach(t, { horizon: 730, shore: 1230, tod });
+    rustSky(t, { tod, horizon: 772, sun: o.sun || [820, 350] });
+    seaBeach(t, { horizon: 772, shore: 1230, tod });
     pineTree(-30, 1330, 1.9, { tod });
     log(10, 1300, 190, 60, tod);
   }
@@ -22,7 +22,7 @@
   const slung = (u, sw) => { push(); translate(-.6 * u, -6.6 * u); rotate(-2.3); akProp(u, sw * .9, 0); pop(); };
 
   // ---------- S1: standoff (0–6) ----------
-  const NX = 215, CXA = 740;   // where they stand in the standoff
+  const NX = 262, CXA = 740;   // where they stand in the standoff
   function s1(t, lt) {
     camBegin(540, 1080, 1 + .05 * ease(lt / 6));
     beach(t, 0);
@@ -31,21 +31,21 @@
     const N = emotions(t, [[0, 'surprised', { emote: '!' }], [.9, 'nervous', { emote: 'sweat' }], [1.38, 'scared', { eyes: 'squeeze', mouth: 'wobble', emote: null }], [2.0, 'hopeful', { emote: null }], [4.45, 'happy']], { take: .45 });
     if (t < .9) N.emoteK = 1 - seg(t, .7, .9);                                  // the "!" is already up in frame 1
     const view = t < 2.0 || t >= 4.95 ? 'q' : t < 2.09 ? 'qf' : t < 4.86 ? 'front' : 'qf';   // turn to face us, and back
-    const hop = t > 1.5 && t < 2.0 ? -.75 * Math.abs(Math.sin((t - 1.5) * TAU * 2)) : 0, liftL = ease(seg(t, 1.46, 1.56)) * (1 - ease(seg(t, 1.92, 2.0)));
+    const hop = t > 1.5 && t < 2.0 ? -.75 * Math.abs(Math.sin((t - 1.5) * TAU * 2)) : 0, liftL = ease(seg(t, 1.55, 1.66)) * (1 - ease(seg(t, 1.92, 2.0)));
     const upL = ease(seg(t, 2.1, 2.45)), upR = ease(seg(t, 2.18, 2.53)), downL = ease(seg(t, 4.45, 4.8)), downR = ease(seg(t, 4.53, 4.88)), down = downL;
     const tremble = t > 2.45 && t < 4.4 ? .035 * Math.sin(t * 46) : 0;
     // hands: hanging (rock in hand) → clutch the hurt foot → in front of the chest → up beside his head, palms open
     const armUp = k => k < .5 ? { a: lerp(-1.32, -.8, ease(k * 2)), b: lerp(.22, 1.5, ease(k * 2)) } : { a: lerp(-.8, -.42, ease(k * 2 - 1)), b: lerp(1.5, 4.25, ease(k * 2 - 1)) };   // forearm turns up across the chest
     // ...and back down: the forearms flop outward to his sides (never back across the chest)
-    const armDown = (up, k) => k > 0 ? { a: lerp(-.42, -1.32, k), b: lerp(4.25 - TAU, .22, k) } : armUp(up);
+    const armDown = (up, k) => { if (!(k > 0)) return armUp(up); const a = lerp(-.42, -1.32, easeOut(k)); return { a, b: a - lerp(1.61, -1.54, k) }; };   // the elbow drops first, so the hand stays in frame
     const L = armDown(upL, downL), R = armDown(upR, downR);
-    const No = { ...N, boilKey: NK, seed: 1, view, rawArms: true, prop: 'none', walk: t < .8 ? .12 * (1 - seg(t, .4, .8)) : t >= 5.0 ? walkK * 3 : undefined, dy: (N.dy || 0) + hop, clutchL: liftL, farFront: liftL > 0, emoteDx: .9, emoteDy: 1.1,
+    const No = { ...N, boilKey: NK, seed: 1, view, rawArms: true, prop: 'none', walk: t < .8 ? .12 * (1 - seg(t, .4, .8)) : t >= 5.0 ? walkK * 3 : undefined, dy: (N.dy || 0) + hop, heelL: liftL, emoteDx: .9, emoteDy: 2.6,
       aL: L.a + tremble, bendL: L.b, aR: R.a - tremble, bendR: R.b, openL: upL > .6 && downL < .6, openR: upR > .6 && downR < .6,
       lookX: t > 2.6 && t < 4.4 ? (Math.floor(t * 1.6) % 2 ? .9 : .35) : N.lookX, lookY: t > 2.6 && t < 4.4 ? (Math.floor(t * 1.6) % 2 ? .5 : 0) : N.lookY };
     if (t < 1.22) { No.aL = lerp(-.95, -1.32, ease(seg(t, .5, 1.15))); No.bendL = .25; No.hold = { L: 'rock' }; }
-    if (liftL > 0) {   // the hurt foot held up in front: near hand under the knee, far hand round the ankle
-      const [ax, ay] = footLocal(U, No, 0), gl = reachArm(U, No, 'L', 1.95 * U, -4.65 * U), gr = reachArm(U, No, 'R', ax - .55 * U, ay - .75 * U);
-      Object.assign(No, { aL: lerp(No.aL, gl.aL, liftL), bendL: lerp(No.bendL, gl.bendL, liftL), armKL: lerp(1, gl.armKL, liftL), aR: lerp(No.aR, gr.aR, liftL), bendR: lerp(No.bendR, gr.bendR, liftL), armKR: lerp(1, gr.armKR, liftL) });
+    if (liftL > 0) {   // the hurt foot bent up behind him, held in his near hand; the far arm flails for balance
+      const [ax, ay] = footLocal(U, No, 0), gl = reachArm(U, No, 'L', ax + .1 * U, ay - .1 * U);
+      Object.assign(No, { aL: lerp(No.aL, gl.aL, liftL), bendL: lerp(No.bendL, gl.bendL, liftL), armKL: lerp(1, gl.armKL, liftL), aR: lerp(No.aR, .95 + .25 * Math.sin(t * 22), liftL), bendR: lerp(No.bendR, .35, liftL) });
     }
     if (t >= 5.0) Object.assign(No, { aL: lerp(-1.32, -.35, ease(seg(t, 5.0, 5.6))) + (t > 5.6 ? .12 * Math.sin((t - 5.6) * 30) : 0), bendL: .05 });
     spawnling(nx, G, U, No);
@@ -56,7 +56,7 @@
     // the rock: slips at 1.22, lands on his foot at 1.38 (impact ticks, held 3 frames), tips off backwards when he
     // grabs the foot, and settles behind him
     if (t >= 1.22) {
-      const foot = survivorFoot(NX, G, U, { ...No, view: 'q', liftL: 0, walk: 0, dy: 0 }, 0), onFoot = [foot[0] + .1 * U, foot[1] - .75 * U], rest = [NX - 1.9 * U, G + .15 * U];
+      const foot = survivorFoot(NX, G, U, { ...No, view: 'q', liftL: 0, heelL: 0, walk: 0, dy: 0 }, 0), onFoot = [foot[0] + .1 * U, foot[1] - .75 * U], rest = [NX - 1.9 * U, G + .15 * U];
       const [hx, hy] = survivorHand(NX, G, U, { ...No, view: 'q', aL: -1.32, bendL: .25, dy: 0, liftL: 0 }, 'L');
       let p, r;
       if (t < 1.38) { const k = seg(t, 1.22, 1.38); p = [lerp(hx, onFoot[0], k), lerp(hy, onFoot[1], k * k)]; r = (t - 1.22) * 4; }
@@ -69,7 +69,7 @@
     if (t >= 2.0 && t < 2.4) { const k = seg(t, 2.0, 2.4); boilSeed('fallingsweat'); for (const [dx, d0] of [[3.1, 0], [3.9, .8]]) paint(ellPts(NX + dx * U, G - (12.6 - d0) * U + 260 * k * k, 9 * (1 - .4 * k), 13 * (1 - .4 * k), 10), { wash: PAL.sky, washOp: 255 * (1 - k), ink: PAL.ink, sw: 1 }); }
     // ----- the Chad: aims, wonders, lowers the gun, relief; swings it over his shoulder onto his back; walks in -----
     const cwalk = seg(t, 5.0, 5.6), cx = lerp(CXA, 655, ease(cwalk));
-    const C = emotions(t, [[0, 'determined'], [2.7, 'confused'], [3.55, 'neutral'], [4.45, 'happy']], { take: .5 });
+    const C = emotions(t, [[-1, 'determined'], [2.7, 'confused'], [3.55, 'neutral'], [4.45, 'happy']], { take: .5 });   // no take on frame 0 (the loop lands here)
     const lower = ease(seg(t, 3.55, 4.35));
     let CA;
     const aimPose = reachArm(U, { view: 'q', rawArms: true }, 'L', 1.75 * U, -6.95 * U);
@@ -126,9 +126,16 @@
   const groundAK = (x, y, r = 0, s = 1) => { boilSeed('groundak'); push(); translate(x, y); rotate(r); scale(-1, 1); akProp(U * .9 * s, 2.3, 0); pop(); };
   // the sunset beach: a sun glitter path across the water ties sky and sea together
   const campSet = (t, tod, fire) => {
-    rustSky(t, { tod, horizon: 880, sun: tod < 1.5 ? [800, 905] : [820, 260], clouds: tod < 1.5 });
+    rustSky(t, { tod, horizon: 880, sun: tod < 1.5 ? [540, 905] : [820, 260], clouds: tod < 1.5 });
     seaBeach(t, { horizon: 880, shore: 1070, tod });
-    if (tod < 1.5) for (let i = 0; i < 9; i++) { boilSeed('glitter' + i); const gy = 892 + i * 19, gw = 70 + 18 * i * (1 + .3 * Math.sin(t * 2 + i)); inkLine([[800 - gw / 2 + 12 * Math.sin(t * 3 + i * 1.7), gy], [800 + gw / 2 + 12 * Math.sin(t * 3 + i * 1.7), gy]], 2.2, i % 2 ? '#FFD08A' : '#FFE9B8', 'ink', 0); }
+    if (tod < 1.5) {
+      staticSeed('farsea'); paint(rectPts(-200, 878, W + 400, 70), { wash: '#F0A27E', washOp: 120, ink: null });   // the far sea takes the sunset's colour
+      for (let i = 0; i < 6; i++) for (let j = -1; j <= 1; j++) {   // broken glints, sparser and dimmer toward the horizon
+        if ((i + j * 2 + Math.floor(t * 3)) % 3 === 0) continue;
+        boilSeed('glitter' + i + j); const gy = 894 + i * 26, gw = (14 + 9 * i) * (1 + .3 * Math.sin(t * 2 + i + j)), gx = 540 + j * (30 + 14 * i) + 8 * Math.sin(t * 3 + i * 1.7);
+        inkLine([[gx - gw / 2, gy], [gx + gw / 2, gy]], .9 + .15 * i, mixCol('#F0A27E', i % 2 ? '#FFD08A' : '#FFE9B8', .45 + .08 * i), 'ink', 0);
+      }
+    }
   };
   const SEAT = 2.35 * U;   // a stump as tall as his lower leg
   // 2A sunset: the Chad pops a can of beans and tosses it over the fire; the Naked catches it and digs in
@@ -151,9 +158,9 @@
       const a = survivorHand(750, 1400, U, { ...Co, aL: .7, bendL: .2 }, 'L'), b = survivorHand(330, 1400, U, { ...No, aL: .1, bendL: .2 }, 'L');
       const p = arcPt(a, b, 260, tossK); boilSeed('flyingcan'); push(); translate(p[0], p[1]); rotate(tossK * 6); beanCanShape(U * .9, 2.2, { open: true }); pop();
     }
-    campfire(540, 1405, 1.05, t, { fire: 1 });
+    campfire(540, 1405, 1.05, t, { fire: 1, glow: .55 });
     grade('#F08A4B', 38);
-    glow(540, 1330, 330, '#FFB04A', .55);
+    glow(540, 1330, 330, '#FFB04A', .4);
     camEnd();
   }
   // his AK across the Chad's lap (sitting, facing left): the stock under his near arm, the barrel out to the right
@@ -189,9 +196,9 @@
     }
     spawnling(330, 1400, U, No);
     if (t > 8.7) emote('heart', rockTop[0] - .3 * U, rockTop[1] - 2.2 * U, U * .55, seg(t, 8.7, 8.85) * (1 - seg(t, 9.05, 9.2)), t - 8.7);
-    campfire(540, 1405, 1.05, t, { fire: 1 });
+    campfire(540, 1405, 1.05, t, { fire: 1, glow: .55 });
     grade('#E9785A', 34);
-    glow(540, 1330, 330, '#FFB04A', .55);
+    glow(540, 1330, 330, '#FFB04A', .4);
     camEnd();
   }
   // Lying on his back: rot ±π/2 lays a survivor down around his feet, head on the sand.
@@ -219,9 +226,9 @@
     log(550, 1600, 640, 120, 2);
     // both from behind, seated into the log: the Naked (left) raises his rock toward the stars; the Chad stretches up
     const point = ease(seg(t, 10.7, 10.95)) * (1 - ease(seg(t, 11.85, 12)));
-    spawnling(400, 1560, 52, { ...feel('happy', t), boilKey: NK, seed: 1, view: 'back', sit: 1, prop: 'none', rawArms: true, aL: lerp(-1.3, 1.2, point), bendL: lerp(.22, -.15, point), aR: -1.25, bendR: .3, rot: -.05 * point,
-      handL: point > .3 ? (u, sw) => { push(); scale(-1, 1); rockProp(u, sw); pop(); } : null });
-    const yawn = ease(seg(t, 11.45, 11.75)) * (1 - ease(seg(t, 11.95, 12)));
+    spawnling(400, 1580, 52, { ...feel('happy', t), boilKey: NK, seed: 1, view: 'back', sit: 1, prop: 'none', rawArms: true, aL: lerp(-1.3, 1.2, point), bendL: lerp(.22, -.15, point), aR: -1.25, bendR: .3, rot: -.05 * point,
+      handL: (u, sw) => { push(); scale(-1, 1); rockProp(u, sw); pop(); } });   // his rock, in hand all along
+    const yawn = ease(seg(t, 11.45, 11.75));   // held through the cut
     const st = k => k < .5 ? { a: lerp(-1.25, -.75, k * 2), b: lerp(.3, 2.1, k * 2) } : { a: lerp(-.75, 1.45, k * 2 - 1), b: lerp(2.1, 0, k * 2 - 1) }, S2 = st(yawn);
     survivor(710, 1560, 52, { ...feel('happy', t, { emote: null }), ...CHAD_GEAR, boilKey: CH, seed: 2, view: 'back', sit: 1, rawArms: true, aL: S2.a, bendL: S2.b, aR: S2.a, bendR: S2.b, sy: 1 + .05 * yawn });
     grade('#1A2348', 58);
@@ -235,10 +242,16 @@
   const LOGX = 520, LOGY = 1420, LOGD = 112, CX = 220, CU = 48;
   const chadHead = () => [CX + .25 * CU, LOGY - (10.85 - 2.05) * CU];
   const AKO = [510, LOGY - LOGD - 8], GRIP = [522, LOGY - LOGD - 4];   // the gun's origin on the log, and its grip
-  function nightCamp(t, tod = 2) {
+  function nightCamp(t, tod = 2, o = {}) {
     const dawn = tod < 1.5;
     rustSky(t, { tod, horizon: 1080, sun: dawn ? [900, 1060] : [860, 240], clouds: dawn });
-    boilSeed('nightdune'); paint([[-200, 1120], [180, 1050], [520, 1085], [860, 1030], [1280, 1090], [1280, 2100], [-200, 2100]], { wash: dawn ? '#B98E7E' : '#3E4160', ink: PAL.ink, sw: 1.2, curv: .4 });
+    const HILL = through([[-200, 1120], [180, 1050], [520, 1085], [860, 1030], [1280, 1090]], 8), gcol = dawn ? '#B98E7E' : '#3E4160';
+    for (let c = 0; c + 1 < HILL.length; c += 4) {   // the hill in narrow ink-free strips down to the flat ground
+      const top = HILL.slice(c, Math.min(HILL.length, c + 5)); staticSeed('nighthill' + c);
+      paint([...top, [top[top.length - 1][0], 1380], [top[0][0], 1380]], { wash: gcol, ink: null });
+    }
+    staticSeed('nightground'); paint(rectPts(-200, 1360, 1480, 800), { wash: gcol, ink: null });
+    if (!o.noInk) for (let c = 0; c + 1 < HILL.length; c += 6) { boilSeed('hillline' + c); inkLine(HILL.slice(c, Math.min(HILL.length, c + 7)), 1.2, PAL.ink, 'ink', .4); }
     for (const [px, ps] of [[40, 1.1], [930, 1.25], [1040, .9]]) pineTree(px, 1090, ps, { tod });
     grassTufts(-100, 1180, 1440, t, 14, dawn ? '#6E7A50' : '#2A3A44');
   }
@@ -253,7 +266,7 @@
     survivor(CX, LOGY, CU, C);
     return C;
   }
-  const snore = (t, s = 1) => { const [hx, hy] = chadHead(); emote('zzz', hx + 70, hy - 120, 34 * s, 1, t); sleepBubble(hx + 30, hy + 42, 1.5 * s, (t - 12) * .9); };
+  const snore = (t, s = 1) => { const [hx, hy] = chadHead(); emote('zzz', hx - 70, hy - 150, 34 * s, 1, t); sleepBubble(hx + 30, hy + 42, 1.5 * s, (t - 12) * .9); };
   const gunGlint = (t, t0) => { const g = t > t0 ? Math.max(0, Math.sin((t - t0) * 5)) : 0; if (g > .05) { const gx = AKO[0] - 20, gy = AKO[1] - 14; glow(gx, gy, 70, '#FFF2C4', g); boilSeed('akglint'); paint(starPts(gx, gy, 20 * g, .28, 4), { wash: '#FFFBEA', ink: null }); } };
   // 2D: he looks at the sleeping Chad, then at the AK on the log (a glint), and his eyes go sly. Push in.
   function s2d(t, lt) {
@@ -275,11 +288,11 @@
   // ---------- S3: the choice (14–22) ----------
   // 3A: he slips behind the log and creeps toward the gun; his open, trembling hand hovers over the grip, not touching
   function s3a(t, lt) {
-    camBegin(560, 1170, 1.4);
+    camBegin(520, 1170, 1.3);
     nightCamp(t);
-    const k = ease(seg(t, 14, 15.1)), nx = lerp(780, 640, k);
+    const k = ease(seg(t, 14, 15.1)), nx = lerp(770, 640, k);
     const N = { ...feel('nervous', t, { emote: null }), eyes: 'look', lookX: .7, lookY: .8, boilKey: NK, seed: 1, view: 'q', flip: true, crouch: .35, walk: k < 1 ? (t - 14) * 1.4 : undefined, rot: -.12 * k, prop: 'none', rawArms: true, aL: -1.2, bendL: .4, farFront: true, openR: true };
-    const hover = 60 - 26 * ease(seg(t, 15.1, 15.6)), tremble = t > 15.1 ? 5 * Math.sin(t * 40) : 0;
+    const hover = 128 - 18 * ease(seg(t, 15.1, 15.6)), tremble = t > 15.1 ? 5 * Math.sin(t * 40) : 0;   // fingertips stay ~40 px above the receiver
     Object.assign(N, reachArm(48, N, 'R', ...toBody(nx, LOGY - 30, 48, N, GRIP[0] + 10 + tremble, GRIP[1] - hover)));
     spawnling(nx, LOGY - 30, 48, N);   // behind the log: the log and the gun are drawn in front of him
     camLog();
@@ -297,37 +310,37 @@
     nightCamp(t);
     camLog();
     sleeper(t);
-    const [bx, by] = [hx + 30, hy + 42];
-    sleepBubble(bx, by, 2.2, (t - 16) * 1.0);
-    emote('zzz', hx + 60, hy - 110, 30, 1, t);
+    sleepBubble(hx + 38, hy + 82, 2.0, (t - 16) * 1.0);   // from the mask's mouth hole, below the eye slits
+    emote('zzz', hx - 140, hy - 60, 30, 1, t);
     grade('#1A2348', 44); glow(hx, hy, 240, '#FFB46A', .2);
     camEnd();
   }
   // 3C: he kneels in front of the log beside the sleeping Chad. His face softens. He picks a little flower growing at
   // the foot of the log, stands, tucks it behind the Chad's ear, and pats his shoulder twice. Hearts.
   function s3c(t, lt) {
-    camBegin(400, 1180, 1.45);
+    camBegin(470, 1230, 1.45);
     nightCamp(t);
     camLog();
-    const NXc = 485, NYc = 1490, placed = t >= 18.05;
+    const NXc = 575, NYc = 1490, placed = t >= 18.05;
     const [hx, hy] = chadHead(), cr = .1, wp = (bx, by) => [CX + bx * Math.cos(cr) - by * Math.sin(cr), LOGY + bx * Math.sin(cr) + by * Math.cos(cr)];   // the sleeper's body → world
     const ear = wp(2.25 * CU, (-11.35 + 2.05) * CU), shoulder = wp(1.9 * CU, (-7.95 + 2.05) * CU);
     sleeper(t, { flower: placed });
     snore(t, .8);
     logAK();
-    const fl = [418, LOGY + 6];   // the flower growing at the foot of the log, in front of him
-    if (t < 17.5) flower(fl[0], fl[1], .7, { key: 'pick', stem: .9 });
-    if (t >= 17.5 && t < 17.85) puff(fl[0], fl[1] - 26, 16, t - 17.5, { col: '#B9B2C8', key: 'pickpuff', n: 4, life: .35 });
+    const fl = [442, 1462], bloomY = fl[1] - 48 * .7 * 1.4;   // the flower growing in the sand in front of his knees
     const N = emotions(t, [[17, 'nervous', { emote: null }], [17.3, 'hopeful', { emote: 'hearts' }]], { take: 0 });
     const rise = ease(seg(t, 17.65, 17.9)), bow = ease(seg(t, 17.05, 17.3)) * (1 - ease(seg(t, 17.5, 17.65)));
     const No = { ...N, boilKey: NK, seed: 1, view: 'q', flip: true, sit: .8 * (1 - rise), crouch: .2 * (1 - rise), rot: -.07 * bow, prop: 'none', rawArms: true, aL: -1.25, bendL: .3, farFront: true, openR: t >= 18.1 && t < 18.75,
       lookX: t < 17.6 ? .6 : .9, lookY: t < 17.6 ? .9 : .1 };
     const pats = t > 18.15 && t < 18.65 ? Math.abs(Math.sin((t - 18.15) * TAU * 2)) : 0;
-    const path = [[17.0, [NXc - 40, 1330]], [17.3, [fl[0] + 6, fl[1] - 52]], [17.5, [fl[0] + 6, fl[1] - 52]], [17.68, [NXc - 70, 1200]], [17.95, [ear[0] + 26, ear[1] + 6]], [18.05, [ear[0] + 16, ear[1] + 4]], [18.15, [shoulder[0] + 6, shoulder[1] + 16]], [18.65, [shoulder[0] + 6, shoulder[1] + 16]], [18.9, [NXc - 60, 1250]]];
+    const path = [[17.0, [NXc - 60, 1330]], [17.3, [fl[0] + 8, bloomY + 4]], [17.5, [fl[0] + 8, bloomY + 4]], [17.68, [NXc - 90, 1235]], [17.95, [ear[0] + 26, ear[1] + 6]], [18.05, [ear[0] + 16, ear[1] + 4]], [18.15, [shoulder[0] + 6, shoulder[1] + 16]], [18.65, [shoulder[0] + 6, shoulder[1] + 16]], [18.9, [NXc - 60, 1250]]];
     const [px, py] = kf(t, path);
     Object.assign(No, reachArm(48, No, 'R', ...toBody(NXc, NYc, 48, No, px, py - 26 * pats)));
     if (t >= 17.5 && t < 18.05) No.handR = (u, sw) => flower(.15 * u, .35 * u, .6, { key: 'held', rot: .15, stem: .8 });
+    No.emoteDy = 2.4;   // the hearts sit lower, clear of the top band
     spawnling(NXc, NYc, 48, No);
+    if (t < 17.5) flower(fl[0], fl[1], .7, { key: 'pick', stem: 1.4 });   // in the open, in front of his knees
+    if (t >= 17.5 && t < 17.85) puff(fl[0], fl[1] - 6, 16, t - 17.5, { col: '#B9B2C8', key: 'pickpuff', n: 4, life: .35, noInk: true });
     grade('#1A2348', 48); glow(hx, hy, 260, '#FFB46A', .15);
     camEnd();
   }
@@ -337,6 +350,7 @@
   function s3d(t, lt) {
     camBegin(540, 960, 1);
     dawnSet(t);
+    pineTree(70, 1250, .85, { tod: .72 });
     log(200, 1262, 230, 42, .72);
     survivor(170, 1262, 19, { ...feel('sleepy', t, { emote: null }), ...CHAD_GEAR, eyes: 'happy', boilKey: CH, seed: 2, view: 'front', sit: 1, rot: .1, rawArms: true, aL: -.55, bendL: 1.9, aR: -.6, bendR: 1.8,
       handL: (u, sw) => beanCan(u * .9, sw, { open: true, rot: -.3 }), draw: (u, sw) => earFlower(u, 2.25, -11.35 + 2.05, .36, .5, 'gift3d') });
@@ -353,7 +367,7 @@
   function s4a(t, lt) {
     const [hx, hy] = chadHead();
     camBegin(hx + 40, hy + 10, 3.2);
-    nightCamp(t, .72);
+    nightCamp(t, .72, { noInk: true });
     camLog(.72);
     const eyes = t < 22.4 ? 'happy' : t < 22.75 ? ['happy', 'wide'] : ['happy', 'angry'];
     sleeper(t, { eyes, flower: true });
@@ -370,7 +384,7 @@
     const shot = t >= 24.5, tip = seg(t, 24.55, 24.72), FX = 840, FY = 1002, fu = 16;
     // far down the beach he stands just behind a dune, whistling; shot in the back, he tips forward over it (4 frames)
     // and drops out of sight behind it
-    if (tip < 1) spawnling(FX + 22 * seg(t, 23, 24.5), FY, fu, { ...feel('happy', t, { emote: shot ? null : 'music' }), boilKey: NK, seed: 1, view: 'q', walk: shot ? undefined : (t - 19) * 1.7, rot: 1.45 * easeIn(tip), dy: 1.6 * easeIn(tip), prop: shot ? 'none' : 'rock' });
+    if (t < 24.74) spawnling(FX + 22 * seg(t, 23, 24.5), FY, fu, { ...feel('happy', t, { emote: shot ? null : 'music' }), boilKey: NK, seed: 1, view: 'q', walk: shot ? undefined : (t - 19) * 1.7, rot: 1.45 * easeIn(tip), dy: 1.6 * easeIn(tip) + 1.8 * easeIn(seg(t, 24.7, 24.8)), prop: shot ? 'none' : 'rock' });   // ...and sinks behind the crest
     boilSeed('farDune');   // the dune: a soft mound with a lit crest and a shaded face; only its crest is inked
     paint([[560, 1080], [700, 1060], [900, 1058], [1120, 1076], [1120, 1100], [560, 1100]], { wash: '#B98F68', washOp: 90, ink: null, curv: .5 });   // its shadow on the beach
     paint([[590, 1068], [690, 1016], [800, 990], [920, 994], [1040, 1030], [1120, 1066], [1120, 1078], [590, 1080]], { wash: '#E2BE8C', ink: null, curv: .5 });
@@ -398,20 +412,29 @@
   function s4d(t, lt) {
     camBegin(540, 1080, 1);
     beach(t, 0);
-    const sitK = ease(seg(t, 25.35, 25.75)), standK = ease(seg(t, 26.1, 26.45));
-    if (t < 26.1) {   // waking up sitting on the sand, legs out; a knuckle rubs one eye
-      const rub = t > 25.45 && t < 25.95, Ns = { ...HERO, ...feel('sleepy', t, { emote: null }), eyes: t < 25.95 ? (rub ? ['closed', 'normal'] : 'closed') : 'normal', boilKey: NK, seed: 1, view: 'side', sit: 1, legsOut: true, dy: 2.3, rawArms: true, aL: -1.0, bendL: .4, aR: -1.0, bendR: .4 };
-      if (rub) Object.assign(Ns, reachArm(U, Ns, 'L', 1.55 * U + 4 * Math.sin(t * 30), -10.9 * U + 2.05 * U - .1 * U));
-      survivor(NX, G, U, { ...Ns, sq: .06 * Math.sin(Math.min(1, (t - 25) * 3) * Math.PI) });
+    const rockAt = [NX - 1.45 * U, G - .3 * U];
+    if (t < 26.35) {   // waking up sitting on the sand, legs out; a knuckle rubs one scrunched eye; he reaches back for
+      // his rock (25.95–26.1) and pushes himself up through a crouch (26.1–26.35)
+      const rub = t > 25.45 && t < 25.95, up = ease(seg(t, 26.1, 26.35)), grabbed = t >= 26.1;
+      const Ns = { ...feel('sleepy', t, { emote: null }), eyes: rub ? 'squeeze' : t < 25.95 ? 'closed' : 'normal', boilKey: NK, seed: 1, view: 'side', sit: 1 - up, legsOut: true, dy: 2.3 * (1 - up), crouch: .5 * Math.sin(up * Math.PI), rawArms: true, aL: -1.0, bendL: .4, aR: lerp(-1.0, -1.25, up), bendR: .4, prop: 'none', sq: .06 * Math.sin(Math.min(1, (t - 25) * 3) * Math.PI) };
+      if (rub) {   // a solid fist, knuckles up, half over the eye, rubbing on twos
+        Object.assign(Ns, reachArm(U, Ns, 'L', 1.9 * U + 6 * Math.sin(Math.floor(t * 12) * 2.1), -10.85 * U + 2.05 * U + .35 * U));
+        Ns.handL = (u, sw) => { paint(ellPts(0, 0, .56 * u, .56 * u, 14), { wash: SKIN_TONES.light.dk, washOp: 120, ink: null }); for (const k of [-1, 0, 1]) inkLine(Array.from({ length: 5 }, (_, i) => { const a = Math.PI + i / 4 * Math.PI; return [k * .3 * u + Math.cos(a) * .15 * u, -.4 * u + Math.sin(a) * .15 * u]; }), sw * .5, PAL.ink, 'ink', 0); };
+      } else if (t >= 25.95) {   // reach back for the rock, then carry it up
+        const reach = reachArm(U, Ns, 'L', ...toBody(NX, G, U, Ns, rockAt[0] + .2 * U, rockAt[1] - .4 * U));
+        Object.assign(Ns, grabbed ? { aL: lerp(reach.aL, -1.32, up), bendL: lerp(reach.bendL, .25, up), armKL: lerp(reach.armKL, 1, up) } : reach);
+        if (grabbed) Ns.hold = { L: 'rock' };
+      }
+      spawnling(NX, G, U, Ns);
     } else {
-      const N = emotions(t, [[26.1, 'neutral'], [27.2, 'surprised', { emote: '!' }]], { take: .45 });
-      spawnling(NX, G, U, { ...N, boilKey: NK, seed: 1, view: 'q', walk: t < 26.5 ? undefined : .12 * seg(t, 26.5, 26.85), sit: 1 - standK, emoteDx: .9, emoteDy: 1.1, rawArms: true, aL: lerp(-1.32, -.95, seg(t, 26.9, 27.2)), bendL: .25, aR: -1.32, bendR: .22, prop: 'none', hold: { L: 'rock' } });
+      const N = emotions(t, [[26.35, 'neutral'], [27.2, 'surprised', { emote: '!' }]], { take: .45 });
+      spawnling(NX, G, U, { ...N, boilKey: NK, seed: 1, view: 'q', walk: t < 26.5 ? undefined : .12 * seg(t, 26.5, 26.85), emoteDx: .9, emoteDy: 2.6, rawArms: true, aL: lerp(-1.32, -.95, seg(t, 26.9, 27.2)), bendL: .25, aR: -1.32, bendR: .22, prop: 'none', hold: { L: 'rock' } });
     }
-    if (t < 26.1) { boilSeed('respawnrock'); push(); translate(NX - 1.45 * U, G - .3 * U); rotate(3.5); rockProp(U, 2.2); pop(); }
+    if (t < 26.1) { boilSeed('respawnrock'); push(); translate(rockAt[0], rockAt[1]); rotate(3.5); rockProp(U, 2.2); pop(); }
     if (t < 25.4) respawn(NX + .3 * U, G - 4.6 * U, 1.2, (t - 25) * 3);   // on his chest, gone by 25.4
     const cin = ease(seg(t, 26.5, 26.95)), cx = lerp(1480, CXA, cin);   // the gun enters first; nothing in frame before 26.5
     const aimPose = reachArm(U, { view: 'q', rawArms: true }, 'L', 1.75 * U, -6.95 * U);
-    geared(cx, G, U, { ...feel('determined', t), boilKey: CH, seed: 2, view: 'q', flip: true, walk: t > 26.5 && t < 26.95 ? (t - 26.5) * 3 : undefined, rawArms: true, ...aimPose, aR: -1.32, bendR: .22, gunRot: .03, twoHand: true,
+    geared(cx, G, U, { ...feel('determined', t), boilKey: CH, seed: 2, view: 'q', flip: true, walk: seg(t, 26.5, 26.95), rawArms: true, ...aimPose, aR: -1.32, bendR: .22, gunRot: .03, twoHand: true,
       draw: (u, sw) => earFlower(u, -1.75, -11.7, 1.0, -.45, 'ear4d') });   // his gift, still behind his ear
     if (t > 26.9 && t < 27.2) { const g = Math.sin(seg(t, 26.9, 27.2) * Math.PI), fx = CXA + 1.75 * U, fy = G - 11.7 * U; glow(fx, fy, 50, '#FFF6D8', g); boilSeed('flowerspark'); paint(starPts(fx + 16, fy - 16, 18 * g, .25, 4), { wash: '#FFFDF2', ink: null }); }
     camEnd();

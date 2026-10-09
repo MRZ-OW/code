@@ -61,18 +61,17 @@ function puff(x, y, r, age, o = {}) {
   for (let i = 0; i < (o.n || 5); i++) {
     boilSeed('puff' + (o.key || '') + i);
     const a = i / (o.n || 5) * TAU + (o.rot || 0), d = r * (.3 + .9 * easeOut(k)), rr = r * (.42 + .25 * hash(i + 3)) * (1 - .5 * k);
-    paint(ellPts(x + Math.cos(a) * d, y + Math.sin(a) * d * .55 - r * .6 * k * (o.rise ?? 1), rr, rr * .85, 12), { wash: col, washOp: 230 * (1 - k), ink: k < .45 ? PAL.ink : null, sw: 1 });
+    paint(ellPts(x + Math.cos(a) * d, y + Math.sin(a) * d * .55 - r * .6 * k * (o.rise ?? 1), rr, rr * .85, 12), { wash: col, washOp: 230 * (1 - k), ink: k < .45 && !o.noInk ? PAL.ink : null, sw: 1 });
   }
 }
 
-function notePop(x, y, s, age) {   // a whistled note bursts: a cream poof, the note's head and stem fly apart
-  if (age < 0 || age > .5) return;
-  const k = age / .5, d = 46 * easeOut(k) * s;
+function notePop(x, y, s, age) {   // a whistled note bursts: a little scalloped cloud and three ticks, gone in 0.2 s
+  if (age < 0 || age > .2) return;
+  const k = age / .2, R = (9 + 14 * easeOut(k)) * s;
   boilSeed('notepop');
-  const R = (8 + 20 * easeOut(k)) * s;
-  paint(ellPts(x, y, R, R * .8, 12), { wash: '#FFF4DC', washOp: 255 * (1 - k), ink: null });
-  paint(ellPts(x - d * .6, y + d * .45, 5 * s, 3.6 * s, 10, 0, -.3), { wash: PAL.ink, washOp: 255 * (1 - k), ink: null });
-  push(); translate(x + d * .7, y - d * .7); rotate(k * 7); inkLine([[0, -10 * s], [0, 10 * s]], 1.5 * s, PAL.ink, 'ink', 0); pop();
+  const P = []; for (let i = 0; i < 40; i++) { const a = i / 40 * TAU, r = R * (.82 + .18 * Math.abs(Math.sin(a * 2.5))); P.push([x + Math.cos(a) * r, y + Math.sin(a) * r * .8]); }
+  paint(P, { wash: '#FFF4DC', washOp: 255 * (1 - k * .6), ink: '#A8846A', sw: .5 * s });
+  for (const a of [-2.4, -1.57, -.7]) inkLine([[x + Math.cos(a) * R * 1.25, y + Math.sin(a) * R * 1.1], [x + Math.cos(a) * R * 1.7, y + Math.sin(a) * R * 1.5]], 1.2 * s, '#A8846A', 'ink', 0);
 }
 
 function shootingStar(x0, y0, x1, y1, k) {

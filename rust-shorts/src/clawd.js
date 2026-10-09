@@ -462,7 +462,7 @@ function emote(kind, x, y, s, k = 1, age = T) {
       if (a < .12) continue;
       const zx = ph * 2.6 * s, zy = -ph * 4.2 * s, Z = [[-.6, -.6], [.6, -.6], [.6, -.28], [-.12, .3], [.6, .3], [.6, .6], [-.6, .6], [-.6, .28], [.12, -.3], [-.6, -.3]];
       push(); translate(zx, zy); rotate(-.15 + .1 * Math.sin(age * 2 + i));
-      paint(Z.map(([a, b]) => [a * zs, b * zs]), { wash: PAL.cream, fill: PAL.sky, fillOp: 70, ink: PAL.ink, sw: sw * .7 });
+      paint(Z.map(([a, b]) => [a * zs, b * zs]), { wash: PAL.cream, fill: PAL.sky, fillOp: 70, ink: PAL.ink, sw: sw * .7 * clamp(zs / s, .4, 1) });   // small z, thin ink
       pop();
     } break;
     case 'sweat': for (const [dx, dy, r] of [[0, 0, 1], [1.6, 1.4, .7]])
