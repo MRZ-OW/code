@@ -143,7 +143,9 @@ function headFace(H) {
     const b = browOf(k);
     if (prof) {   // a short wedge on the brow ridge, thicker toward the nose; angry slants down to the nose, worried up
       const up = b === 'up' ? -.06 : 0, tl = b === 'angry' ? .05 : b === 'worried' ? -.04 : 0;
-      paint([[.69, -.325 + up - tl * .5], [.925, -.36 + up + tl], [.92, -.295 + up + tl], [.7, -.3 + up - tl * .5]].map(H.pr), { wash: hairCol(o), ink: null });
+      const W = [[.68, -.33 + up - tl * .5], [.93, -.375 + up + tl], [.925, -.29 + up + tl], [.69, -.29 + up - tl * .5]].map(H.pr);   // about .08R thick at the front
+      paint(W, { wash: hairCol(o), ink: null });
+      inkLine([[(W[0][0] + W[3][0]) / 2, (W[0][1] + W[3][1]) / 2], [(W[1][0] + W[2][0]) / 2 - .02 * H.R, (W[1][1] + W[2][1]) / 2]], sw * .95, hairCol(o), 'ink', 0);   // the same dense stroke as the other views' brows
       continue;
     }
     const bp = P(lon, b === 'up' ? -.45 : -.36, .9), tilt = b === 'angry' ? .28 : b === 'worried' ? -.25 : 0, arch = b === 'flat' || b === 'up' ? .12 * u : .04 * u, bw = .44 * u * f;

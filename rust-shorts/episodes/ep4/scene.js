@@ -309,7 +309,7 @@
   // spot on the turned head (lon 0 = the middle of the face, − = the near side; lat − = up) in every view, and returns
   // [x, y, depth]; depth ≤ 0 has turned away from us.
   const fore = (head, lon) => clamp(Math.cos(lon + head.th) / Math.cos(lon), .3, 1);   // how flat-on a spot is (as heads.js's eyes)
-  const BROW = [.05, -.5], XBROW = [.05, -.66], MASKX = [0, .19, 1.155];   // the plaster, the X above it, the X on a facemask (under the slits)
+  const BROW = [.05, -.5], XBROW = [.05, -.8], MASKX = [0, .27, 1.17];   // the plaster, the X above it, the X on a facemask (under the slits)
   function plasterOn(u, sw, head, big) {   // the plaster cross; big: the one he wears after the bonk
     const p = head.pt(...BROW); if (p[2] <= .05) return;
     const L = (big ? 1.05 : .72) * u, wd = (big ? .38 : .28) * u;
@@ -324,7 +324,7 @@
     }
     pop();
   }
-  function xOnBrow(u, head, k, o = {}) { const p = head.pt(...XBROW); if (p[2] > .05) xMark(p[0], p[1], .9 * u * k, { key: 'brow', glow: .35, ...o }); }
+  function xOnBrow(u, head, k, o = {}) { const p = head.pt(...XBROW); if (p[2] > .05) xMark(p[0], p[1], .8 * u * k, { key: 'brow', glow: .35, ...o }); }
   // the red X reflected in each eye (lookX/lookY as the rig moves the pupils)
   function eyeGlints(u, head, o, k) {
     for (const s of [-1, 1]) {
@@ -599,7 +599,7 @@
       for (const a of [-.7, 1.0, 2.3, 3.7]) inkLine([[Math.cos(a) * .52 * u, Math.sin(a) * .42 * u], [Math.cos(a + .15) * .88 * u, Math.sin(a + .15) * .72 * u]], sw * .45, '#3A4044', 'inkfine', 0);
       pop();
     }
-    if (xOn > 0) xMark(p[0], p[1], .7 * u * xOn, { key: 'mask', glow: .4, sx: xS[0] * f, sy: xS[1] });
+    if (xOn > 0) xMark(p[0], p[1], .6 * u * xOn, { key: 'mask', glow: .4, sx: xS[0] * f, sy: xS[1] });
   };
 
   // a smooth path through timed keys [t, x, y] (Catmull-Rom)
@@ -710,7 +710,7 @@
     camEnd();
     const beat = [10.5, 11.0].reduce((a, b) => a + (t > b ? Math.exp(-(t - b) * 7) : 0), 0);
     tunnel(lerp(330, 270, ease(lt)) - 28 * beat, [540, 905]);
-    xMark(sx, sy, .7 * U * c.z * (1 + .06 * beat), { key: 'tunnelx', glow: .9, sx: .82 });   // over the dark: the target
+    xMark(sx, sy, .6 * U * c.z * (1 + .06 * beat), { key: 'tunnelx', glow: .9, sx: .82 });   // over the dark: the target
   }
   // tunnel vision: everything outside a soft ellipse round (cx, cy) darkens (screen space), in fine steps
   function tunnel(r, [cx, cy]) {

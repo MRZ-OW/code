@@ -103,11 +103,14 @@ function trPuffs(P, op, rim = PAL.ink, rimW = 4, key = 'puffs', o = {}) {
   if (op <= 2) return;
   if (rim) P.forEach(([x, y, r], i) => { boilSeed(key + 'r' + i); paint(trBillow(x, y, r + rimW, i * 1.7 + 3), { wash: rim, washOp: op, ink: null }); });
   P.forEach(([x, y, r, c], i) => { boilSeed(key + 'f' + i); paint(trBillow(x, y, r, i * 1.7 + 3), { wash: c, washOp: op, ink: null }); });
-  if (o.hi) P.forEach(([x, y, r], i) => { boilSeed(key + 'h' + i); paint(trBillow(x - r * .18, y - r * .3, r * .48, i * 2.3 + 1, 30), { wash: o.hi, washOp: op * (o.hiOp ?? .45), ink: null }); });
-  if (o.curl) P.forEach(([x, y, r], i) => {
+  if (o.hi) P.forEach(([x, y, r], i) => {   // highlights vary in place, size and squash, so a mass of billows doesn't tile
+    const hx = x - r * (.05 + .28 * hash(i + 71)), hy = y - r * (.2 + .2 * hash(i + 73)), hr = r * (.32 + .26 * hash(i + 77));
+    boilSeed(key + 'h' + i); paint(trBillow(hx, hy, hr, i * 2.3 + 1, 30).map(([a, b]) => [a, hy + (b - hy) * (.7 + .4 * hash(i + 79))]), { wash: o.hi, washOp: op * (o.hiOp ?? .45), ink: null });
+  });
+  if (o.curl && (o.curlW ?? 1) > .05) P.forEach(([x, y, r], i) => {
     if (!i || r < 30) return;
     const B = trBillow(x, y, r, i * 1.7 + 3), n = B.length, a0 = Math.floor(n * (.55 + .1 * hash(i))), a1 = Math.floor(n * (.9 + .06 * hash(i + 1)));
-    boilSeed(key + 'c' + i); inkLine(B.slice(a0, a1), clamp(r / 90, 1, 3.4) * (op / 255), o.curl, 'inkfine', 0);
+    boilSeed(key + 'c' + i); inkLine(B.slice(a0, a1), clamp(r / 90, 1, 3.4) * (op / 255) * (o.curlW ?? 1), o.curl, 'inkfine', 0);
   });
 }
 
@@ -320,40 +323,46 @@ TRANS_FX.garageDoor = {
 function trC4(x, y, s, sx, sy, rot, led) {
   push(); translate(x, y); rotate(rot); scale(s * sx, s * sy);
   boilSeed('tr-c4');
-  paint(rrPts(-180, -140, 360, 280, 46), { wash: '#E4DDC8', ink: PAL.ink, sw: 2.2 });
-  for (let i = 0; i < 5; i++) {   // the black tape wraps, slanting round the brick, the wrap peeking out between them
-    const x0 = -150 + i * 70;
+  paint(rrPts(-180, -140, 360, 280, 18), { wash: '#E4DDC8', ink: PAL.ink, sw: 2.2 });
+  // wide black tape wraps slanting round the brick, the off-white wrap peeking out between them in uneven gaps
+  const cl = v => clamp(v, -176, 176);
+  [[-180, 74], [-96, 92], [22, 58], [92, 96]].forEach(([x0, w], i) => {
     boilSeed('tr-c4t' + i);
-    paint([[x0 - 32, -136], [x0 + 28, -136], [x0 + 56, 136], [x0 - 4, 136]], { wash: '#222127', ink: null });
-    inkLine([[x0 - 12, -120], [x0 + 22, 110]], 1.1, '#6E6C76', 'inkfine', 0);   // its sheen
-  }
+    paint([[cl(x0), -137], [cl(x0 + w), -137], [cl(x0 + w + 44), 137], [cl(x0 + 44), 137]], { wash: '#222127', ink: null });
+    inkLine([[cl(x0 + w * .3), -122], [cl(x0 + w * .3 + 38), 118]], 1.1, '#6E6C76', 'inkfine', 0);   // its sheen
+  });
   boilSeed('tr-c4x');
-  paint([[-176, 40], [176, -64], [176, -12], [-176, 92]], { wash: '#1A191E', ink: PAL.ink, sw: 1 });   // the cross strap
-  inkLine([[-160, 52], [160, -42]], 1.1, '#7A7882', 'inkfine', 0);
-  paint(rrPts(-180, -140, 360, 280, 46), { ink: PAL.ink, sw: 2.6 });
-  // the detonator: a green board, a red light, two wires looping over the top edge
+  paint([[-177, 34], [177, -70], [177, -10], [-177, 94]], { wash: '#1A191E', ink: PAL.ink, sw: 1 });   // the cross strap
+  inkLine([[-160, 48], [160, -46]], 1.1, '#7A7882', 'inkfine', 0);
+  paint(rrPts(-180, -140, 360, 280, 18), { ink: PAL.ink, sw: 2.6 });
+  // the detonator: a green board on the top face, a red light, short wires looped tight against the top edge
   boilSeed('tr-c4d');
-  inkLine([[30, -120], [-30, -172], [-110, -150], [-120, -112]], 3.2, '#C8322C', 'ink', .5);
-  inkLine([[70, -120], [96, -178], [150, -160], [140, -120]], 3.2, '#3E8E4A', 'ink', .5);
-  paint(rrPts(10, -150, 120, 62, 8), { wash: '#3D5A3A', ink: PAL.ink, sw: 1.4 });
-  for (let i = 0; i < 3; i++) paint(rectPts(24 + i * 22, -136, 12, 10), { wash: '#C9B48A', ink: null });
-  if (led) { glow(104, -120, 170, '#FF3048', 1); glow(104, -120, 60, '#FFD0D0', .8); }
-  paint(ellPts(104, -120, 17, 17, 12), { wash: led ? '#FF5A66' : '#6A2026', ink: PAL.ink, sw: .8 });
+  inkLine([[-40, -118], [-62, -158], [-104, -156], [-118, -132]], 2, '#C8322C', 'ink', .5);
+  inkLine([[136, -112], [158, -150], [176, -134]], 2, '#3E8E4A', 'ink', .5);
+  inkLine([[-40, -100], [-84, -126], [-130, -124]], 1.6, '#2E6E3A', 'ink', .5);
+  paint(rrPts(-46, -142, 190, 96, 8), { wash: '#3D5A3A', ink: PAL.ink, sw: 1.6 });
+  for (let i = 0; i < 4; i++) paint(rectPts(-30 + i * 26, -126, 16, 12), { wash: '#C9B48A', ink: null });   // chips
+  paint(rectPts(-30, -94, 90, 28), { wash: '#1E2A1E', ink: PAL.ink, sw: .8 });                            // a little display
+  for (let i = 0; i < 6; i++) paint(ellPts(-30 + i * 34, -56, 4, 4, 6), { wash: '#C9B48A', ink: null });   // solder pins
+  if (led) { glow(118, -94, 190, '#FF3048', 1); glow(118, -94, 70, '#FFD0D0', .8); }
+  paint(ellPts(118, -94, 19, 19, 12), { wash: led ? '#FF5A66' : '#6A2026', ink: PAL.ink, sw: .9 });
   pop();
 }
 // the smoke that the fireball turns into: a grid of overlapping billows that covers the frame, then breaks apart from
 // the middle out (q 0..1) while it rises and thins
 function trBlastSmoke(q, key) {
+  // every billow stays opaque; the mass thins by shrinking billows away from the middle out, rising and lightening to
+  // warm grey wisps, and only the last few frames fade
   const P = [];
   for (let r = 0; r < 6; r++) for (let c = 0; c < 4; c++) {
     const i = r * 4 + c, bx = -60 + c * 400 + 70 * (hash(i + 3) - .5), by = -20 + r * 392 + 60 * (hash(i + 7) - .5);
     const dx = bx - 540, dy = by - 960, dn = clamp(Math.hypot(dx * 1.6, dy) / 1600), l = Math.hypot(dx, dy) || 1;
-    const e = ease(q), rad = 360 * (1 + .25 * hash(i)) * clamp(1 - q * (1.3 - .6 * dn));
-    if (rad < 8) continue;
-    P.push([bx + dx / l * 650 * e, by + dy / l * 500 * e - 420 * q, rad, mixCol('#4E4954', '#B4B0B8', clamp(q * 1.6 + .2 * hash(i + 1)))]);
+    const e = ease(q), rad = 360 * (1 + .25 * hash(i)) * clamp(1 - q * (1.5 - .75 * dn));
+    if (rad < 10) continue;
+    P.push([bx + dx / l * 600 * e, by + dy / l * 450 * e - 380 * q, rad, mixCol('#4E4954', '#C8BFB2', clamp(q * 1.5 + .15 * hash(i + 1)))]);
   }
   P.sort((a, b) => b[2] - a[2]);
-  trPuffs(P, 245 * Math.pow(1 - q, .9), q < .2 ? PAL.ink : null, 5, key, { curl: mixCol('#2E2A34', '#77737E', q), hi: '#B6B2BE', hiOp: .4 });
+  trPuffs(P, 255 * (1 - seg(q, .72, 1)), q < .15 ? PAL.ink : null, 5, key, { curl: '#2E2A34', curlW: 1 - q / .3, hi: mixCol('#9A96A0', '#E2DACE', q), hiOp: .35 });
 }
 // the fireball, R px across, heat 0..1 (white-yellow → orange → red), op 0..1
 function trFireball(x, y, R, heat, op, key) {
@@ -368,12 +377,12 @@ function trFireball(x, y, R, heat, op, key) {
 }
 TRANS_FX.c4Blast = {
   dur: .9,
-  draw(p, d) {
+  draw(p, d, o) {
     const pb = .38;
-    if (p < pb) {   // flies at the lens, slaps on, blinks twice
-      const k = seg(p, 0, .1), a = (p - .1) * d, sq = a > 0 ? .3 * Math.exp(-a * 20) * Math.cos(a * 44) : 0;
+    if (p < pb) {   // flies at the lens, slaps on, blinks twice (each blink a third of the wait, so it holds for frames)
+      const k = seg(p, 0, .1), a = trA(p, .1, d, o), sq = a > 0 ? .3 * Math.exp(-a * 20) * Math.cos(a * 44) : 0;
       const s = 1.25 * Math.pow(.2, 1 - k), x = lerp(900, 540, easeOut(k)), y = lerp(1420, 930, easeOut(k)) - 160 * Math.sin(Math.PI * k);
-      const led = (p > .17 && p < .22) || (p > .28 && p < .33);
+      const led = (p > .142 && p < .218) || (p > .262 && p < .338);
       trC4(x, y, s, 1 + sq, 1 - sq, lerp(.9, -.06, easeOut(k)), led);
       if (a > 0 && a < .12) for (let i = 0; i < 9; i++) {   // splat ticks
         const ang = i / 9 * TAU + .2, kk = a / .12, r0 = 290 + 80 * kk;
@@ -381,7 +390,7 @@ TRANS_FX.c4Blast = {
       }
       return;
     }
-    const a = (p - pb) * d;
+    const a = trA(p, pb, d, o);
     if (p > .43) trBlastSmoke(seg(p, .63, 1), 'tr-c4s');   // smoke under the fireball once it fills the frame
     const fire = 1 - seg(p, .5, .63);                         // it burns, then thins away into the smoke
     if (fire > 0) {
@@ -390,96 +399,121 @@ TRANS_FX.c4Blast = {
     }
     flash(1 - a / .09);   // the one bright flash
   },
-  shake(p, d) { const a1 = (p - .1) * d, a2 = (p - .38) * d; return (a1 >= 0 && a1 < .08 ? 7 * (1 - a1 / .08) : 0) + (a2 >= 0 && a2 < .2 ? 20 * (1 - a2 / .2) : 0); },
+  shake(p, d, o) { const a1 = trA(p, .1, d, o), a2 = trA(p, .38, d, o); return (a1 >= 0 && a1 < .08 ? 7 * (1 - a1 / .08) : 0) + (a2 >= 0 && a2 < .2 ? 20 * (1 - a2 / .2) : 0); },
 };
 
 // ---------- 5. supplySmoke ----------
-// Reference: supply.signal: an olive M18-style smoke canister with a purple band, a cap on top; it pours violet smoke.
+// Reference: supply.signal (an M18 smoke grenade): an olive can with a purple band, the spoon lever along its side, the
+// pull ring and a short vented fuze on top; the smoke pours out of the fuze. It tumbles in close to the lens, in the
+// foreground (cut by the bottom edge), so it reads as near, not giant.
 function trSignal(x, y, s, rot) {
   push(); translate(x, y); rotate(rot); scale(s);
   boilSeed('tr-sig');
-  paint(rrPts(-130, -52, 250, 104, 20), { wash: '#5D6936', ink: PAL.ink, sw: 1.8 });
-  paint(rrPts(-122, 10, 236, 34, 12), { wash: '#465128', washOp: 210, ink: null });
-  paint(rrPts(-118, -42, 228, 18, 8), { wash: '#808C52', washOp: 180, ink: null });
-  paint(rectPts(-100, -52, 34, 104), { wash: '#8B3FA6', ink: PAL.ink, sw: 1 });                        // the purple band
-  for (const yy of [-16, 4]) inkLine([[-40, yy], [60, yy]], 1.6, '#9AA46C', 'inkfine', 0);              // stencilled marks
-  paint(rrPts(116, -40, 40, 80, 10), { wash: '#6E7A46', ink: PAL.ink, sw: 1.4 });                     // the fuse cap
-  paint(rrPts(150, -20, 24, 40, 6), { wash: '#43473C', ink: PAL.ink, sw: 1.2 });
+  paint(rrPts(-130, -50, 240, 100, 14), { wash: '#5D6936', ink: PAL.ink, sw: 1.8 });
+  paint(rrPts(-124, 12, 228, 32, 10), { wash: '#465128', washOp: 210, ink: null });
+  paint(rrPts(-120, -40, 222, 16, 8), { wash: '#808C52', washOp: 180, ink: null });
+  paint(rectPts(-104, -50, 30, 100), { wash: '#8B3FA6', ink: PAL.ink, sw: 1 });                        // the purple band
+  for (const yy of [-14, 6]) inkLine([[-50, yy], [50, yy]], 1.6, '#9AA46C', 'inkfine', 0);              // stencilled marks
+  paint(rrPts(108, -30, 26, 60, 6), { wash: '#6E7A46', ink: PAL.ink, sw: 1.4 });                      // the fuze neck
+  paint(rrPts(132, -24, 30, 48, 6), { wash: '#4A4E46', ink: PAL.ink, sw: 1.4 });                      // the fuze head
+  for (const yy of [-12, 0, 12]) paint(ellPts(160, yy, 3.5, 4.5, 6), { wash: '#141216', ink: null });  // its vents
+  paint([[134, -26], [124, -60], [-20, -66], [-58, -58], [-40, -50], [112, -50]], { wash: '#6E7A42', ink: PAL.ink, sw: 1.4 });   // the spoon
+  inkLine([[-50, -56], [118, -55]], 1, '#9AA46C', 'inkfine', 0);
+  inkLine([[150, -26], [160, -44]], 2, '#5E6066', 'inkfine', 0);                                      // the pin
+  trLoop(ellPts(170, -58, 17, 15, 14), 3, '#A8AEB2');                                                 // the pull ring
   pop();
 }
 function trSignalAt(p) {
-  const k = seg(p, 0, .3), e = easeOut(k), x = lerp(1260, 560, e), hop = Math.abs(Math.sin(e * Math.PI * 2.2)) * 130 * (1 - e);
-  return { x, y: 1330 - hop, rot: -(1260 - x) / 120, s: 1.25 };
+  const k = seg(p, 0, .3), e = easeOut(k), x = lerp(1380, 600, e), hop = Math.abs(Math.sin(e * Math.PI * 2.2)) * 90 * (1 - e);
+  return { x, y: 1800 - hop, rot: -(1380 - x) / 150, s: 1.55 };
 }
 TRANS_FX.supplySmoke = {
   dur: .9,
   draw(p, d) {
-    const nozzle = pp => { const S = trSignalAt(pp), r = 162 * S.s; return [S.x + Math.cos(S.rot) * r, S.y + Math.sin(S.rot) * r]; };
-    // billows: each leaves the nozzle and swells to its place in a column that fills the frame, bottom rows first; after
-    // the cut the wind takes the whole mass off to the upper left, thinning
-    const q = seg(p, .56, 1), dq = ease(q), P = [];
+    const nozzle = pp => { const S = trSignalAt(pp), r = 165 * S.s; return [S.x + Math.cos(S.rot) * r, S.y + Math.sin(S.rot) * r]; };
+    // billows leave the fuze and swell to their places: first wisps along the roll, then three deep billows that back
+    // the whole frame, then a column of varied billows, bottom rows first. After the cut the wind takes them off to the
+    // left one by one, each at its own speed, shrinking as they go, the edges first.
+    const q = seg(p, .56, 1);
     const tg = [];
-    for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) tg.push([180 + c * 360 + 90 * (hash(r * 3 + c) - .5) + (r % 2 ? 60 : -40), 1760 - r * 372 + 50 * (hash(r * 3 + c + 9) - .5), 450 + 80 * hash(r * 3 + c + 4)]);
-    const all = [[1150, 1290, 110], [990, 1240, 160], [820, 1200, 210], ...tg];   // early wisps along the roll, then the column
+    for (let r = 0; r < 6; r++) for (let c = 0; c < 3; c++) { const i = r * 3 + c; tg.push([170 + c * 370 + 110 * (hash(i) - .5) + (r % 2 ? 70 : -50), 1790 - r * 330 + 60 * (hash(i + 9) - .5), 330 * (.65 + .7 * hash(i + 4))]); }
+    const wisps = [[1180, 1760, 100], [1010, 1720, 150], [840, 1680, 200]], deep = [[540, 1600, 950], [540, 960, 950], [540, 320, 950]];
+    const all = [...wisps, ...deep, ...tg], P = [];
     all.forEach(([tx, ty, R], i) => {
-      const pe = .03 + i * .018, age = seg(p, pe, pe + .12); if (p < pe) return;
-      const e = easeOut(age), [nx, ny] = nozzle(pe), h = hash(i + 40);
-      const x = lerp(nx, tx, e) - 2000 * dq * (.8 + .4 * h), y = lerp(ny, ty, e) - 700 * dq * (.6 + .8 * h);
-      P.push([x, y, lerp(40, R, e) * (1 + .3 * q), mixCol('#7A4AA0', '#9466BC', h)]);
+      const pe = .03 + i * .0135, age = seg(p, pe, pe + .1); if (p < pe) return;
+      const e = easeOut(age), [nx, ny] = nozzle(pe), h = hash(i + 40), isDeep = i >= 3 && i < 6;
+      const delay = isDeep ? 0 : clamp(.28 * tx / W + .12 * hash(i + 60), 0, .4), qi = seg(q, delay, 1), f = .6 + .8 * hash(i + 50), m = ease(qi);
+      const edge = clamp(Math.hypot((tx - 540) / 540, (ty - 960) / 960) / 1.2);
+      const x = lerp(nx, tx, e) - 2100 * m * f, y = lerp(ny, ty, e) - 700 * m * (.6 + .8 * h);
+      const rad = lerp(40, R, e) * (isDeep ? clamp(1 - 1.3 * ease(q)) : (1 + .25 * qi) * clamp(1 - Math.pow(qi, 1.4) * (.55 + .5 * edge)));
+      if (rad > 8) P.push([x, y, rad, isDeep ? '#6E4294' : mixCol('#7A4AA0', '#9A70C2', h), i]);
     });
-    const op = 252 * (1 - Math.pow(q, 2.2)), o = { curl: '#55337A', hi: '#C9A8E4', hiOp: .5 }, nb = Math.min(3, P.length);
-    trPuffs(P.slice(0, nb), op, '#3A2350', 5, 'tr-smk', o);
-    if (p < .58) { const S = trSignalAt(p); trSignal(S.x, S.y, S.s, S.rot); }   // the canister, in front of its first wisps; the rest engulf it
-    trPuffs(P.slice(nb), op, '#3A2350', 5, 'tr-smk2', o);
+    const op = 255 * (1 - seg(q, .75, 1)), o = { curl: '#55337A', hi: '#C9A8E4', hiOp: .5 };
+    const back = P.filter(b => b[4] < 6), front = P.filter(b => b[4] >= 6);
+    trPuffs(back, op, '#3A2350', 5, 'tr-smk', { curl: '#55337A' });
+    if (p < .5) { const S = trSignalAt(p); trSignal(S.x, S.y, S.s, S.rot); }   // the canister, until the column engulfs it
+    trPuffs(front, op, '#3A2350', 5, 'tr-smk2', o);
+    // thin wisps trailing off on the wind
+    if (q > .25) for (let i = 0; i < 4; i++) {
+      const k = seg(q, .25 + .1 * hash(i + 3), 1), x0 = W + 120 - 1700 * ease(k) * (.8 + .4 * hash(i)), y0 = 300 + i * 420 + 80 * hash(i + 7) - 300 * k;
+      const L = []; for (let j = 0; j < 6; j++) L.push([x0 + j * 90, y0 + 40 * Math.sin(j * 1.3 + i + q * 4)]);
+      boilSeed('tr-smkw' + i); paint(ribbon(L, 46 * (1 - k * .5), 6), { wash: '#A07ACB', washOp: 150 * Math.sin(Math.PI * k), ink: null });
+    }
   },
 };
 
 // ---------- 6. sleepingBag ----------
-// Reference: sleepingbag: tan burlap, quilted in long tubes, stitched patches. It unrolls down over the frame like a
-// blind (the roll shrinks as it pays out), its zipper runs down and back up, then it rolls away up.
-function trBagRoll(p) {   // [roll centre y, radius]
-  const r = k => lerp(170, 100, k);
-  if (p < .4) { const k = ease(p / .4); return [lerp(-190, H + 120, k), r(k)]; }
-  if (p < .6) return [H + 120, 100];
-  const k = 1 - ease(seg(p, .6, 1)); return [lerp(-190, H + 120, k), r(k)];
+// Reference: sleepingbag: grey-brown burlap quilted in long round tubes, stitched patches. It unrolls down over the frame
+// like a blind (the roll shrinks as it pays out), its zipper runs down and back up, then it rolls away up. Timed in
+// seconds so the zip always gets its frames: the unroll and roll-up take what they need, the hold between gets the rest.
+function trBagPhases(p, d, o) {
+  const k = o.in ?? .5, pre = d * k, post = d * (1 - k), s = trS(p, d, o);
+  const un = Math.min(Math.max(.55 * pre, pre - .22), pre - .045), ru = Math.max(.55 * post, post - .2), h0 = -pre + un, h1 = post - ru;
+  const r = k2 => lerp(170, 100, k2);
+  let yr, rr;
+  if (s < h0) { const k2 = ease((s + pre) / un); yr = lerp(-190, H + 120, k2); rr = r(k2); }
+  else if (s < h1) { yr = H + 120; rr = 100; }
+  else { const k2 = 1 - ease((s - h1) / ru); yr = lerp(-190, H + 120, k2); rr = r(k2); }
+  const zk = s < h0 || s > h1 ? 0 : s < (h0 + h1) / 2 ? ease((s - h0) / ((h1 - h0) / 2)) : 1 - ease((s - (h0 + h1) / 2) / ((h1 - h0) / 2));
+  return { yr, rr, zk };
 }
 const TR_BAG = { x0: -50, x1: W + 50, seams: [-50, 360, 720, W + 50], zx: 720 };
 // how far the quilted tube bulges at x: 1 mid-tube, 0 at a seam
 const trBagBulge = x => { const S = TR_BAG.seams; for (let k = 0; k + 1 < S.length; k++) if (x <= S[k + 1]) return Math.sin(Math.PI * clamp((x - S[k]) / (S[k + 1] - S[k]))); return 0; };
 // the soft wander of a seam at height y (the fabric isn't ruler-straight)
-const trBagWave = (sx, y) => sx < 0 || sx > W ? 0 : 14 * Math.sin(y / 170 + sx * .01) + 6 * Math.sin(y / 61 + sx);
+const trBagWave = (sx, y) => sx < 0 || sx > W ? 0 : 12 * Math.sin(y / 170 + sx * .01) + 4 * Math.sin(y / 61 + sx);
 TRANS_FX.sleepingBag = {
-  dur: .8,
-  draw(p, d) {
-    const [yr, rr] = trBagRoll(p), { x0, x1, seams, zx } = TR_BAG;
+  dur: .8, in: .6,
+  draw(p, d, o) {
+    const { yr, rr, zk } = trBagPhases(p, d, o), { x0, x1, seams, zx } = TR_BAG;
     if (yr + rr < 0) return;
     const yf = yr, top = -80, hgt = yf - top;
     // a strip that follows a seam's wander: from offset a to offset b px off the seam
     const strip = (sx, a, b) => { const L = [], R = []; for (let y = top; y <= yf + 40; y += 60) { const w = trBagWave(sx, y); L.push([sx + a + w, y]); R.push([sx + b + w, y]); } return [...L, ...R.reverse()]; };
     if (yf > -60) {
-      // burlap: a grey-tan wash woven with fine hatching both ways
+      // burlap: a grey-brown wash woven with fine hatching both ways
       boilSeed('tr-bag');
-      paint(rectPts(x0, top, x1 - x0, hgt), { wash: '#9C8A6A', ink: null, hatch: { d: 18, a: Math.PI / 2, o: { rand: .3 }, b: 'HB', c: '#7A6A4E', w: .8 } });
-      paint(rectPts(x0, top, x1 - x0, hgt), { ink: null, hatch: { d: 22, a: 0, o: { rand: .3 }, b: 'HB', c: '#857356', w: .7 } });
-      // the quilted tubes: shadowed where the seams pinch them, lit along the middle of each puff
+      paint(rectPts(x0, top, x1 - x0, hgt), { wash: '#8E806A', ink: null, hatch: { d: 18, a: Math.PI / 2, o: { rand: .3 }, b: 'HB', c: '#6E6250', w: .8 } });
+      paint(rectPts(x0, top, x1 - x0, hgt), { ink: null, hatch: { d: 22, a: 0, o: { rand: .3 }, b: 'HB', c: '#7A6E5A', w: .7 } });
+      // each quilted tube is round: deep shade where the seams pinch it, a wide soft light down the middle, and sags
       for (let k = 0; k + 1 < seams.length; k++) {
         const a = seams[k], b = seams[k + 1], w = b - a;
         boilSeed('tr-bagq' + k);
-        paint(strip(a, 0, 90), { wash: '#6E5C42', washOp: 100, ink: null }); paint(strip(b, -90, 0), { wash: '#6E5C42', washOp: 100, ink: null });
-        paint(strip(a, w * .3, w * .66), { wash: '#C2AF88', washOp: 120, ink: null });
-        for (let f = 0; f < 4; f++) {   // folds where the stuffing sags
-          const fy = 180 + f * 470 + 120 * hash(k * 7 + f), fx = a + w * (.25 + .2 * hash(k + f * 3)); if (fy > yf - 60) break;
-          boilSeed('tr-bagf' + k + f);
-          inkLine([[fx, fy], [fx + w * .2, fy + 26], [fx + w * .42, fy + 6]], 1.3, '#6E5C42', 'inkfine', .5);
-          inkLine([[fx + 10, fy + 12], [fx + w * .2, fy + 38], [fx + w * .38, fy + 20]], 1.1, '#D2C29E', 'inkfine', .5);
+        paint(strip(a, 0, 46), { wash: '#4E4436', washOp: 150, ink: null }); paint(strip(a, 46, 110), { wash: '#5E5242', washOp: 80, ink: null });
+        paint(strip(b, -46, 0), { wash: '#4E4436', washOp: 150, ink: null }); paint(strip(b, -110, -46), { wash: '#5E5242', washOp: 80, ink: null });
+        paint(strip(a, w * .24, w * .76), { wash: '#AA9C80', washOp: 100, ink: null }); paint(strip(a, w * .36, w * .64), { wash: '#BCAF94', washOp: 100, ink: null });
+        for (let y = 140 + 120 * hash(k * 5); y < yf - 60; y += 250 + 60 * hash(y + k)) {   // the stuffing sags between the stitches
+          const wa = trBagWave(a, y), xa = a + w * .18 + wa, xb = b - w * .18 + wa;
+          boilSeed('tr-bagf' + k + ',' + Math.round(y));
+          inkLine([[xa, y], [lerp(xa, xb, .5), y + 24], [xb, y]], 1.4, '#4E4436', 'inkfine', .5);
+          inkLine([[xa + 20, y + 12], [lerp(xa, xb, .5), y + 36], [xb - 20, y + 12]], 1.1, '#C7BB9E', 'inkfine', .5);
         }
       }
-      // the seam, stitched, and little pinch creases fanning into the tubes
+      // the stitched seam
       boilSeed('tr-bagst');
       const L = []; for (let y = top; y <= yf; y += 60) L.push([360 + trBagWave(360, y), y]);
-      inkLine(L, 1.8, '#4E3E28', 'inkfine', .3);
-      for (let y = -40; y < yf - 20; y += 42) inkLine([[369 + trBagWave(360, y), y], [369 + trBagWave(360, y + 22), y + 22]], 1.4, '#D9C8A2', 'inkfine', 0);
-      for (const sx of [360, zx]) for (let y = 90 + (sx > 400 ? 160 : 0); y < yf - 40; y += 330) { const yy = y + 60 * hash(y + sx), w = trBagWave(sx, yy); for (const sd of [-1, 1]) { boilSeed('tr-bagc' + sx + y + sd); inkLine([[sx + w + sd * 26, yy], [sx + w + sd * 80, yy - 30], [sx + w + sd * 130, yy - 36]], 1.3, '#5E4C34', 'inkfine', .5); } }
+      inkLine(L, 1.8, '#3E3428', 'inkfine', .3);
+      for (let y = -40; y < yf - 20; y += 40) inkLine([[369 + trBagWave(360, y), y], [369 + trBagWave(360, y + 20), y + 20]], 1.4, '#D2C6A8', 'inkfine', 0);
       // patches, stitched on askew (reference: the icon's darker brown patches)
       for (const [px, py, pw, ph, rot, c] of [[160, 380, 210, 260, -.08, '#6E4632'], [520, 1180, 230, 190, .1, '#5E4C34'], [905, 600, 180, 230, .06, '#7A4E36'], [190, 1560, 190, 170, .12, '#6A4430']]) {
         if (py + ph / 2 > yf - 10) continue;
@@ -490,11 +524,13 @@ TRANS_FX.sleepingBag = {
         for (let e = 0; e < Pp.length; e++) { const A = Pp[e], B = Pp[(e + 1) % Pp.length], n = Math.round(Math.hypot(B[0] - A[0], B[1] - A[1]) / 34); for (let k = 0; k < n; k++) { const t0 = (k + .2) / n, t1 = (k + .65) / n, ins = .84; inkLine([[lerp(A[0], B[0], t0) * ins, lerp(A[1], B[1], t0) * ins], [lerp(A[0], B[0], t1) * ins, lerp(A[1], B[1], t1) * ins]], 1.6, '#D9C8A2', 'inkfine', 0); } }
         pop();
       }
-      // the zipper: a dark tape with brass teeth; its slider runs down and back up while the bag covers the frame
+      // the zipper: a dark tape, two rows of brass teeth interlocking round a thin centre line, and the slider + pull
       boilSeed('tr-bagz');
-      paint(strip(zx, -22, 22), { wash: '#3E3628', ink: null });
-      for (let y = -60, i = 0; y < yf - 10; y += 20, i++) { const w = trBagWave(zx, y); paint(rectPts(zx + w - (i % 2 ? 1 : 15), y, 16, 11), { wash: '#C2A866', ink: null }); }
-      const zk = p < .5 ? ease(seg(p, .41, .5)) : 1 - ease(seg(p, .5, .59)), zy = Math.min(yf - 40, lerp(110, H - 160, zk)), zw = zx + trBagWave(zx, zy);
+      paint(strip(zx, -26, 26), { wash: '#3A3226', ink: null });
+      for (let y = -60, i = 0; y < yf - 10; y += 11, i++) { const w = trBagWave(zx, y), sd = i % 2 ? 1 : -1; paint(rrPts(zx + w + (sd > 0 ? -3 : -15), y, 18, 9, 3), { wash: '#C9AE6C', ink: '#5E4A20', sw: .5 }); }
+      const Lz = []; for (let y = top; y <= yf; y += 60) Lz.push([zx + trBagWave(zx, y), y]);
+      inkLine(Lz, 1, '#2A2218', 'inkfine', .3);
+      const zy = Math.min(yf - 40, lerp(110, H - 160, zk)), zw = zx + trBagWave(zx, zy);
       boilSeed('tr-bagzs');
       paint(rrPts(zw - 32, zy - 46, 64, 92, 14), { wash: '#C9A44E', ink: PAL.ink, sw: 1.6 });
       paint(rrPts(zw - 17, zy + 20, 34, 100, 12), { wash: '#B48C3A', ink: PAL.ink, sw: 1.4 });
@@ -505,9 +541,9 @@ TRANS_FX.sleepingBag = {
     const band = (f0, f1) => [...xs.map(x => [x, ry(x, f0)]), ...xs.slice().reverse().map(x => [x, ry(x, f1)])];
     boilSeed('tr-bagroll');
     paint(rectPts(x0, yr + rr * .7, x1 - x0, rr * .7), { wash: '#2B2233', washOp: 45, ink: null });   // its shadow
-    paint(band(-1, 1), { wash: '#94815F', ink: PAL.ink, sw: 2.4 });
-    paint(band(-.78, -.3), { wash: '#C2AF8A', washOp: 150, ink: null });
-    paint(band(.35, .92), { wash: '#5E4E38', washOp: 140, ink: null });
+    paint(band(-1, 1), { wash: '#887A62', ink: PAL.ink, sw: 2.4 });
+    paint(band(-.78, -.3), { wash: '#B2A588', washOp: 150, ink: null });
+    paint(band(.35, .92), { wash: '#4E4436', washOp: 140, ink: null });
     for (const sx of [360, zx]) paint(rectPts(sx - 14, ry(sx, -1) + 4, 28, 2 * rr * .84 - 8), { wash: sx === zx ? '#3E3628' : '#7E6848', washOp: 200, ink: null });
     const ph = yr / rr;
     for (let i = 0; i < 3; i++) { const ang = ph + i * TAU / 3; if (Math.sin(ang) < 0) continue; boilSeed('tr-bagturn' + i); inkLine(xs.map(x => [x, ry(x, -Math.cos(ang) * .92)]), 1.6, '#5E4A30', 'inkfine', 0); }
@@ -516,16 +552,32 @@ TRANS_FX.sleepingBag = {
 
 // ---------- 7. heliFlyover ----------
 // The patrol heli (heli.js) comes in low and head-on from the distance, its searchlight sweeping the ground before it.
-// It swells as it closes, the view swings under it, its belly fills the frame for the cut, then it climbs away off the
-// top, shrinking, its rotor blur dragging over the next shot.
+// It swells as it closes and the view swings under it. For the cut we're right under it: its dark belly down the middle,
+// the skids and rocket pods either side, and the rotor blur blotting out the sky behind, blade shadows sweeping across.
+// Then it climbs away off the top, shrinking, its rotor blur dragging over the next shot.
+const TR_HELI_S = 5.2;   // its scale right overhead: the rotor disc (280 px × s) then covers the frame
 function trHeliAt(p) {
+  const S = TR_HELI_S;
   if (p <= .5) {
-    // a constant zoom (it doubles in size every couple of frames), and the view swings under it as it closes
-    const k = p / .5, kk = clamp(k / .86), s = .45 * Math.pow(12.5 / .45, kk), zd = Math.sqrt(Math.max(0, (12.5 / s) ** 2 - 1));
-    return { s: s * (1 + .04 * seg(k, .86, 1)), elev: Math.atan2(1, zd), yaw: lerp(1.28, Math.PI / 2, ease(kk)), y: lerp(560, 960, ease(kk)), light: 1 - seg(kk, .7, .92), k: kk };
+    // a constant zoom (it doubles in size every few frames), and the view swings under it as it closes
+    const k = p / .5, kk = clamp(k / .8), s = .45 * Math.pow(S / .45, kk), zd = Math.sqrt(Math.max(0, (S / s) ** 2 - 1));
+    return { s, elev: Math.atan2(1, zd), yaw: lerp(1.28, Math.PI / 2, ease(kk)), y: lerp(560, 960, ease(kk)), light: 1 - seg(kk, .62, .85), k: kk, disc: seg(kk, .7, .9) };
   }
   const q = seg(p, .5, 1);
-  return { s: 13 * Math.pow(.8 / 13, Math.pow(q, 1.5)), elev: Math.PI / 2, yaw: Math.PI / 2, y: 960 - 1700 * q, light: 0, k: 1 };   // climbs away up the frame
+  return { s: S * Math.pow(.6 / S, q * q), elev: Math.PI / 2, yaw: Math.PI / 2, y: 960 - 1700 * Math.pow(q, 1.5), light: 0, k: 1, disc: 1 - .75 * seg(q, .1, .45) };   // climbs away up the frame
+}
+// The main rotor's blur seen from below: a dark disc (op 255 blots out the sky), soft lighter blade sweeps turning in it
+// and a faint line where the yellow tips run.
+function trRotorBlur(mx, my, R, op, t, key) {
+  if (op <= 2) return;
+  boilSeed(key); paint(ellPts(mx, my, R, R, 56), { wash: '#2C323C', washOp: op, ink: null });
+  const a0 = (t * 3.3 + .13) * TAU;
+  for (let b = 0; b < 4; b++) {
+    const a = a0 + b * Math.PI / 2, W2 = [[mx, my]]; for (let i = 0; i <= 8; i++) { const aa = a - .55 * i / 8; W2.push([mx + Math.cos(aa) * R * .98, my + Math.sin(aa) * R * .98]); }
+    boilSeed(key + 'sw' + b); paint(W2, { wash: '#5E6670', washOp: .3 * op, ink: null });
+  }
+  const T = []; for (let i = 0; i <= 64; i++) { const aa = i / 64 * TAU; T.push([mx + Math.cos(aa) * R * .95, my + Math.sin(aa) * R * .95]); }
+  boilSeed(key + 'tip'); trSegLine(T, 1.4, '#B89A4E');
 }
 // Belly details over patrolHeli's hull, in its own model space (so they sit right in every view): panel seams and
 // rivets, the cargo hook, a red beacon, an access hatch, oil streaks.
@@ -551,26 +603,39 @@ TRANS_FX.heliFlyover = {
   draw(p, d, o, t) {
     const S = trHeliAt(p);
     const ho = { yaw: S.yaw, elev: S.elev, t, key: 'tr', light: S.light > .01 ? { on: S.light, aim: Math.PI / 2 + .55 * Math.sin(p * 9 - 1), len: 700 + 900 * S.k, w: .2 } : null };
+    const C = heliCam(ho), under = clamp((hFacing(C, [0, -1, 0]) - .5) / .4);
     // its shadow darkens the frame as it comes over
     const sh = seg(p, .3, .46) * (1 - seg(p, .6, .85));
     if (sh > 0) { boilSeed('tr-heli-shade'); paint(rectPts(-60, -60, W + 120, H + 120), { wash: '#1E2230', washOp: 90 * sh, ink: null }); }
-    if (p > .5) {   // the rotor blur dragging over the next shot as it goes: a dark disc, fat blade smears turning
-      const C = heliCam(ho), [mx, my] = hWorld(540, S.y, S.s, ho, hProj(C, [0, 134, 0])), R = 280 * S.s * .93, fade = 1 - seg(p, .8, 1);
-      boilSeed('tr-rotor'); paint(ellPts(mx, my, R, R, 48), { wash: '#3C4148', washOp: 60 * fade, ink: null });
-      if (fade > .2) for (let b = 0; b < 4; b++) for (const rk of [.97, .8, .6]) {
-        const a1 = (t * 3.3 + .13) * TAU + b * Math.PI / 2, A = Array.from({ length: 12 }, (_, i) => { const a = a1 - .8 * i / 11; return [mx + Math.cos(a) * R * rk, my + Math.sin(a) * R * rk]; });
-        boilSeed('tr-rotor' + b + rk); inkLine(A, S.s * (rk > .9 ? .4 : .6), rk > .9 ? '#D9AE3E' : '#3A3F46', 'dry', .5);
+    // the rotor blur behind it (it's above the heli, and we're below)
+    const [mx, my] = hWorld(540, S.y, S.s, ho, hProj(C, [0, 134, 0])), R = 280 * S.s * .93;
+    trRotorBlur(mx, my, R, 255 * S.disc * under, t, 'tr-rotor');
+    patrolHeli(540, S.y, S.s, ho);
+    if (under > .02) {
+      // the belly in its own shade
+      const hull = hThin(hullOf(hLoft(HCAB, HCAB_CUTS, 2, 16).map(q => hWorld(540, S.y, S.s, ho, hProj(C, q.P)))), 6);
+      boilSeed('tr-belly-shade'); paint(hull, { wash: '#141A26', washOp: 85 * under, ink: null });
+      // the tail rotor, edge-on from below: a small blurred disc at the end of the boom
+      const [tx, ty] = heliPt(540, S.y, S.s, ho, 'tail');
+      boilSeed('tr-trotor'); paint(ellPts(tx, ty, 14 * S.s, 50 * S.s, 18), { wash: '#3C4148', washOp: 110 * under, ink: null });
+      inkLine([[tx, ty - 48 * S.s], [tx, ty + 48 * S.s]], clamp(S.s * .5, .8, 3), '#B89A4E', 'inkfine', 0);
+    }
+    trHeliBelly(540, S.y, S.s, ho);
+    // blade shadows sweeping across the belly while we're under it
+    if (under * S.disc > .05) {
+      const a0 = (t * 3.3 + .4) * TAU;
+      for (let b = 0; b < 2; b++) {
+        const a = a0 + b * Math.PI, W2 = [[mx, my]]; for (let i = 0; i <= 6; i++) { const aa = a - .3 * i / 6; W2.push([mx + Math.cos(aa) * R, my + Math.sin(aa) * R]); }
+        boilSeed('tr-bladesh' + b); paint(W2, { wash: '#0E121A', washOp: 55 * under * S.disc, ink: null });
       }
     }
-    patrolHeli(540, S.y, S.s, ho);
-    trHeliBelly(540, S.y, S.s, ho);
   },
 };
 
 // ---------- 8. wallUpgrade ----------
 // A twig wall rises; the hammer (reference: hammer: a pale wooden mallet) bonks it up a grade four times (twig → wood →
 // stone → sheet metal → armoured, each with a burst of sparkles and dust), then a raid charge cracks it and it crumbles.
-const TR_WALL = { x0: -50, y0: -60, w: 1180, h: 2050, cols: 4, rows: 6, hit: [560, 1010], steps: [.2, .3, .4, .5] };
+const TR_WALL = { x0: -50, y0: -60, w: 1180, h: 2050, cols: 4, rows: 6, hit: [560, 1010], steps: [.19, .32, .45, .58] };   // steps: s after the start at in .7, d .9
 function trWallVert(i, j) {
   const { x0, y0, w, h, cols, rows } = TR_WALL, edge = i === 0 || j === 0 || i === cols || j === rows;
   return [x0 + w * i / cols + (edge ? 0 : 110 * (hash(i * 17 + j * 5) - .5)), y0 + h * j / rows + (edge ? 0 : 100 * (hash(i * 7 + j * 19 + 3) - .5))];
@@ -593,20 +658,21 @@ function trWallCells() {
   return C;
 }
 // one armoured cell: dark steel, its stretch of the two riveted straps, a rust stain
-function trArmorCell(c, dx, dy, rot, inkW) {
+function trArmorCell(c, dx, dy, rot, inkW, op = 255) {
   const { x0, y0, w, h } = TR_WALL;
   push(); translate(c.cx + dx, c.cy + dy); rotate(rot); translate(-c.cx, -c.cy);
   boilSeed('tr-wc' + c.i + ',' + c.j);
-  paint(c.poly, { wash: '#5E6670', ink: inkW ? PAL.ink : null, sw: inkW });
-  if (inkW) paint(c.poly.map(([x, y]) => [lerp(c.cx, x, .8), lerp(c.cy, y, .8) - 10]), { wash: '#69717B', washOp: 90, ink: null });   // a broken chunk catches the light
+  if (op < 255 && inkW) inkW = 0;
+  paint(c.poly, { wash: '#5E6670', washOp: op, ink: inkW ? PAL.ink : null, sw: inkW });
+  if (inkW || op < 255) paint(c.poly.map(([x, y]) => [lerp(c.cx, x, .8), lerp(c.cy, y, .8) - 10]), { wash: '#69717B', washOp: 90 * op / 255, ink: null });   // a broken chunk catches the light
   const xAt = (E, y) => { for (let k = 0; k + 1 < E.length; k++) if ((E[k][1] - y) * (E[k + 1][1] - y) <= 0) return lerp(E[k][0], E[k + 1][0], (y - E[k][1]) / ((E[k + 1][1] - E[k][1]) || 1)); return E[0][0]; };
   for (const fy of [.25, .75]) {
     const by = y0 + h * fy; if (Math.abs(by - (y0 + h * (c.j + .5) / TR_WALL.rows)) > 60) continue;
     const xl = xAt(c.lef, by) + 26, xr = xAt(c.rig, by) - 26; if (xr - xl < 40) continue;
-    paint(rectPts(xl, by - 30, xr - xl, 60), { wash: '#474D55', ink: PAL.ink, sw: 1.2 });
-    for (let x = x0 + 40; x < x0 + w; x += 74) if (x > xl + 18 && x < xr - 18) { paint(ellPts(x, by, 9, 9, 8), { wash: '#A3ABB3', ink: PAL.ink, sw: .5 }); }
+    paint(rectPts(xl, by - 30, xr - xl, 60), { wash: '#474D55', washOp: op, ink: op < 255 ? null : PAL.ink, sw: 1.2 });
+    for (let x = x0 + 40; x < x0 + w; x += 74) if (x > xl + 18 && x < xr - 18) { paint(ellPts(x, by, 9, 9, 8), { wash: '#A3ABB3', washOp: op, ink: op < 255 ? null : PAL.ink, sw: .5 }); }
   }
-  if (hash(c.i * 5 + c.j * 3) < .5) paint(ellPts(c.cx + 40 * (hash(c.i + c.j) - .5), c.cy + 50, 70, 34, 12, 3), { wash: '#8E5A3A', washOp: 110, ink: null });
+  if (hash(c.i * 5 + c.j * 3) < .5) paint(ellPts(c.cx + 40 * (hash(c.i + c.j) - .5), c.cy + 50, 70, 34, 12, 3), { wash: '#8E5A3A', washOp: 110 * op / 255, ink: null });
   pop();
 }
 // the twig frame, sized for the full frame: rough lashed sticks (wallPanel's own is drawn for 300 px walls)
@@ -639,52 +705,85 @@ function trMallet(px, py, rot, sq) {   // pivot at the end of the handle; the he
   for (const yy of [-40, 10, 50]) inkLine([[-120, yy], [120, yy + 6]], .9, '#9A7444', 'inkfine', .3);
   pop(); pop();
 }
-TRANS_FX.wallUpgrade = {
-  dur: .9,
-  draw(p, d) {
-    const { x0, y0, w, h, hit, steps } = TR_WALL, grades = ['twig', 'wood', 'stone', 'metal', 'armor'];
-    let g = 0; for (const s of steps) if (p >= s) g++;
-    const crumble = seg(p, .62, 1);
-    if (g < 4) {
-      const off = (H + 2200) * (1 - easeOut(seg(p, 0, .17)));   // it rises out of the ground
-      push(); translate(x0, y0 + off); scale(2);
-      if (g > 0) { boilSeed('tr-wall-back'); paint(rectPts(-4, -4, w / 2 + 8, h / 2 + 8), { wash: GRADES[grades[g]].col, ink: null }); }
-      if (g) wallPanel(0, h / 2, w / 2, h / 2, grades[g], { sw: 1.4 });
-      pop();
-      if (!g) trTwigFrame(off);
-    } else {
-      const C = trWallCells(), crack = seg(p, .56, .62);
-      if (crumble <= 0) { boilSeed('tr-wall-armor'); paint(rectPts(x0, y0, w, h), { wash: '#5E6670', ink: null }); }
-      for (const c of C) {
-        const dn = clamp(Math.hypot((c.cx - 540) * 1.5, c.cy - 960) / 1500), a = (p - (.62 + .06 * dn)) * d;
-        if (a <= 0) { trArmorCell(c, 0, 0, 0, crack > dn ? 2.2 : 0); continue; }
-        const l = Math.hypot(c.cx - 540, c.cy - 960) || 1, vx = (c.cx - 540) / l * 1500;
-        trArmorCell(c, vx * a, 200 * a + 25000 * a * a, (hash(c.i * 3 + c.j) - .5) * 9 * a, 2.2);
-      }
-      // the raid charge going off in the middle: a short fireball, then dust that thins out by the end
-      const ra = (p - .56) * d;
-      if (ra > 0) {
-        const dk = seg(p, .56, .98), D = [];
-        for (let i = 0; i < 8; i++) { const ang = i / 8 * TAU + .3, dd = 120 + 520 * easeOut(dk); D.push([540 + Math.cos(ang) * dd, 980 + Math.sin(ang) * dd * .8 - 200 * dk, 160 + 120 * dk, mixCol('#8A8478', '#C9C0AE', dk)]); }
-        trPuffs(D, 230 * (1 - dk), null, 0, 'tr-raid', { curl: '#6E685E' });
-        if (ra < .2) trFireball(540, 980, 330 * easeOut(ra / .06), clamp(ra / .15), 1 - seg(ra, .08, .2), 'tr-raidf');
-      }
-      // a few bright cracks of light through the gaps as it breaks
-      if (crack > 0 && crumble <= .2) glow(540, 980, 500 * crack, '#FFB060', .4 * (1 - crumble * 5));
+// The middle grades at full-frame size, true to the game's walls: wood is planks with two nailed cross boards, stone is
+// chunky blocks in mortar, sheet metal is corrugated, bolted, rusty panels.
+function trWallGrade(g) {
+  const { x0, y0, w, h } = TR_WALL;
+  boilSeed('tr-grade' + g);
+  if (g === 1) {   // wood
+    for (let i = 0; i < 6; i++) { const px = x0 + i * w / 6; boilSeed('tr-plank' + i); paint(rectPts(px, y0, w / 6, h, 2), { wash: i % 2 ? '#B98A57' : '#AD7E4C', ink: PAL.ink, sw: 1.6 }); inkLine([[px + 50 + 30 * hash(i), y0 + 40], [px + 60 + 30 * hash(i), y0 + h - 40]], 1, '#8A6238', 'inkfine', .3); paint(ellPts(px + 100, 300 + 1300 * hash(i + 3), 16, 26, 10), { wash: '#7E5A36', ink: PAL.ink, sw: .6 }); }
+    for (const by of [360, 1500]) {
+      boilSeed('tr-board' + by); paint([[x0, by - 70], [x0 + w, by - 60], [x0 + w, by + 66], [x0, by + 58]], { wash: '#9E7044', ink: PAL.ink, sw: 2 });
+      inkLine([[x0 + 20, by - 20], [x0 + w - 20, by - 12]], 1, '#7E5630', 'inkfine', .3);
+      for (let i = 0; i < 6; i++) for (const dy of [-26, 26]) paint(ellPts(x0 + (i + .5) * w / 6, by + dy, 8, 8, 8), { wash: '#3A3632', ink: null });   // nail heads
     }
-    // the hammer: in from the lower right, four bonks, out again
-    const [mx, my] = [1010, 1590], imp = -.68, wind = .1;
-    if (p > .07 && p < .62) {
+  } else if (g === 2) {   // stone: chunky blocks in light mortar
+    paint(rectPts(x0, y0, w, h), { wash: '#8E8B84', ink: null });
+    for (let r = 0; r < 7; r++) {
+      const by = y0 + r * h / 7; let bx = x0 - (r % 2 ? 180 : 40);
+      for (let c = 0; bx < x0 + w; c++) {
+        const bw = 330 + 140 * hash(r * 7 + c), i = r * 7 + c, j = () => 7 * (hash(i * 3 + bx) - .5);
+        boilSeed('tr-stone' + i);
+        paint([[bx + 12 + j(), by + 12 + j()], [bx + bw - 12 + j(), by + 14 + j()], [bx + bw - 10 + j(), by + h / 7 - 12 + j()], [bx + 14 + j(), by + h / 7 - 10 + j()]], { wash: ['#A9ADB1', '#9EA2A6', '#B3B5B4', '#A2A49F'][i % 4], ink: PAL.ink, sw: 1.3 });
+        paint([[bx + 24, by + 24], [bx + bw * .6, by + 26], [bx + bw * .45, by + 70], [bx + 26, by + 74]], { wash: '#C2C4C4', washOp: 110, ink: null });   // the lit top face
+        if (hash(i + 50) < .35) inkLine([[bx + bw * .3, by + 20], [bx + bw * .36, by + 90], [bx + bw * .3, by + 150]], 1.2, '#5E6066', 'inkfine', 0);   // a crack
+        bx += bw;
+      }
+    }
+  } else {   // sheet metal: corrugated, bolted, rusty
+    for (let i = 0; i < 2; i++) {
+      const px = x0 + i * w / 2;
+      boilSeed('tr-sheet' + i); paint(rectPts(px, y0, w / 2 + 6, h, 2), { wash: i ? '#8F9AA4' : '#86919B', ink: PAL.ink, sw: 2 });
+      for (let x = px + 30; x < px + w / 2; x += 58) { paint(rectPts(x, y0, 18, h), { wash: '#B4BEC6', washOp: 150, ink: null }); paint(rectPts(x + 24, y0, 16, h), { wash: '#5E6872', washOp: 120, ink: null }); }   // the ribs
+    }
+    for (const [rx, ry, rw, rh] of [[120, 520, 260, 180], [700, 1180, 300, 240], [260, 1560, 200, 160], [880, 260, 180, 200]]) { boilSeed('tr-rust' + rx); paint(ellPts(rx, ry, rw / 2, rh / 2, 16, 8), { wash: '#9A5A36', washOp: 150, ink: null }); paint(ellPts(rx + 20, ry + 30, rw / 4, rh / 3, 12, 6), { wash: '#7A4228', washOp: 130, ink: null }); }
+    for (const by of [140, 960, 1790]) { boilSeed('tr-bolts' + by); paint(rectPts(x0, by - 22, w, 44), { wash: '#6E7882', ink: PAL.ink, sw: 1.2 }); for (let x = x0 + 30; x < x0 + w; x += 82) paint(ellPts(x, by, 11, 11, 8), { wash: '#C9D0D6', ink: PAL.ink, sw: .6 }); }
+  }
+}
+TRANS_FX.wallUpgrade = {
+  dur: .9, in: .7,
+  draw(p, d, o) {
+    // timed in seconds: tt from the start, sc scales the default (in .7, d .9: .63 s before the cut) to this one
+    const { x0, y0, w, h, hit } = TR_WALL, pre = d * o.in, post = d * (1 - o.in), s = trS(p, d, o), tt = s + pre, sc = pre / .63;
+    const steps = TR_WALL.steps.map(v => v * sc), HOLD = .045, BACK = .04;
+    let g = 0; for (const st of steps) if (tt >= st) g++;
+    const rise = steps[0] - .06 * sc;
+    if (g < 4) {
+      const off = (H + 2200) * (1 - easeOut(clamp(tt / rise)));   // the twig frame rises out of the ground
+      if (g) trWallGrade(g); else trTwigFrame(off);
+    } else {
+      const C = trWallCells(), crack = clamp(s / .06), out = 1 - seg(s, post - .09, post);
+      // the raid charge's dust, behind the chunks
+      if (s > 0) {
+        const dk = clamp(s / post), D = [];
+        for (let i = 0; i < 8; i++) { const ang = i / 8 * TAU + .3, dd = 120 + 520 * easeOut(dk); D.push([540 + Math.cos(ang) * dd, 980 + Math.sin(ang) * dd * .8 - 200 * dk, 160 + 120 * dk, mixCol('#8C8274', '#CFC4AE', dk)]); }
+        trPuffs(D, 230 * (1 - dk), null, 0, 'tr-raid', { curl: '#6E6658' });
+      }
+      if (s <= .04) { boilSeed('tr-wall-armor'); paint(rectPts(x0, y0, w, h), { wash: '#5E6670', ink: null }); }
+      for (const c of C) {   // blasted out from the middle and falling; they fade in the last frames
+        const dn = clamp(Math.hypot((c.cx - 540) * 1.5, c.cy - 960) / 1500), a = s - (.03 + .04 * dn);
+        if (a <= 0) { trArmorCell(c, 0, 0, 0, crack > dn ? 2.2 : 0); continue; }
+        const l = Math.hypot(c.cx - 540, c.cy - 960) || 1, vx = (c.cx - 540) / l * 2400, vy = (c.cy - 960) / l * 1400 + 300;
+        trArmorCell(c, vx * a, vy * a + 40000 * a * a, (hash(c.i * 3 + c.j) - .5) * 9 * a, 2.2, 255 * out);
+      }
+      if (s > 0 && s < .2) trFireball(540, 980, 330 * easeOut(s / .06), clamp(s / .15), 1 - seg(s, .08, .2), 'tr-raidf');
+      if (crack > 0 && s < .08) glow(540, 980, 500 * crack, '#FFB060', .4 * (1 - s / .08));   // light through the cracks
+    }
+    // the hammer: in during the rise, then four bonks. Each impact holds for a frame (HOLD) with the head on the hit,
+    // then it springs back up (BACK) and swings down again, so every bonk lands on a rendered frame.
+    const [mx, my] = [1010, 1590], imp = -.68, wind = .15, last = steps[3] + HOLD;
+    if (tt > .03 * sc && tt < last + .14) {
       let rot = wind, sq = 0;
-      const prev = steps.filter(s => s <= p).pop(), next = steps.find(s => s > p);
-      if (prev !== undefined && p - prev < .035) { rot = lerp(imp, wind, easeOut((p - prev) / .035)); sq = .25 * (1 - (p - prev) / .035); }
-      else if (next !== undefined) { const s0 = prev !== undefined ? prev + .035 : .14; rot = lerp(wind, imp, easeIn(seg(p, s0, next))); }
-      const slide = 900 * (1 - easeOut(seg(p, .07, .14))) + 900 * easeIn(seg(p, .53, .62));
+      const prev = steps.filter(st => st <= tt).pop(), next = steps.find(st => st > tt);
+      if (prev !== undefined && tt - prev < HOLD) { rot = imp; sq = .22 * (1 - (tt - prev) / HOLD); }
+      else if (prev !== undefined && tt - prev < HOLD + BACK) rot = lerp(imp, wind, easeOut((tt - prev - HOLD) / BACK));
+      else if (next !== undefined) { const s0 = Math.max(prev !== undefined ? prev + HOLD + BACK : 0, next - .07); rot = tt < s0 ? wind : lerp(wind, imp, easeIn((tt - s0) / (next - s0))); }
+      const slide = 900 * (1 - easeOut(clamp((tt - .03 * sc) / (.09 * sc)))) + 900 * easeIn(clamp((tt - last) / .14));
       trMallet(mx + slide * .7, my + slide, rot, sq);
     }
-    // the upgrade burst: sparkles flying off the hit, a ring of dust
-    steps.forEach((s, k) => {
-      const a = (p - s) * d; if (a < 0 || a > .16) return;
+    // the upgrade burst on each impact frame: sparkles off the hit, a puff of dust
+    steps.forEach((st, k) => {
+      const a = tt - st; if (a < 0 || a > .16) return;
       const kk = a / .16;
       glow(hit[0], hit[1], 130 * (1 - kk), '#FFF2C4', .5 * (1 - kk));
       for (let i = 0; i < 9; i++) {
@@ -697,11 +796,14 @@ TRANS_FX.wallUpgrade = {
   },
 };
 
-// ---------- demo loop: studio.html?ep=0&loop=transitions ----------
+// ---------- demo loops: studio.html?ep=0&loop=transitions ----------
+// transitions: all eight at their defaults; transitionsEp: the options the episodes use (ep1 rockSpin { in: .4 } and
+// sleepingBag { dur: .6, in: .35 }, ep2 doorSlam { dur: .6, in: .3 }, ep4 rockSpin { in: .3 }, ep5 heliFlyover { in: .3 }
+// and supplySmoke { in: .35 }). Cuts at 0.75 + 1.5 i s. The ...Key twins swap the backgrounds for flat magenta / green.
 (() => {
   const ORDER = ['rockSpin', 'doorSlam', 'garageDoor', 'c4Blast', 'supplySmoke', 'sleepingBag', 'heliFlyover', 'wallUpgrade'], SLOT = 1.5;
-  const DEMO = ORDER.map((name, i) => ({ t: SLOT / 2 + i * SLOT, name, o: {} }));
-  const side = t => DEMO.filter(e => t >= e.t).length % 2;
+  const EP = [['rockSpin', { in: .4 }], ['sleepingBag', { dur: .6, in: .35 }], ['doorSlam', { dur: .6, in: .3 }], ['rockSpin', { in: .3 }], ['heliFlyover', { in: .3 }], ['supplySmoke', { in: .35 }]];
+  const lists = { demo: ORDER.map((name, i) => ({ t: SLOT / 2 + i * SLOT, name, o: {} })), ep: EP.map(([name, o], i) => ({ t: SLOT / 2 + i * SLOT, name, o })) };
   const beach = t => {   // A: day on the beach
     rustSky(t, { horizon: 900, sun: [800, 330] });
     hills(t, { horizon: 900 });
@@ -720,7 +822,7 @@ TRANS_FX.wallUpgrade = {
   };
   const keyA = () => { boilSeed('tr-keyA'); paint(rectPts(-60, -60, W + 120, H + 120), { wash: '#FF00FF', ink: null }); };
   const keyB = () => { boilSeed('tr-keyB'); paint(rectPts(-60, -60, W + 120, H + 120), { wash: '#00FF00', ink: null }); };
-  const loop = bgs => t => { const sh = transShakeBegin(t, DEMO); bgs[side(t)](t); drawTransitions(t, DEMO); if (sh) pop(); };
-  LOOPS.transitions = loop([beach, base]); LOOPS.transitions.len = ORDER.length * SLOT;
-  LOOPS.transitionsKey = loop([keyA, keyB]); LOOPS.transitionsKey.len = ORDER.length * SLOT;
+  const loop = (L, bgs) => { const f = t => { const sh = transShakeBegin(t, L); bgs[L.filter(e => t >= e.t).length % 2](t); drawTransitions(t, L); if (sh) pop(); }; f.len = L.length * SLOT; return f; };
+  LOOPS.transitions = loop(lists.demo, [beach, base]); LOOPS.transitionsKey = loop(lists.demo, [keyA, keyB]);
+  LOOPS.transitionsEp = loop(lists.ep, [beach, base]); LOOPS.transitionsEpKey = loop(lists.ep, [keyA, keyB]);
 })();

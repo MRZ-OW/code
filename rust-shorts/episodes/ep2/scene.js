@@ -2,17 +2,18 @@
 // changes it from inside. The Naked's 1234 earns the mega-zap, and the owner takes his rock too. Shot list: SCRIPT.md.
 (() => {
   const G = 1300, U = 38, NK = 'naked', CH = 'chad', TOD = 1.15;
-  const DOOR = [490, 770, 780], DW = DOOR[1] - DOOR[0], DH = G - DOOR[2];   // door x0, x1, top (it hinges on its right edge)
-  const LOCK = [400, 1020], LS = .13;          // the code lock beside the door (bigLock at a small scale, so W matches K)
+  const DOOR = [410, 690, 780], DW = DOOR[1] - DOOR[0], DH = G - DOOR[2];   // door x0, x1, top (it hinges on its right edge)
+  const LOCK = [330, 1020], LS = .13;          // the code lock beside the door (bigLock at a small scale, so W matches K)
   const WALL_TOP = 560;                         // the wall's top edge: dusk sky above it
   const GLOVE = '#5A4A3A', SLEEVE = '#5F6B52', CUFF = '#8E908C';
-  const WX = 400, WY = 1020, WZ = 1.3;          // the wide shot's camera: him, the lock and the door
-  const NA = 305;                               // where he stands at the lock
-  const NX = 165;                               // where the big zap drops him, sitting
-  const RK = [212, G + 26];                     // his rock on the ground in front of him
-  const RD = [522, G - 14];                     // his rock at the door's foot after the mega zap
+  const WX = 400, WY = 1080, WZ = 1.2;          // the wide shot's camera: him, the lock and the door
+  const NA = 245;                               // where he stands at the lock
+  const NX = 150;                               // where the big zap drops him, sitting
+  const RK = [86, G + 4];                       // his rock on the ground behind him
+  const RD = [442, G - 14];                     // his rock at the door's foot after the mega zap
   const KCX = 468, KCY = 800, KS = 1.3;         // the keypad close-up's lock
   const SKIN = SKIN_TONES.light;
+  const SEAT = 1.8;                             // sitting on the ground: the rig's sit is chair height, so drop him this far (u)
   const sootSkin = s => mixCol(SKIN.col, '#77757C', .32 * s);                // matches survivor()'s ash tint
   const sootHair = s => mixCol(HAIR_COLS.brown, '#2B2724', .55 * s);
   const grade = (col, op) => { staticSeed('grade' + col); paint(rectPts(-2000, -2000, 5000, 6000), { wash: col, washOp: op, ink: null }); };
@@ -91,6 +92,9 @@
     if (open > .01 && o.gap) o.gap(gx1);
     doorPanel(gx1, G, ww, DH, 'armor', { hingeRight: true });   // just the leaf, narrowed (the room is painted above)
     lockAt(LOCK[0], LOCK[1], LS, { state: o.lock || 'locked', digits: o.digits || '', press: o.press, pressK: o.pressK });
+    // the LED lit at the wide's scale: red when locked, green when open, blazing red on a zap
+    const st = o.lock || 'locked', [lx, ly] = ledPos(LOCK[0], LOCK[1], LS), on = st !== 'error' || frac(T * 6) >= .5, col = st === 'open' ? '#6BF07E' : '#FF4A3A';
+    if (on) { glow(lx, ly, st === 'error' ? 70 : 28, col, st === 'error' ? 1 : .8); boilSeed('wled'); paint(ellPts(lx, ly, st === 'error' ? 5.5 : 4.2, st === 'error' ? 5.5 : 4.2, 10), { wash: st === 'open' ? '#B8FFC2' : '#FF8A7A', ink: null }); }
   }
   // the latch plate's centre on the leaf (doorPanel's layout), for a hand to push
   const plateAt = open => { const ww = DW * Math.max(.08, 1 - open), x0 = DOOR[1] - ww; return [x0 + ww * .11, DOOR[2] + DH * .505]; };
@@ -175,6 +179,25 @@
       const prev = O.draw;
       O.draw = (u, sw, V) => { const drop = clamp(O.crouch || 0) * 1.2 * u + clamp(O.sit || 0) * 2.05 * u; frizzBand(u, -10.85 * u + drop, 2.35 * u, sootHair(O.soot || 0)); frizzHalo(u, sw, { frizz: O.frizz, soot: O.soot || 0, hairCol: sootHair(O.soot || 0) }, 0, -10.85 * u + drop, 2.35 * u); if (prev) prev(u, sw, V); };
     }
+    const sk = clamp(((O.soot || 0) - .45) / .45);   // a hard char: more ash, a few darker scorch marks, skin between
+    if (sk > 0) {
+      const pu = O.under, pf = O.face;
+      O.under = (u, sw, V) => {
+        const drop = clamp(O.crouch || 0) * 1.2 * u + clamp(O.sit || 0) * 2.05 * u, f = V.torsoW || 1;
+        [[-1.05, -7.45, .62, '#55535B', 120], [.95, -6.75, .55, '#55535B', 120], [-.35, -5.95, .5, '#55535B', 110], [1.15, -7.95, .34, '#2E2C32', 120], [-1.35, -6.35, .3, '#2E2C32', 110], [.3, -7.2, .22, '#2E2C32', 100]].forEach(([px, py, r, c, op], i) => {
+          boilSeed('scorch' + i); const P = []; for (let j = 0; j < 10; j++) { const a = j / 10 * TAU, rr = r * u * (.7 + .45 * hash(i * 7.7 + j)); P.push([px * u * f + Math.cos(a) * rr * 1.3, py * u + drop + Math.sin(a) * rr * .8]); }
+          paint(P, { wash: c, washOp: op * sk, ink: null, curv: .5 });
+        });
+        if (pu) pu(u, sw, V);
+      };
+      O.face = (u, sw, V, head) => {
+        [[-.8, .22, .5, '#55535B', 120], [.75, .25, .42, '#55535B', 110], [.25, -.5, .36, '#55535B', 100], [-.55, -.52, .2, '#2E2C32', 110], [.95, .05, .18, '#2E2C32', 100]].forEach(([lon, lat, r, c, op], i) => {
+          const q = head.pt(lon, lat, 1); if (q[2] <= .08) return;
+          boilSeed('fscorch' + i); paint(ellPts(q[0], q[1], r * u * clamp(q[2] + .2, .4, 1), r * u * .75, 10, r * u * .2), { wash: c, washOp: op * sk, ink: null });
+        });
+        if (pf) pf(u, sw, V, head);
+      };
+    }
     spawnling(x, y, U, O);
   }
   // a hair-coloured band over the crown (under the redrawn frizz), so no outline from the hair cap shows through it
@@ -252,7 +275,7 @@
   function keypad(t, presses, o = {}) {
     staticSeed('kpbg'); paint(rectPts(-60, -60, W + 120, H + 120), { wash: mixCol('#A9ADB1', '#B49A92', clamp(TOD) * .35), ink: null });
     wall(-300, W + 300, -500, 2300, null, { rowH: 430, brick: 820, lw: 1.4, soft: true, key: 'k' });
-    const tp = typing(t, presses), state = o.state || (tp.digits.length ? 'entry' : 'locked');
+    const tp = typing(t, presses), state = o.state || 'locked';
     lockAt(KCX, KCY, KS, { digits: o.digits ?? tp.digits, press: tp.press, pressK: tp.pressK, state, pop: o.pop || 0 });
     // the fingertip: on a key while it's pressed, gliding to the next between presses, hovering above when up
     let i = presses.findIndex(([tq]) => tq > t); if (i < 0) i = presses.length;
@@ -301,7 +324,7 @@
     const rel = ease(seg(t, 2.55, 2.72)), back = seg(t, 2.6, 3.0), nx = NA - 95 * easeOut(back);
     const soot = .35 * clamp(a / .3), frizz = .75 * clamp(a / .08);
     const J = joltPose(t, NA, { soot, frizz, hold: { L: 'rock' }, armUp: .5 });
-    const dz = feel('dizzy', t), S = { aL: .1 + .3 * Math.sin(t * 9), bendL: .6, aR: -.2 - .3 * Math.sin(t * 9), bendR: .5, armKL: 1, armKR: 1 };
+    const dz = feel('dizzy', t), S = { aL: -.25 + .22 * Math.sin(t * 9), bendL: .6, aR: -.2 - .3 * Math.sin(t * 9), bendR: .5, armKL: 1, armKR: 1 };
     const O = { ...J };
     for (const k of ['aL', 'bendL', 'aR', 'bendR', 'armKL', 'armKR']) O[k] = lerp(J[k] ?? 1, S[k], rel);
     if (rel > 0) { O.dx = 0; O.eyes = rel < 1 ? 'wide' : 'swirl'; O.mouth = rel < 1 ? 'o' : 'wobble'; }
@@ -321,9 +344,9 @@
     camBegin(R1 + 40 / Z, hy + 100 / Z, Z);   // his head at about (500, 860) on screen
     set(t);
     const idea = t >= 3.6, waggle = Math.floor(t * 7) % 2;
-    const O = { soot: .35, frizz: .6, view: 'front', hold: { L: 'rock' }, aR: -1.2, bendR: .3, aL: -1.2, bendL: .3 };
+    const O = { soot: .35, frizz: .6, view: 'front', hold: { L: 'rock' }, aR: -1.2, bendR: .3, aL: -.95, bendL: .65 };
     if (!idea) Object.assign(O, { eyes: 'look', lookX: .35, lookY: -.9, mouth: 'flat' }, reachArm(U, O, 'R', .45 * U, -9.15 * U));   // fist on chin, eyes up
-    else Object.assign(O, { eyes: t < 3.8 ? 'shine' : waggle ? 'sly' : 'narrow', lookX: .01, mouth: 'grin', dy: -.3 * Math.exp(-(t - 3.6) * 8), aR: 1.2, bendR: .75, handR: fingerUp });   // eureka finger up at the bulb, then smug
+    else Object.assign(O, { eyes: t < 3.8 ? 'shine' : waggle ? 'sly' : 'happy', lookX: .01, mouth: 'grin', dy: -.3 * Math.exp(-(t - 3.6) * 8), aR: 1.2, bendR: .75, handR: fingerUp });   // eureka finger up at the bulb, then smug
     naked(R1, G, O);
     smoke(R1 - 10, tipsY(G, O), .7, t - 2.3, 'z1');
     const hx = R1, hc = headY(G, O);
@@ -346,14 +369,15 @@
       const [C, C2, aura] = bodyChain(NA, J, true); zapChain(t, C, aura, true); zapChain(t + .5, C2, [], true);
     } else {
       const k = seg(a, .6, .75), land = a >= .75, p = arcPt([NA, G], [NX, G], 110, k), age = a - .75;
-      const O = { view: 'q', soot: .9, frizz: 1, sit: land ? 1 : ease(k), legsOut: true, hold: {} };
-      if (!land) Object.assign(O, { eyes: 'x', mouth: 'o', rot: -.3 * Math.sin(k * Math.PI), aL: 1.2, bendL: .2, aR: 1.0, bendR: .3 });
+      const O = { view: 'q', soot: .9, frizz: 1, sit: land ? 1 : ease(k), legsOut: true, hold: {}, dy: SEAT * (land ? 1 : ease(k)), noShadow: true };
+      if (!land) Object.assign(O, { eyes: 'x', mouth: 'o', rot: -.3 * Math.sin(k * Math.PI), aL: 2.3, bendL: .3, aR: 2.0, bendR: .3 });
       else Object.assign(O, { eyes: (a > .95 && a < 1.0) || (a > 1.08 && a < 1.13) ? 'closed' : 'normal', lookX: .3, mouth: 'o', sq: .2 * Math.exp(-age * 9) * Math.cos(age * 20), aL: -1.0 - .3 * clamp(age / .15), bendL: .4, aR: -.9, bendR: .4 });
+      seatShadow(p[0], land ? 1 : .4 + .6 * k);
       naked(p[0], p[1], O);
       if (land) dust(NX - 10, G - 6, 44, age, 'land');
       smoke(p[0] - 6, tipsY(p[1], O), 1.1, a - .62, 'z2');
       // the rock leaves his raised hand and spins off on its own arc, landing beside him
-      const h0 = survivorHand(NA, G, U, J, 'L'), rl = seg(a, .6, .97), rk = 1 - (1 - rl) * (1 - rl) * .6 - (1 - rl) * .4, q = arcPt(h0, RK, 430, rk); q[0] += 300 * Math.sin(rk * Math.PI);
+      const h0 = survivorHand(NA, G, U, J, 'L'), rl = seg(a, .6, .97), rk = 1 - (1 - rl) * (1 - rl) * .6 - (1 - rl) * .4, q = arcPt(h0, RK, 430, rk); q[0] -= 40 * Math.sin(rk * Math.PI);
       rockAt(q[0], q[1], 2.6 * rk + 9 * rk * (1 - rk));
       if (a >= .97) dust(RK[0], RK[1], 22, a - .97, 'rockland', .5);
     }
@@ -362,16 +386,20 @@
   }
 
   // ---------- S2: the owner (6–13) ----------
+  // the contact shadow under someone sitting on the ground with legs out (q view, facing right)
+  const seatShadow = (x, k = 1) => { staticSeed('seatshadow'); paint(ellPts(x + 1.5 * U, G + 3, 3.4 * U * k, .42 * U * k, 20), { fill: PAL.ink, fillOp: 90 * k, bleed: .25, tex: .3, border: .1, ink: null }); };
   // the charred Naked, sitting slumped where the zap dropped him (q view, legs out), smoking
-  const charred = (t, o = {}) => ({ view: 'q', soot: .9, frizz: 1, sit: 1, legsOut: true, eyes: 'sleepy', mouth: 'flat', rot: .05, aL: -1.25, bendL: .25, aR: -1.05, bendR: .35, ...o });
+  const charred = (t, o = {}) => ({ view: 'q', soot: .9, frizz: 1, sit: 1, legsOut: true, dy: SEAT, noShadow: true, eyes: 'sleepy', mouth: 'flat', rot: .05, aL: -1.25, bendL: .25, aR: -1.05, bendR: .35, ...o });
+  // the dropped jaw: a long dark mouth hanging open through the beard, on the turned head (face hook)
+  const jawFace = k => (u, sw, V, head) => { const m = head.pt(0, .6, .97), h = (.25 + .62 * k) * u; boilSeed('jaw'); paint(ellPts(m[0], m[1] + h * .5, .36 * u, h * .6 + .12 * u, 16), { wash: '#4A1F2A', ink: PAL.ink, sw: sw * .6 }); };
   // 2A wide: he sits charred in the left foreground; the Chad walks in past him to the lock without a glance and
   // raises a finger to the keypad (7.75)
   function s2a(t, lt) {
     camBegin(WX, WY, WZ);
     set(t);
-    const k = seg(t, 6.0, 7.5), cx = lerp(900, 535, k);
+    const k = seg(t, 6.0, 7.5), cx = lerp(880, 465, k);
     const N = charred(t, { lookX: .7 });
-    naked(NX, G, N); rockAt(...RK);
+    seatShadow(NX); naked(NX, G, N); rockAt(...RK);
     smoke(NX - 6, tipsY(G, N), 1.1, t - 5.62, 'z2');
     const O = { view: 'q', flip: true, walk: k < 1 ? (t - 6) * 1.0 : 0, aL: -1.3, aR: -1.3 + .08 * Math.sin((t - 6) * TAU), dy: k < 1 ? -.15 * Math.abs(Math.sin((t - 6) * TAU)) : 0 };
     const rk = ease(seg(t, 7.55, 7.8));
@@ -385,17 +413,13 @@
   // 2C reaction close-up (chest up): his eyes go wide (10.3), the jaw drops on the slide whistle (10.42–10.72) and
   // lands on the thunk; a pale flake of ash drifts down from his singed hair
   function s2c(t, lt) {
-    const Z = 3.4, hy = headY(G, { sit: 1 });
+    const Z = 3.4, hy = headY(G, { sit: 1, dy: SEAT });
     camBegin(NX + 2, hy + 140 / Z, Z);
     set(t, { lock: 'open' });
     const drop = ease(seg(t, 10.42, 10.72)), bump = t > 10.72 ? .1 * Math.exp(-(t - 10.72) * 10) * Math.sin((t - 10.72) * 40) : 0;
-    const N = charred(t, { eyes: t < 10.3 ? 'normal' : 'wide', lookX: .6, mouth: drop > .05 ? null : 'o', rot: .02, dy: .12 * drop });
-    N.draw = (u, sw, V) => {   // the dropped jaw: a long dark mouth hanging open through the beard
-      if (drop <= .05) return;
-      const hcy = -10.85 * u + 2.05 * u, mx = 1.05 * u, my = hcy + 1.35 * u, h = (.25 + .62 * (drop + bump)) * u;
-      boilSeed('jaw'); paint(ellPts(mx, my + h * .5, .36 * u, h * .6 + .12 * u, 16), { wash: '#4A1F2A', ink: PAL.ink, sw: sw * .6 });
-    };
-    naked(NX, G, N); rockAt(...RK);
+    const N = charred(t, { eyes: t < 10.3 ? 'normal' : 'wide', lookX: .6, mouth: drop > .05 ? null : 'o', rot: .02, dy: SEAT + .12 * drop });
+    if (drop > .05) N.face = jawFace(drop + bump);
+    seatShadow(NX); naked(NX, G, N); rockAt(...RK);
     smoke(NX - 6, tipsY(G, N), 1.1, t - 5.62, 'z2');
     if (t > 10.45) { const k = seg(t, 10.45, 11.0); boilSeed('ash'); paint(ellPts(NX - 30 + 14 * Math.sin(k * 8), hy - 2.9 * U + k * 150, 8, 5, 8, 1, Math.sin(k * 9)), { wash: '#E8E4E0', ink: '#8E8A90', sw: .5 }); }
     dusk();
@@ -407,14 +431,14 @@
     camBegin(WX, WY, WZ);
     const open = ease(seg(t, 11.2, 11.5)) * (1 - ease(seg(t, 12.3, 12.5)));
     const inK = seg(t, 11.65, 12.45), stepK = seg(t, 11.0, 11.22);
-    const cx = lerp(535, 630, ease(stepK)), view = t < 11.08 ? 'q' : t < 11.16 ? 'side' : 'back';
+    const cx = lerp(465, 552, ease(stepK)), view = t < 11.08 ? 'q' : t < 11.16 ? 'side' : 'back';
     const O = { view, flip: view !== 'back', aL: -1.3, aR: -1.3, walk: stepK > 0 && stepK < 1 ? (t - 11.0) * 3 : inK > 0 ? (t - 11.65) * 1.4 : 0 };
-    if (t < 11.08) { const k = 1 - ease(seg(t, 11.0, 11.08)), R = reachArm(U, O, 'L', ...toBody(535, G, U, O, LOCK[0] + 30, LOCK[1] - 2)); O.aL = lerp(-1.3, R.aL, k); O.bendL = lerp(.2, R.bendL, k); O.armKL = lerp(1, R.armKL, k); O.finger = k > .3; }
+    if (t < 11.08) { const k = 1 - ease(seg(t, 11.0, 11.08)), R = reachArm(U, O, 'L', ...toBody(465, G, U, O, LOCK[0] + 30, LOCK[1] - 2)); O.aL = lerp(-1.3, R.aL, k); O.bendL = lerp(.2, R.bendL, k); O.armKL = lerp(1, R.armKL, k); O.finger = k > .3; }
     else if (t < 11.5) { const k = ease(seg(t, 11.12, 11.2)) * (1 - ease(seg(t, 11.36, 11.5))), pl = plateAt(Math.min(open, .1)), R = reachArm(U, O, 'L', ...toBody(cx, G, U, O, pl[0], pl[1])); O.aL = lerp(-1.3, R.aL, k); O.bendL = lerp(.2, R.bendL, k); O.armKL = lerp(1, R.armKL, k); }
     const drawChad = () => chad(cx + 6 * inK, G - 14 * inK, { ...O, sx: 1 - .15 * inK, sy: 1 - .15 * inK, noShadow: inK > 0 });
     set(t, { open, lock: t < 12.5 ? 'open' : 'locked', shade: 170 * inK, inside: inK > 0 && t < 12.5 ? drawChad : null });
-    const N = charred(t, { eyes: 'wide', lookX: .8, mouth: 'o', rot: .02 });
-    naked(NX, G, N); rockAt(...RK);
+    const N = charred(t, { eyes: 'wide', lookX: .8, mouth: null, rot: .02, face: jawFace(1) });
+    seatShadow(NX); naked(NX, G, N); rockAt(...RK);
     smoke(NX - 6, tipsY(G, N), 1.1, t - 5.62, 'z2');
     if (inK <= 0) drawChad();
     dusk();
@@ -426,7 +450,7 @@
   // under his arm, smirks at us and cracks his knuckles (15.0). Behind him the door opens a crack (13.6): the Chad's
   // eyes peer out of the dark gap, his arm reaches out to the lock and re-keys it with four taps, and withdraws; the
   // door shuts (15.4). He notices nothing.
-  const X3 = 365, Y3 = 1038, Z3 = 1.2;
+  const X3 = 364, Y3 = 1049, Z3 = 1.12;
   function s3a(t, lt) {
     camBegin(X3, Y3, Z3);
     const crack = ease(seg(t, 13.6, 13.8)) * (1 - ease(seg(t, 15.2, 15.4))), open = .15 * crack;
@@ -441,17 +465,17 @@
     // him: up (13.0–13.4), the rock into his left hand; dusting with the right (13.4–14.5); rock under the arm (14.55);
     // the smirk (14.65); knuckles (15.0–15.45)
     const up = ease(seg(t, 13.0, 13.4)), dk = ease(seg(t, 13.2, 14.6)), soot = lerp(.9, .2, dk), frizz = lerp(1, .25, dk);
-    const O = { view: 'front', soot, frizz, sit: 1 - up, legsOut: false, aL: -1.15, bendL: .35, aR: -1.15, bendR: .35, eyes: 'closed', mouth: 'smile' };
-    if (t < 13.3) { Object.assign(O, reachArm(U, O, 'R', ...toBody(NX, G, U, O, RK[0] - 6, RK[1] - 16))); if (t >= 13.22) O.hold = { R: 'rock' }; }
-    else if (t < 14.55) O.hold = { R: 'rock' };
-    const rockUnder = (u, sw) => { push(); translate(1.35 * u, -6.5 * u); rotate(-.4); rockProp(u * .8, sw); pop(); };
+    const O = { view: 'front', soot, frizz, crouch: 1 - up, aL: -1.15, bendL: .35, aR: -1.15, bendR: .35, eyes: 'closed', mouth: 'smile' };
+    if (t < 13.3) { Object.assign(O, reachArm(U, O, 'L', ...toBody(NX, G, U, O, RK[0] + 12, RK[1] - 16))); if (t >= 13.22) O.hold = { L: 'rock' }; }
+    else if (t < 14.55) O.hold = { L: 'rock' };
+    const rockUnder = (u, sw) => { push(); translate(-1.35 * u, -6.5 * u); rotate(.4); scale(-1, 1); rockProp(u * .8, sw); pop(); };
     if (t < 13.22) rockAt(...RK);
-    const pats = [13.2, 13.5, 13.8, 14.1, 14.4], spots = [[-.7, -6.9], [.3, -5.7], [-.9, -3.6], [1.3, -7.3], [-.4, -6.0]];
+    const pats = [13.2, 13.5, 13.8, 14.1, 14.4], spots = [[.7, -6.9], [-.3, -5.7], [.9, -3.6], [-1.3, -7.3], [.4, -6.0]];
     let pi = -1; for (let i = 0; i < pats.length; i++) if (t >= pats[i] - .15) pi = i;
-    if (t >= 13.3 && t < 14.6 && pi >= 0) {   // the left hand pats each spot, landing on the puff
+    if (t >= 13.3 && t < 14.6 && pi >= 0) {   // the right hand pats each spot, landing on the puff
       const tp = pats[pi], hit = 1 - Math.abs(clamp((t - tp) / .15, -1, 1)), [sx, sy] = spots[pi];
-      Object.assign(O, reachArm(U, O, 'L', (sx - .35 + .35 * hit) * U, (sy - .6 * (1 - hit)) * U));
-      Object.assign(O, reachArm(U, O, 'R', (1.9 + .15 * Math.sin(t * 20)) * U, (-5.2 + .2 * Math.sin(t * 20)) * U));
+      Object.assign(O, reachArm(U, O, 'R', (sx + .35 - .35 * hit) * U, (sy - .6 * (1 - hit)) * U));
+      Object.assign(O, reachArm(U, O, 'L', (-1.9 - .15 * Math.sin(t * 20)) * U, (-5.2 + .2 * Math.sin(t * 20)) * U));
     }
     if (t >= 14.55) {
       O.under = rockUnder; O.eyes = t < 14.65 ? 'closed' : 'sly'; O.lookX = .01; O.mouth = 'grin';
@@ -503,11 +527,11 @@
       for (let i = 0; i < 3; i++) { const an = -2.2 + i * .9 + .3 * hash(f + i); bolt(LOCK[0], LOCK[1], LOCK[0] + Math.cos(an) * 120, LOCK[1] + Math.sin(an) * 120, 90 + i + f * 4, { w: .7, forks: 2 }); }   // the lock crackles
     } else {
       dust(NA, G - 6, 50, t - 18.25, 'blast', .6);
-      puff(NA, G - 6 * U, 54, t - 18.25, { col: '#CFCBD3', noInk: true, life: .6, key: 'launchsmoke', n: 6, rise: .8 });
+      if (!skel) puff(NA, G - 6 * U, 54, t - 18.25, { col: '#CFCBD3', noInk: true, life: .6, key: 'launchsmoke', n: 6, rise: .8 });
       const k = seg(t, 18.25, 18.72);
       if (k < 1) {   // launched: one arc up and out to the top left, spinning, at a steady size
-        const c = arcPt([NA, G - 6.5 * U], [-170, -320], 200, easeIn(k) * .35 + k * .65), rot = -k * 6, p = [c[0] - 6.5 * U * Math.sin(rot), c[1] + 6.5 * U * Math.cos(rot)];   // it spins round his middle
-        const vx = -475, vy = -1373, vl = Math.hypot(vx, vy);
+        const c = arcPt([NA, G - 6.5 * U], [60, -380], 200, easeIn(k) * .35 + k * .65), rot = -k * 6, p = [c[0] - 6.5 * U * Math.sin(rot), c[1] + 6.5 * U * Math.cos(rot)];   // it spins round his middle
+        const vx = -185, vy = -1433, vl = Math.hypot(vx, vy);
         boilSeed('speed');
         for (let i = 0; i < 5; i++) { const off = (i - 2) * 22, L = 130 + 40 * hash(i), bx = c[0] - vy / vl * off - vx / vl * 90, by = c[1] + vx / vl * off - vy / vl * 90; inkLine([[bx, by], [bx - vx / vl * L, by - vy / vl * L]], 1.4, '#F4EEE6', 'ink', 0); }
         const O = { view: 'front', soot: .9, frizz: 1, eyes: 'x', mouth: 'o', rot, aL: 1.3, bendL: .1, aR: 1.2, bendR: .2, liftL: .6, liftR: .3, noShadow: true };
@@ -527,7 +551,7 @@
   // arm reaches out from behind the door's edge, grabs it (21.0) and pulls it back in behind the door; it shuts (21.8)
   function s3e(t, lt) {
     const Z = 2.3;
-    camBegin(540, G - 90 / Z, Z);
+    camBegin(460, G - 90 / Z, Z);
     const open = ease(seg(t, 20.2, 20.45)) * (1 - ease(seg(t, 21.6, 21.8))) * .25;
     const out = ease(seg(t, 20.5, 20.9)), back = ease(seg(t, 21.05, 21.5)), has = t >= 20.98;
     set(t, {
@@ -549,24 +573,25 @@
   // the rock and pats the empty ground twice (22.8, 23.2)
   function s3f(t, lt) {
     const Z = 2.6;
-    camBegin(510, G - 60 / Z, Z);
+    camBegin(430, G - 60 / Z, Z);
     set(t, { lock: 'locked' });
-    const inK = easeOut(seg(t, 22.5, 22.78)), lift = t < 23.0 ? Math.sin(seg(t, 22.62, 22.8) * Math.PI) : Math.sin(seg(t, 23.0, 23.2) * Math.PI);
-    const slap1 = t - 22.8, slap2 = t - 23.2, sq = Math.max(t >= 22.8 ? Math.exp(-slap1 * 14) : 0, t >= 23.2 ? Math.exp(-slap2 * 14) : 0);
-    const wx = lerp(320, 480, inK) + 8 * Math.sin(t * 3) * seg(t, 23.3, 23.6), wy = G + 22 - 26 * lift;
+    const inK = easeOut(seg(t, 22.5, 22.68)), lift = [22.8, 23.2].reduce((m, tp) => Math.max(m, easeOut(seg(t, tp - .2, tp - .08)) * (1 - Math.pow(seg(t, tp - .05, tp), 2))), 0);   // lift high, hang, slap down
+    const slap1 = t - 22.8, slap2 = t - 23.2, sq = Math.max(t >= 22.8 ? Math.exp(-slap1 * 12) : 0, t >= 23.2 ? Math.exp(-slap2 * 12) : 0);
+    const wx = lerp(240, 400, inK) + 8 * Math.sin(t * 3) * seg(t, 23.3, 23.6), wy = G + 22 - 30 * lift;
     const ch = sootSkin(.9), dk = mixCol(SKIN.dk, '#4A484E', .3), sw = 1.3;
     // the arm: thin, from below the frame's lower-left corner to the wrist
-    boilSeed('chararm'); paint(ribbon([[240, G + 240], [wx - 70, wy + 30], [wx - 8, wy + 4]], 1.0 * U, .8 * U), { wash: ch, ink: PAL.ink, sw });
+    boilSeed('chararm'); paint(ribbon([[160, G + 240], [wx - 70, wy + 30], [wx - 8, wy + 4]], 1.0 * U, .8 * U), { wash: ch, ink: PAL.ink, sw });
     for (let i = 0; i < 3; i++) { boilSeed('armsoot' + i); paint(ellPts(wx - 50 - i * 34, wy + 26 + i * 22, 9, 5, 9, 2), { wash: '#3E3D43', washOp: 120, ink: null }); }
     // the hand, palm down: the back of the hand, four fingers spread toward the door, the thumb tucked in
     boilSeed('charhand');
-    push(); translate(wx, wy); rotate(-.32); scale(1 + .12 * sq, 1 - .2 * sq + .08 * lift);
-    for (let f = 0; f < 4; f++) { const fy = (-.48 + f * .32) * U, len = (f === 1 || f === 2 ? .95 : .8) * U * (1 - .25 * lift); paint(rrPts(.5 * U, fy - .13 * U, len + .2 * U, .27 * U, .13 * U), { wash: ch, ink: PAL.ink, sw: sw * .7 }); }
+    push(); translate(wx, wy); rotate(-.32 - .35 * lift); scale(1 + .3 * sq, 1 - .4 * sq + .1 * lift);
+    for (let f = 0; f < 4; f++) { const fy = (-.48 + f * .32) * U, len = (f === 1 || f === 2 ? .95 : .8) * U * (1 - .55 * lift); paint(rrPts(.5 * U, fy - .13 * U, len + .2 * U, .27 * U, .13 * U), { wash: ch, ink: PAL.ink, sw: sw * .7 }); }
     paint(rrPts(-.45 * U, -.62 * U, 1.15 * U, 1.18 * U, .4 * U), { wash: ch, ink: PAL.ink, sw });
     paint(ribbon([[.05 * U, -.5 * U], [.45 * U, -.85 * U]], .3 * U, .24 * U), { wash: ch, ink: PAL.ink, sw: sw * .7 });   // thumb
     paint(ellPts(.1 * U, .05 * U, .3 * U, .2 * U, 9, 2), { wash: '#3E3D43', washOp: 110, ink: null });   // soot on the back of the hand
     for (let f = 0; f < 3; f++) inkLine([[.42 * U, (-.32 + f * .32) * U], [.55 * U, (-.32 + f * .32) * U]], .6, dk, 'inkfine', 0);   // knuckles
     pop();
+    for (const [age, k] of [[slap1, 'pat1'], [slap2, 'pat2']]) if (age >= 0 && age < .12) for (const a of [-2.4, -1.6, -.8]) { boilSeed('slap' + k + a); inkLine([[wx + 30 + Math.cos(a) * 52, wy + Math.sin(a) * 40], [wx + 30 + Math.cos(a) * 80, wy + Math.sin(a) * 62]], 1.2, PAL.ink, 'ink', 0); }
     for (const [age, k] of [[slap1, 'pat1'], [slap2, 'pat2']]) puff(wx + 30, wy + 18, 15, age, { col: '#D9CFBC', noInk: true, life: .4, key: k, rise: .3, n: 6 });
     smoke(wx - 10, wy - 34, .55, t - 22.5, 'hand', { op: 140, life: 1.3 });
     dusk();

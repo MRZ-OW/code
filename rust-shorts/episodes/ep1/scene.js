@@ -390,7 +390,7 @@
     paint([[590, 1068], [690, 1016], [800, 990], [920, 994], [1040, 1030], [1120, 1066], [1120, 1078], [590, 1080]], { wash: '#E2BE8C', ink: null, curv: .5 });
     paint([[660, 1046], [770, 1024], [900, 1025], [1040, 1046], [1090, 1068], [640, 1072]], { wash: '#C99C6A', washOp: 170, ink: null, curv: .5 });   // the shaded face toward us
     paint([[690, 1018], [800, 993], [915, 997], [860, 1009], [750, 1013]], { wash: '#FBEACB', ink: null, curv: .5 });   // the crest, lit from behind
-    inkLine([[630, 1052], [700, 1016], [800, 991], [920, 995], [1010, 1022], [1070, 1046]], 1.1, '#6E5240', 'ink', .4);
+    inkLine([[690, 1017], [800, 991], [920, 995], [985, 1009]], .6, '#B98E5E', 'ink', .4);   // only the lit crest, in a sand shade (a dark full-length line read as a stick)
     for (const [gx, gs] of [[720, 1], [940, .8], [985, 1.1]]) { boilSeed('dunegrass' + gx); const gy = gx < 800 ? 1012 : 1000 + (gx - 920) * .35; for (let i = -2; i <= 2; i++) inkLine([[gx + i * 4, gy], [gx + i * 7 * gs, gy - (12 + 5 * (2 - Math.abs(i))) * gs]], .8, '#7A7A4A', 'ink', .3); }
     if (shot) { notePop(FX + 62, FY - 15.8 * fu, 1.1, t - 24.5); puff(FX + 12, FY - 6, 24, t - 24.6, { col: '#F2DDB8', key: 'sand' }); }
     if (t > 24.55) { const k = seg(t, 24.55, 25), p = arcPt([FX + 12, FY - 3 * fu], [FX + 66, FY + 26], 80, k); if (k < 1) { boilSeed('flyrock'); push(); translate(p[0], p[1]); rotate(k * 9); rockProp(11, 1); pop(); } }

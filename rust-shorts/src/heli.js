@@ -325,14 +325,16 @@ function patrolHeli(x, y, s = 1, o = {}) {
   part(dep([-10, -50, -106]), () => pod(-1));
   part(dep([-10, -50, 106]), () => pod(1));
 
-  // skids and their cross tubes
+  // skids and their cross tubes. Seen from the front or below, the struts are drawn about half as long (skL), so the skids
+  // sit close under the belly as in the game shots instead of splaying out like a lander's legs; the profile is unchanged.
+  const skL = 26 * clamp((C.se - .12) / .25);
   const skid = sz => {
-    bs('skid' + sz); const P = [[-112, -118, 66 * sz], [146, -118, 66 * sz], [164, -114, 66 * sz], [176, -104, 66 * sz], [182, -96, 66 * sz]];
+    bs('skid' + sz); const P = [[-112, -118 + skL, 66 * sz], [146, -118 + skL, 66 * sz], [164, -114 + skL, 66 * sz], [176, -104 + skL, 66 * sz], [182, -96 + skL, 66 * sz]];
     paint(ribbon(P.map(p2), 11, 10), { wash: K(sz > 0 ? '#3E444A' : HELI.metal), ink: PAL.ink, sw: sw * .55 });
   };
   const tubes = sz => { for (const X of [-62, 82]) {
     bs('tube' + sz + X); const b = hStation(HCAB, X)[1];
-    paint(ribbon([[X, -118, 66 * sz], [X, -101, 64 * sz], [X, b - 3, 46 * sz], [X, b + 1, 20 * sz], [X, b + 2, 0]].map(p2), 8.5, 8), { wash: K(sz > 0 ? '#3E444A' : HELI.metal), ink: PAL.ink, sw: sw * .45 });
+    paint(ribbon([[X, -118 + skL, 66 * sz], [X, -101 + skL, 64 * sz], [X, b - 3, 46 * sz], [X, b + 1, 20 * sz], [X, b + 2, 0]].map(p2), 8.5, 8), { wash: K(sz > 0 ? '#3E444A' : HELI.metal), ink: PAL.ink, sw: sw * .45 });
   } };
   part(dep([120, -112, -66]), () => skid(-1));
   part(dep([120, -112, 66]), () => skid(1));
