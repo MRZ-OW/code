@@ -99,12 +99,15 @@ const U1 = (u, P, k = 1) => P.map(([a, b]) => [a * u * k, b * u]);
 // How a foot sits: profile shape or front mound, and its rotation about the ankle. Shared by the drawing and footLocal.
 function svFootPose(V, o, st, hk, ck, swing, kx, ky, ax, ay) {
   const shinA = Math.atan2(ay - ky, ax - kx);
-  if (V.side && o.legsOut && st > .5) return { prof: true, rot: shinA - 1.4 };   // heel down, toes up
+  if (V.side && o.legsOut && st > .5) return { prof: true, rot: shinA - 1.0 };   // heel down, toes up but laid over a little (straight up, the two feet read as prongs)
   if (V.side && hk > .3) return { prof: true, rot: shinA - Math.PI / 2 };       // sole up, toes down behind him
   if (V.side) return { prof: true, rot: swing * .3 };
   if (ck > .3) return { prof: true, rot: .25 };                                 // the hurt foot, held up
   return { prof: false, rot: 0 };
 }
+// Crouched in 3/4 or profile, both legs bend forward from near the middle and merge into one shape: the far leg (i 1)
+// kneels a little further forward, so its knee and shin show past the near one (its own shade and outline separate them).
+const svStagger = (V, i, crouch, u) => V.side && i === 1 ? .55 * u * clamp(crouch * 1.6) : 0;
 // The middle of the foot (local), rotated into the body frame: what footLocal returns.
 function svFootMid(pose, side, u) {
   const m = pose.prof ? [.3 * u, .05 * u] : [side * .06 * u, .05 * u], c = Math.cos(pose.rot), s = Math.sin(pose.rot);
@@ -207,6 +210,7 @@ function survivor(x, y, u, o = {}) {
     }
     const ck = clamp(i === 0 ? o.clutchL || 0 : o.clutchR || 0);
     if (ck > 0) [kx, ky, ax, ay] = clutchLeg(u, hx, hy, ck, kx, ky, ax, ay, V.side);
+    const stag = svStagger(V, i, crouch, u); kx += stag; ax += stag;
     const col = far ? mixCol(legC, SB.dk, .45) : st > .5 ? mixCol(legC, SB.dk, .55) : legC;   // seated legs sit in the body's shade
     if (gear.pants || suit) {
       const pc0 = suit || (gear.pantsCol || '#3D4248'), pc = far ? svShade(pc0, .14) : pc0;
@@ -285,13 +289,23 @@ function survivor(x, y, u, o = {}) {
         pop();
         return;
       }
-      // an open palm, fingers spread along the forearm, thumb out to the side
-      const fa = Math.atan2(d2[1], d2[0]);
+      // an open palm, fingers spread along the forearm, thumb out to the side: ONE silhouette with one outline (inking
+      // each finger and the palm separately piles up outlines that turn a small hand into a black blob). Small hands are a
+      // mitten: the four fingers as one rounded block, the thumb out.
+      const fa = Math.atan2(d2[1], d2[0]), mitten = u < 24, ts = sideSign;
+      const H = [[-.42, .43], [.42, .43]];
+      const thumb = sd => sd > 0 ? [[.5, .12], [.8, .0], [.88, -.1], [.8, -.2], [.5, -.16]] : [[-.5, -.16], [-.8, -.2], [-.88, -.1], [-.8, .0], [-.5, .12]];
+      H.push([.5, .3]); if (ts > 0) H.push(...thumb(1)); H.push([.48, -.32]);
+      if (mitten) H.push([.42, -.78], [.2, -.9], [-.2, -.9], [-.42, -.78]);
+      else for (let f = 3; f >= 0; f--) {
+        const fx = -.36 + f * .24, tip = -.25 - (f === 1 || f === 2 ? .62 : .5);
+        if (f < 3) H.push([fx + .12, -.4]);   // the valley between two fingers
+        H.push([fx + .1, tip + .08], [fx + .05, tip], [fx - .05, tip], [fx - .1, tip + .08]);
+      }
+      H.push([-.48, -.32]); if (ts < 0) H.push(...thumb(-1)); H.push([-.5, .3]);
       push(); translate(hx, hy); rotate(fa + Math.PI / 2);
-      for (let f = 0; f < 4; f++) { const fx = (-.36 + f * .24) * u, len = (f === 1 || f === 2 ? .62 : .5) * u; paint(rrPts(fx - .1 * u, -.25 * u - len, .2 * u, len + .2 * u, .1 * u), { wash: kind === 'burlap' && f !== 1 && f !== 2 ? fingers : hc, ink: PAL.ink, sw: sw * .55 }); }
-      paint(rrPts(-.5 * u, -.42 * u, 1.0 * u, .85 * u, .3 * u), { wash: hc, ink: PAL.ink, sw: sw * .65 });
-      paint(rrPts(.36 * u * sideSign - .1 * u, -.15 * u, .5 * u, .2 * u, .1 * u), { wash: hc, ink: PAL.ink, sw: sw * .5 });
-      paint(rrPts(-.44 * u, -.36 * u, .88 * u, .5 * u, .25 * u), { wash: hc, ink: null });   // cover the finger roots
+      paint(H.map(([a, b]) => [a * u, b * u]), { wash: hc, ink: PAL.ink, sw: sw * (mitten ? .5 : .55) });
+      if (kind === 'burlap' && !mitten) for (const f of [0, 3]) { const fx = (-.36 + f * .24) * u; paint(rrPts(fx - .07 * u, -.7 * u, .14 * u, .25 * u, .06 * u), { wash: fingers, ink: null }); }   // bare fingertips out of the fingerless glove
       pop();
     };
     // cuffs on the forearm (before the hook, so a held prop sits over them)
@@ -354,7 +368,8 @@ function survivor(x, y, u, o = {}) {
 
   // ---------- torso ----------
   rs('torso');
-  const torso = [[-tw * .88, wy + .1 * u], [tw * .88, wy + .1 * u], [tw * .98, wy - 1.4 * u], [tw, shY + .55 * u], [tw * .78, shY], [-tw * .78, shY], [-tw, shY + .55 * u], [-tw * .98, wy - 1.4 * u]];
+  // round shoulders (a square corner showed past the 3/4 view's round shoulder cap)
+  const torso = [[-tw * .88, wy + .1 * u], [tw * .88, wy + .1 * u], [tw * .98, wy - 1.4 * u], [tw, shY + .62 * u], [tw * .95, shY + .22 * u], [tw * .8, shY + .02 * u], [-tw * .8, shY + .02 * u], [-tw * .95, shY + .22 * u], [-tw, shY + .62 * u], [-tw * .98, wy - 1.4 * u]];
   const topCol = suit || (gear.hoodie ? (gear.hoodieCol || '#A8382E') : SB.col);
   paint(torso, { wash: topCol, ink: PAL.ink, sw: sw * .9, curv: .2 });
   if (!gear.hoodie && !suit && !V.back) {   // a little anatomy so it reads as a bare chest
@@ -451,9 +466,14 @@ function reachArm(u, o, which, tx, ty, elbowDown = true) {
   const dx = (tx - sx) * sideSign, dy = -(ty - sy), D = Math.hypot(dx, dy), ak = clamp(D / (3.6 * u * .97), 1, 1.3);   // out of reach: the arm stretches (up to 30%)
   const L1 = 1.85 * u * ak, L2 = 1.75 * u * ak, d = clamp(D, .2 * u, (L1 + L2) * .999);
   const th = Math.atan2(dy, dx), phi = Math.acos(clamp((L1 * L1 + d * d - L2 * L2) / (2 * L1 * d), -1, 1));
-  // elbow down means below the shoulder-hand line in the picture: for a target across the body or behind the shoulder
-  // (dx < 0) that's the other solution, or a hand reaching across the chest gets its elbow cocked up over the shoulder
-  const a = th + ((elbowDown !== (dx < 0)) ? -phi : phi), ex = L1 * Math.cos(a), ey = L1 * Math.sin(a), a2 = Math.atan2(dy * d / (D || 1) - ey, dx * d / (D || 1) - ex);
+  // Which of the two elbows. 3/4 and profile (+x forward): elbowDown = the elbow below the shoulder-hand line reaching
+  // forward, back behind him reaching back. Front, qf and back (+x = out from the body): the elbow that sits out and down
+  // (the larger of x - .35y), so a hand across the chest, on the belly or near the hip keeps its elbow down and out at
+  // his side instead of cocked up over the shoulder or crossed inward over the body. That choice only flips where both
+  // solutions mirror each other about an out-and-slightly-down line, which a bent arm rarely crosses, so it doesn't pop.
+  const outDown = q => Math.cos(q) - .35 * Math.sin(q);
+  const lo = V.side ? true : outDown(th - phi) >= outDown(th + phi);
+  const a = th + ((lo === elbowDown) ? -phi : phi), ex = L1 * Math.cos(a), ey = L1 * Math.sin(a), a2 = Math.atan2(dy * d / (D || 1) - ey, dx * d / (D || 1) - ex);
   return which === 'L' ? { aL: a, bendL: a - a2, armKL: ak } : { aR: a, bendR: a - a2, armKR: ak };
 }
 
@@ -485,6 +505,7 @@ function footLocal(u, o, i) {
   }
   const ck = clamp(i === 0 ? o.clutchL || 0 : o.clutchR || 0);
   if (ck > 0) [kx, ky, ax, ay] = clutchLeg(u, hx, hipY, ck, kx, ky, ax, ay, V.side);
+  const stag = svStagger(V, i, crouch, u); kx += stag; ax += stag;
   const m = svFootMid(svFootPose(V, o, st, hk, ck, swing, kx, ky, ax, ay), side, u);
   return [ax + m[0], ay + m[1]];
 }

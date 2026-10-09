@@ -487,7 +487,7 @@
       // rock under his left arm; then (14.85–15.0) the hands meet in the middle, fingers interlaced, elbows out, and
       // squeeze down on each crack
       const fold = ease(seg(t, 14.55, 14.66)), meet = ease(seg(t, 14.85, 15.0)), hy = (-6.35 + .3 * cr) * U;
-      const FL = reachArm(U, O, 'L', lerp(1.0, -.3, meet) * U, lerp(-5.95 * U, hy, meet)), FR = reachArm(U, O, 'R', lerp(-1.0, .3, meet) * U, lerp(-6.4 * U, hy, meet));
+      const FL = reachArm(U, O, 'L', lerp(.35, -.3, meet) * U, lerp(-5.9 * U, hy, meet)), FR = reachArm(U, O, 'R', lerp(-.35, .3, meet) * U, lerp(-6.35 * U, hy, meet));   // elbows down at his sides, forearms level
       for (const k of ['aL', 'bendL', 'armKL']) O[k] = lerp(O[k] ?? (k === 'armKL' ? 1 : 0), FL[k], fold);
       for (const k of ['aR', 'bendR', 'armKR']) O[k] = lerp(O[k] ?? (k === 'armKR' ? 1 : 0), FR[k], fold);
       if (meet > 0) O.sq = .04 * cr;
