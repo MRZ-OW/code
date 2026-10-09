@@ -141,10 +141,11 @@ function hazmatBodyGear(u, sw, V, tw, shY, wy) {
   if (!V.back) {
     // the irregular blue panel on the wearer's right chest (it peeks out under the cape's hem), two grey tape strips on it
     if (V !== SV.side || true) {
-      const P = [[-1.2, 1.8], [-.7, 1.7], [-.05, 1.85], [.05, 2.5], [-.1, 3.0], [-.6, 2.92], [-.95, 3.05], [-1.25, 2.45]].map(([x, y]) => [X(x), shY + y * u]);
-      paint(P, { wash: HAZ.patch, ink: mixCol(HAZ.patch, PAL.ink, .5), sw: sw * .35 });
-      paint([[X(-1.05), shY + 2.55 * u], [X(-.6), shY + 2.75 * u], [X(-.95), shY + 2.95 * u]], { wash: HAZ.patchLt, washOp: 200, ink: null });
-      for (const [a, b] of [[[-1.3, 2.35], [-.55, 2.6]]]) paint(gearStrip([X(a[0]), shY + a[1] * u], [X(b[0]), shY + b[1] * u], .22 * u), { wash: HAZ.tape, ink: mixCol(HAZ.tape, PAL.ink, .5), sw: sw * .3 });
+      const P = [[-1.18, 1.78], [-.7, 1.7], [-.12, 1.84], [-.08, 2.45], [-.12, 3.06], [-.6, 2.98], [-1.1, 3.08], [-1.22, 2.5]].map(([x, y]) => [X(x), shY + y * u]);
+      paint(P, { wash: HAZ.patch, ink: mixCol(HAZ.patch, PAL.ink, .5), sw: sw * .4 });
+      paint([[X(-.92), shY + 2.0 * u], [X(-.55), shY + 1.95 * u], [X(-.85), shY + 2.35 * u]], { wash: HAZ.patchLt, washOp: 200, ink: null });
+      paint([[X(-.8), shY + 2.75 * u], [X(-.3), shY + 2.65 * u], [X(-.45), shY + 2.95 * u]], { wash: HAZ.patchLt, washOp: 160, ink: null });
+      for (const [a, b] of [[[-1.15, 2.25], [-.4, 2.4]], [[-1.0, 2.88], [-.3, 2.66]]]) paint(gearStrip([X(a[0]), shY + a[1] * u], [X(b[0]), shY + b[1] * u], .17 * u), { wash: HAZ.tape, ink: mixCol(HAZ.tape, PAL.ink, .5), sw: sw * .3 });
     }
     // baggy folds: on the belly and at the crotch
     inkLine([[X(.35), wy - .75 * u], [X(.9), wy - .45 * u], [X(1.3), wy - .55 * u]], sw * .5, HAZ.suitDk, 'inkfine', .5);
@@ -152,7 +153,7 @@ function hazmatBodyGear(u, sw, V, tw, shY, wy) {
     if (!V.side) { inkLine([[X(-.15), wy + .35 * u], [X(-.35), hipY + .2 * u], [X(-.25), hipY + .5 * u]], sw * .5, HAZ.suitDk, 'inkfine', .5); inkLine([[X(.25), wy + .4 * u], [X(.5), hipY + .25 * u]], sw * .45, HAZ.suitDk, 'inkfine', .5); }
     else inkLine([[X(.6), wy + .4 * u], [X(.3), hipY + .4 * u]], sw * .45, HAZ.suitDk, 'inkfine', .5);
     // the grey-green hose: from the belt on the wearer's right hip up into the blue panel
-    if (V !== SV.side) gearHose([[X(-1.15), wy + .1 * u], [X(-1.0), wy - .5 * u], [X(-.65), shY + 2.6 * u]], .24 * u, HAZ.hose2, '#B4BDA8', .22 * u, sw);
+    if (V !== SV.side) gearHose([[X(-1.3), wy + .1 * u], [X(-1.15), wy - .4 * u], [X(-.95), shY + 2.98 * u]], .24 * u, HAZ.hose2, '#B4BDA8', .22 * u, sw);
     else gearHose([[X(-.6), wy + .1 * u], [X(-.2), wy - .6 * u], [X(.2), shY + 2.75 * u]], .24 * u, HAZ.hose2, '#B4BDA8', .22 * u, sw);
   } else {
     inkLine([[X(-.4), wy - .9 * u], [X(.2), wy - .5 * u], [X(.8), wy - .7 * u]], sw * .5, HAZ.suitDk, 'inkfine', .5);
@@ -171,14 +172,15 @@ function hazmatBodyGear(u, sw, V, tw, shY, wy) {
 // The hood and cape, the visor, the hoses and straps (drawn after the torso, as one piece with no ink at the neck)
 function hazmatHeadGear(u, sw, o, V, hcx, hcy, R, shY) {
   const H = { hcx, hcy, R, th: gearTurn(V, u, R) }, back = !!V.back, turned = !!V.side;
-  const tw = 2.1 * u * (V.torsoW || 1), wy = shY + 3.2 * u, cw = tw + .2 * u, ox = back ? 0 : Math.sin(H.th) * .3 * u, hemY = shY + 1.95 * u;
+  const tw = 2.1 * u * (V.torsoW || 1), wy = shY + 3.2 * u, cw = tw + .2 * u, ox = back ? 0 : Math.sin(H.th) * .3 * u, hemY = shY + 1.75 * u;
   // in profile the window is cheated a little toward us (turned 1.2 rad, not π/2) so it still reads as a window
   const Hf = H.th > 1.2 && !back ? { hcx: hcx + .45 * u, hcy, R, th: 1.2 } : H;
   // hood (rounded monk hood, a little narrower at the top) flowing into the cape (view torso width + .2u), torn hem
   const hoodR = [[0, -3.05], [1.15, -2.98], [1.95, -2.55], [2.38, -1.7], [2.48, -.4], [2.42, 1.0], [2.2, 1.95], [1.8, 2.5]];
   const side = s => through(hoodR.map(([x, y]) => [hcx + ox + s * x * u * (s > 0 ? 1 : 1 - .06 * Math.sin(H.th)), hcy + y * u]), 4);
-  const right = side(1).concat(through([[hcx + ox + 1.8 * u, hcy + 2.5 * u], [cw - .3 * u, shY + .3 * u], [cw + .02 * u, shY + .85 * u], [cw + .04 * u, shY + 1.5 * u], [cw, hemY - .1 * u]], 4).slice(1));
-  const left = side(-1).concat(through([[hcx + ox - 1.8 * u, hcy + 2.5 * u], [-cw + .3 * u, shY + .3 * u], [-cw - .02 * u, shY + .85 * u], [-cw - .04 * u, shY + 1.5 * u], [-cw, hemY - .1 * u]], 4).slice(1));
+  const cs = tw + .25 * u;   // over the shoulder caps
+  const right = side(1).concat(through([[hcx + ox + 1.8 * u, hcy + 2.5 * u], [cs - .35 * u, shY - .02 * u], [cs, shY + .25 * u], [cs + .02 * u, shY + .9 * u], [cw + .02 * u, shY + 1.5 * u], [cw, hemY - .1 * u]], 4).slice(1));
+  const left = side(-1).concat(through([[hcx + ox - 1.8 * u, hcy + 2.5 * u], [-cs + .35 * u, shY - .02 * u], [-cs, shY + .25 * u], [-cs - .02 * u, shY + .9 * u], [-cw - .02 * u, shY + 1.5 * u], [-cw, hemY - .1 * u]], 4).slice(1));
   const hem = []; for (let i = 0; i <= 10; i++) hem.push([lerp(cw, -cw, i / 10) + (hash(i + 3) - .5) * .12 * u, hemY + (i % 2 ? .26 + .1 * hash(i) : -.08 - .06 * hash(i + 7)) * u]);
   const outline = right.concat(hem.slice(1, -1), left.slice().reverse());
   paint(outline, { wash: HAZ.hood, ink: PAL.ink, sw: sw * .85 });
@@ -214,7 +216,8 @@ function hazmatHeadGear(u, sw, o, V, hcx, hcy, R, shY) {
   paint(gearWrapPts(Hf, [[1.1 * u, -1.1 * u], [1.3 * u, -1.1 * u], [.85 * u, -.2 * u], [.68 * u, -.2 * u]], vk), { wash: HAZ.visorLt, washOp: 90, ink: null });
   // duct tape across the top-left corner; a taped X with the metal fitting at the bottom
   const tape = (A, B, w) => paint(gearWrapPts(Hf, densify(gearStrip(A.map(v => v * u), B.map(v => v * u), w * u), 3), vk + .01), { wash: HAZ.tape, ink: mixCol(HAZ.tape, PAL.ink, .55), sw: sw * .35 });
-  tape([-2.05, -.65], [-.85, -1.85], .42);
+  if (Hf.th > 1) tape([-.75, -1.3], [-1.95, -.7], .42);   // profile: one end on the visor, wrapping round its near edge
+  else tape([-2.05, -.65], [-.85, -1.85], .42);
   tape([-.5, 1.25], [.5, 2.05], .3); tape([.5, 1.25], [-.5, 2.05], .3);
   const fit = gearWrap(Hf, 0, 1.68 * u, 1.18);
   paint(ellPts(fit[0], fit[1], .26 * u * clamp(fit[2], .5, 1), .22 * u, 10), { wash: HAZ.metal, ink: PAL.ink, sw: sw * .45 });
@@ -222,11 +225,33 @@ function hazmatHeadGear(u, sw, o, V, hcx, hcy, R, shY) {
   const X = x => gearBodyX(V, x, u), fx = fit[0], fy = fit[1] + .2 * u;
   const hp = V === SV.side
     ? [[fx, fy], [fx - .1 * u, shY + .5 * u], [X(1.2), shY + 1.9 * u], [X(.3), wy - .7 * u], [X(-.6), wy - 1.0 * u], [X(-.9), shY + 1.4 * u], [X(-1.0), shY + .2 * u]]
-    : [[fx, fy], [fx - .2 * u, shY + .5 * u], [X(-.3), shY + 1.6 * u], [X(.08), shY + 2.4 * u], [X(.45), shY + 2.1 * u], [X(.6), shY + 1.2 * u], [X(.72), shY + .3 * u]];
+    : [[fx, fy], [fx + .05 * u, shY + .5 * u], [X(.02), shY + 1.6 * u], [X(-.05), shY + 2.5 * u], [X(.28), shY + 2.95 * u], [X(.6), shY + 2.6 * u], [X(.7), shY + 1.5 * u], [X(1.05), shY + .35 * u]];
   gearHose(hp, .28 * u, HAZ.hose, '#5A595F', .25 * u, sw);
   // black backpack straps over both shoulders
   const straps = V === SV.side ? [-.55] : [-1, 1];
-  for (const s of straps) { const x0 = V === SV.side ? s * u : X(s * .78), x1 = V === SV.side ? s * u - .1 * u : X(s * .88); paint(gearStrip([x0, shY - .15 * u], [x1, shY + 2.9 * u], .3 * u), { wash: HAZ.strap, ink: PAL.ink, sw: sw * .4 }); }
+  for (const s of straps) { const x0 = V === SV.side ? s * u : X(s * 1.22), x1 = V === SV.side ? s * u - .1 * u : X(s * 1.3); paint(gearStrip([x0, shY - .15 * u], [x1, shY + 2.9 * u], .3 * u), { wash: HAZ.strap, ink: PAL.ink, sw: sw * .4 }); }
+}
+
+// The hood's cape over the tops of the near sleeves (survivor.js draws the near arms after suitHeadGear, so this goes
+// after them): a red cap over each near shoulder, down to about shY + .9u, with a torn edge. It shrinks away as the arm
+// rises (a raised arm comes out from under it). Call: if (gear.hazmat) hazmatCapeOver(u, sw, o, V, shY);
+function hazmatCapeOver(u, sw, o, V, shY) {
+  const sy = shY + .6 * u, r = .63 * u, turned = !!V.side;
+  for (const w of V.near) {
+    const sideSign = V.side ? 1 : (w === 'R' ? 1 : -1);
+    const sx = typeof shoulderX === 'function' ? shoulderX(V, sideSign, false, u) : sideSign * 1.8 * u * (V.torsoW || 1);
+    const a = o.rawArms ? ((w === 'L' ? o.aL : o.aR) ?? -1.32) : (typeof humanArm === 'function' ? humanArm((w === 'L' ? o.aL : o.aR) ?? .2) : -1.32);
+    const k = clamp((-a - .25) / .75, 0, 1); if (k < .15) continue;   // 1 = arm hanging, 0 = raised to level
+    const s = turned ? -1 : sideSign, R2 = r + .14 * u, drop = (.3 + .35 * k) * u;   // s: the outer side (toward the back in 3/4 and profile)
+    const arc = []; for (let i = 0; i <= 10; i++) { const t = lerp(-Math.PI / 2 - s * .9, -Math.PI / 2 + s * 1.45, i / 10); arc.push([sx + Math.cos(t) * R2, sy + Math.sin(t) * R2 * .95]); }
+    const ox = sx + s * (R2 + .02 * u), ix = sx - s * .55 * u, hem = [];
+    for (let i = 0; i <= 4; i++) hem.push([lerp(ox, ix, i / 4), sy + drop + (i % 2 ? .18 : -.04) * u * k + (hash(i + (w === 'L' ? 5 : 9)) - .5) * .08 * u]);
+    const P = arc.concat([[ox, sy + .2 * u]], hem, [[ix - s * .2 * u, sy - .1 * u]]);
+    paint(P, { wash: HAZ.hood, ink: null });
+    inkLine(arc.slice(turned ? 4 : 2).concat([[ox, sy + .2 * u]], hem), sw * .8, PAL.ink, 'ink', .3);
+    inkLine([[sx + s * .1 * u, sy - .35 * u], [sx + s * .35 * u, sy + drop * .7]], sw * .4, HAZ.hoodDk, 'inkfine', .5);   // a fold
+    paint(ellPts(sx + s * .3 * u, sy + drop * .55, .06 * u, .05 * u, 6), { wash: '#D9B23E', ink: null });   // a paint fleck
+  }
 }
 
 // ---------- scientist suits (references: hazmatsuit_scientist_peacekeeper, _arctic, _naval, _nvgm, oubreak_scientist) ----------
@@ -329,13 +354,14 @@ function scientistHeadGear(u, sw, o, V, hcx, hcy, R, shY, gear) {
     return;
   }
   // the filter on the wearer's left at chin level; in profile it pokes out past the face, behind the mask
-  const fl = .42, fla = .6, fp = gearPt(H, fl, fla, 1, 1.42), fsx = clamp(Math.cos(fl + H.th) * 1.15, .42, 1);
-  const filter = () => {
-    const c = gearPt(H, fl * .7, fla - .05, 1, 1.12);
-    paint(gearStrip([c[0], c[1]], [fp[0], fp[1]], .55 * u), { wash: '#2A2C28', ink: PAL.ink, sw: sw * .4 });
-    paint(ellPts(fp[0], fp[1], .56 * u * fsx, .56 * u, 16), { wash: '#8E9488', ink: PAL.ink, sw: sw * .65 });
-    paint(ellPts(fp[0] + .04 * u * fsx, fp[1] + .03 * u, .3 * u * fsx, .3 * u, 12), { wash: '#2A2C28', ink: PAL.ink, sw: sw * .35 });
-    paint(ellPts(fp[0] - .3 * u * fsx, fp[1] - .25 * u, .12 * u * fsx, .08 * u, 6), { wash: '#B9BEB2', ink: null });
+  const fl = .35, fla = .55, fp = gearPt(H, fl, fla, 1, 1.45), fsx = clamp(Math.cos(fl + H.th) * 1.2, .5, 1), fr = .62 * u;
+  const filter = () => {   // a big round canister: its body toward the mask, its face (a pale rim round a dark grille) forward
+    const c = gearPt(H, fl * .8, fla - .03, 1, 1.15), bx = lerp(c[0], fp[0], .45), by = lerp(c[1], fp[1], .45);
+    paint(ellPts(bx, by, fr * .95 * Math.max(fsx, .7), fr * .95, 16), { wash: '#5E6458', ink: PAL.ink, sw: sw * .55 });
+    paint(ellPts(fp[0], fp[1], fr * fsx, fr, 18), { wash: '#8E9488', ink: PAL.ink, sw: sw * .65 });
+    paint(ellPts(fp[0] + .03 * u * fsx, fp[1] + .03 * u, fr * .58 * fsx, fr * .58, 14), { wash: '#2A2C28', ink: PAL.ink, sw: sw * .35 });
+    for (const dy of [-.14, 0, .14]) inkLine([[fp[0] - .2 * u * fsx, fp[1] + (dy + .03) * u], [fp[0] + .25 * u * fsx, fp[1] + (dy + .03) * u]], sw * .3, '#4E524A', 'inkfine', 0);   // the grille
+    paint(ellPts(fp[0] - .32 * u * fsx, fp[1] - .32 * u, .14 * u * fsx, .08 * u, 6, 0, -.6), { wash: '#C2C7BA', ink: null });
   };
   if (fp[2] < .15) filter();
   // the black rubber mask: wide across the eyes, narrowing to the chin
@@ -356,7 +382,7 @@ function scientistHeadGear(u, sw, o, V, hcx, hcy, R, shY, gear) {
   }
   if (fp[2] >= .15) filter();
   // the coiled hose from the filter over the wearer's left shoulder
-  const h0 = [fp[0] + .05 * u, fp[1] + .5 * u];
+  const h0 = [fp[0] + fr * .7 * fsx, fp[1] + fr * .6];
   const hp = V === SV.side ? [h0, [h0[0] - .4 * u, shY + .2 * u], [.6 * u, shY + .7 * u], [-.2 * u, shY + .5 * u]]
     : V === SV.q ? [h0, [h0[0] - .15 * u, shY + .2 * u], [1.1 * u, shY + .9 * u], [.6 * u, shY + .5 * u]]
     : [h0, [h0[0] + .45 * u, hcy + 2.75 * u], [X(1.45), shY + .5 * u], [X(1.75), shY + .25 * u]];
@@ -454,7 +480,7 @@ function roadsignKiltGear(u, sw, V, bw, wy) {
   const cen = P => [(P[0][0] + P[1][0] + P[2][0] + P[3][0]) / 4, (P[0][1] + P[1][1] + P[2][1] + P[3][1]) / 4];
   const greyBack = P => { const c = cen(P); inkLine([[c[0] - .25 * u, c[1] - .6 * u], [c[0] - .2 * u, c[1] + .6 * u]], sw * .35, '#8A8E92', 'inkfine', 0); paint(ellPts(c[0] + .1 * u, P[0][1] + .4 * u, .08 * u, .08 * u, 6), { wash: '#6E7276', ink: null }); };
   const green = P => { const c = cen(P); paint(rectPts(P[0][0] + .1 * u, c[1] - .55 * u, Math.abs(P[1][0] - P[0][0]) - .2 * u, .14 * u), { wash: '#EDEDE4', ink: null }); for (let i = 0; i < 3; i++) paint(rectPts(P[0][0] + (.15 + i * .3) * u, c[1] - .1 * u + (i % 2) * .05 * u, .2 * u, .3 * u), { wash: '#EDEDE4', washOp: 230, ink: null }); };
-  const white = P => { const c = cen(P), w = Math.abs(P[1][0] - P[0][0]); paint(P.map(([x, y]) => [lerp(x, c[0], .14), lerp(y, c[1], .1)]), { ink: '#C8402E', sw: sw * .5 }); for (let i = 0; i < 3; i++) paint(rectPts(c[0] - w * .32, c[1] - .55 * u + i * .42 * u, w * (.64 - i * .12), .16 * u), { wash: '#C8402E', ink: null }); };
+  const white = P => { const c = cen(P), w = Math.abs(P[1][0] - P[0][0]); paint(P.map(([x, y]) => [lerp(x, c[0], .14), lerp(y, c[1], .1)]), { ink: '#C8402E', sw: sw * .5 }); for (const [x, y, l] of [[-.34, -.62, .42], [.14, -.62, .2], [-.34, -.3, .58], [-.34, .02, .26], [-.02, .02, .3], [-.34, .5, .36]]) paint(rectPts(c[0] + x * w, c[1] + y * u, l * w, .11 * u), { wash: '#C8402E', ink: null }); };
   const blue = P => {
     const c = cen(P), r = .42 * u;
     paint(P.map(([x, y]) => [lerp(x, c[0], .1), lerp(y, c[1], .07)]), { ink: '#EDEDE4', sw: sw * .45 });   // the white border

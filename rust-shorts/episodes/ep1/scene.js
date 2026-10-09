@@ -266,7 +266,7 @@
     survivor(CX, LOGY, CU, C);
     return C;
   }
-  const snore = (t, s = 1) => { const [hx, hy] = chadHead(); emote('zzz', hx - 70, hy - 150, 34 * s, 1, t); sleepBubble(hx + 30, hy + 42, 1.5 * s, (t - 12) * .9); };
+  const snore = (t, s = 1) => { const [hx, hy] = chadHead(); emote('zzz', hx - 70, hy - 150, 34 * s, 1, t); sleepBubble(hx + 22, hy + 96, 1.5 * s, (t - 12) * .9); };   // from under the mask's flat bottom edge
   const gunGlint = (t, t0) => { const g = t > t0 ? Math.max(0, Math.sin((t - t0) * 5)) : 0; if (g > .05) { const gx = AKO[0] - 20, gy = AKO[1] - 14; glow(gx, gy, 70, '#FFF2C4', g); boilSeed('akglint'); paint(starPts(gx, gy, 20 * g, .28, 4), { wash: '#FFFBEA', ink: null }); } };
   // 2D: he looks at the sleeping Chad, then at the AK on the log (a glint), and his eyes go sly. Push in.
   function s2d(t, lt) {
@@ -310,7 +310,7 @@
     nightCamp(t);
     camLog();
     sleeper(t);
-    sleepBubble(hx + 38, hy + 82, 2.0, (t - 16) * 1.0);   // from the mask's mouth hole, below the eye slits
+    sleepBubble(hx + 30, hy + 100, 2.0, (t - 16) * 1.0);   // from under the mask's flat bottom edge, at his chin
     emote('zzz', hx - 140, hy - 60, 30, 1, t);
     grade('#1A2348', 44); glow(hx, hy, 240, '#FFB46A', .2);
     camEnd();

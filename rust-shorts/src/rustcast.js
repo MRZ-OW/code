@@ -136,6 +136,17 @@ function spawnling(x, y, u, o = {}) {
 // A geared player: metal facemask on a leather cap, metal chestplate, roadsign kilt, hoodie, pants, boots, an AK.
 function geared(x, y, u, o = {}) {
   const near = nearArm(o);
+  // Shouldered (two hands, gun near level, 3/4 or profile): the butt sits in the shoulder pocket just inside the near
+  // shoulder, so the near hand goes where the grip falls from there (blended out as the gun tips up or down past ~.2 rad).
+  const V = SV[o.view] || SV.front, g0 = (o.gunRot || 0) + (o.propRot || 0);
+  const sk = o.twoHand && o.rawArms && !o.noGun && !o.gunFlip && V.side && o.shoulder !== false ? clamp(1 - (Math.abs(g0) - .2) / .25) : 0;
+  if (sk > 0) {
+    const drop = clamp(o.crouch || 0) * 1.2 * u + clamp(o.sit || 0) * 2.05 * u, pocket = [shoulderX(V, 1, false, u) + .3 * u, -7.3 * u + drop];
+    const B = [-3.1 * u, .1 * u], c = Math.cos(g0), s = Math.sin(g0);   // the butt's middle, in the gun's frame (the grip hand at 0, 0)
+    const R = reachArm(u, o, near, pocket[0] - (B[0] * c - B[1] * s), pocket[1] - (B[0] * s + B[1] * c)), k = near === 'L' ? ['aL', 'bendL', 'armKL'] : ['aR', 'bendR', 'armKR'];
+    const cur = [near === 'L' ? o.aL ?? -1.32 : o.aR ?? -1.32, near === 'L' ? o.bendL ?? .22 : o.bendR ?? .22, near === 'L' ? o.armKL ?? 1 : o.armKR ?? 1];
+    o = { ...o, [k[0]]: lerp(cur[0], R[k[0]], sk), [k[1]]: lerp(cur[1], R[k[1]], sk), [k[2]]: lerp(cur[2], R[k[2]], sk) };
+  }
   if (o.twoHand && o.rawArms && !o.noGun) {   // the other hand reaches for the handguard (2.1u along the gun from the grip)
     const [hx, hy] = handLocal(u, o, near), g = (o.gunRot || 0) + (o.propRot || 0), farW = near === 'L' ? 'R' : 'L';
     o = { ...o, ...reachArm(u, o, farW, hx + Math.cos(g) * 2.1 * u - Math.sin(g) * .05 * u, hy + Math.sin(g) * 2.1 * u + Math.cos(g) * .05 * u) };

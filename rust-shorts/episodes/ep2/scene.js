@@ -573,6 +573,4 @@
     camEnd();
   }
   shots([[0, s1a], [1, s1b], [2, s1c], [3, s1d], [4, s1e], [5, s1f], [6, s2a], [8, s2b], [10.25, s2c], [11, s2d], [13, s3a], [16, s3b], [17, s3c], [17.75, s3d], [20, s3e], [22.5, s3f]]);
-  // the owner shuts the door on him, then a bigger door slams on us
-  transitions([[13.0, 'doorSlam', { dur: .6, in: .3 }]]);
 })();

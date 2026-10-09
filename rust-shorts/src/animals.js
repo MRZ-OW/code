@@ -377,7 +377,8 @@ const HEN_COMB = [...HEN_COMB_TOP, ...Array.from({ length: 9 }, (_, i) => { cons
 const HEN_WING_OPEN = [[.18, .1], [.32, -.45], [.28, -1.05], [.12, -1.55], [-.02, -1.3], [-.16, -1.62], [-.28, -1.28], [-.46, -1.5], [-.52, -1.12], [-.74, -1.22], [-.7, -.82], [-.62, -.4], [-.38, .05]];
 
 function chicken(x, y, s = 1, o = {}) {
-  const id = o.boilKey ?? ++CLAWD_N, rs = part => boilSeed(`hen ${id} ${part}`);
+  const key = o.boilKey ?? ++CLAWD_N, rs = part => boilSeed(`hen ${key} ${part}`);
+  const id = typeof key === 'number' ? key : [...String(key)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 9973, 7);   // a number for hash(), even for a string boilKey
   const u = 30 * s, sw = clamp(u / 16, .45, 2.4) * .55 * (o.swMul || 1), t = o.t ?? T, dir = o.flip ? -1 : 1, U = pts => critterPts(pts, u);   // a hen is small: finer lines
   const pose = HEN_POSES.includes(o.pose) ? o.pose : 'stand', vn = o.view === 'q' ? 'q' : 'side', V = HEN_VIEWS[vn], K = HEN_BREEDS[o.breed] || HEN_BREEDS.white;
   const seated = pose === 'sit' || pose === 'sleep', stepping = pose === 'walk' || pose === 'flap';

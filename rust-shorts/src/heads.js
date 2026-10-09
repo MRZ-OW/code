@@ -46,7 +46,7 @@ function hairLat(lon, th, style) {
   const fr = style === 'messy' ? .08 : style === 'buzz' ? 0 : .035;   // the fringe's edge is a few soft tufts
   const tuft = a < sb - .2 ? fr * (.5 + .5 * Math.cos(a * 13)) * (1 - clamp((a - (sb - .45)) / .25)) : 0;
   return lerpKeys([[0, -.6], [.6, -.55], [sb - .14, -.44], [sb - .03, -.3], [sb, 0], [sb + .02, .4], [1.36, .36], [1.41, -.12],
-    [1.57, -.22], [1.75, -.12], [1.86, .2], [1.95, .6], [2.4, .62], [Math.PI, .64]], a) - tuft - (style === 'buzz' ? .04 : 0);
+    [1.47, -.18], [1.57, -.21], [1.67, -.18], [1.75, -.12], [1.86, .2], [1.95, .6], [2.4, .62], [Math.PI, .64]], a) - tuft - (style === 'buzz' ? .04 : 0);
 }
 // The beard (a short full beard, as on Rust's default male model): its top edge by |longitude| (under the lower lip,
 // up round the mouth corners to the moustache, over the cheek into the sideburn), and its back edge from the sideburn
@@ -58,15 +58,16 @@ const MOUSTACHE = [[-.33, .575], [-.28, .505], [-.15, .47], [-.04, .485], [0, .4
 // The profile (head radii from the head centre, +x forward, +y down). PROFILE_FACE runs down the leading edge from the
 // forehead (on the skull circle) past the brow, nose, upper lip, lips and chin to the jaw (back on the circle).
 const PROFILE_FACE = [[.9, -.43], [.945, -.3], [.972, -.17], [.982, -.1], [.968, -.03], [1.0, .03], [1.06, .1], [1.125, .165], [1.165, .215],
-  [1.15, .258], [1.1, .282], [1.03, .295], [.97, .315], [.955, .36], [.952, .43], [.948, .5], [.94, .55], [.905, .58], [.925, .61], [.93, .64],
-  [.905, .675], [.87, .695], [.868, .745], [.85, .8], [.8, .855], [.7, .9], [.55, .925], [.38, .94], [.2, .96]];
+  [1.15, .258], [1.1, .282], [1.03, .295], [.97, .315], [.955, .36], [.952, .43], [.95, .5], [.945, .545], [.9, .575], [.865, .588],
+  [.905, .6], [.94, .625], [.925, .655], [.875, .675], [.87, .72], [.86, .79], [.81, .85], [.7, .9], [.55, .925], [.38, .94], [.2, .96]];
 // the profile beard: top edge (sideburn → cheek → mouth corner → under the lower lip), then the leading edge and the
 // jaw (silhouette, from index PB_SIL to PB_BACK), then the back edge up past the ear
-const PROFILE_BEARD = [[.17, .25], [.34, .33], [.5, .41], [.66, .48], [.79, .55], [.84, .6], [.9, .645], [.915, .7], [.895, .77], [.84, .845],
+const PROFILE_BEARD = [[.17, .25], [.34, .33], [.5, .41], [.66, .48], [.79, .55], [.83, .64], [.865, .678], [.92, .69], [.935, .73], [.905, .79], [.845, .85],
   [.74, .91], [.58, .955], [.4, .968], [.2, .985], [0, .99], [-.1, .975], [-.13, .75], [-.07, .5], [-.01, .36], [.08, .27]];
-const PB_SIL = 6, PB_BACK = 15;
+const PB_SIL = 7, PB_BACK = 16;
 const PROFILE_MOUSTACHE = [[.7, .47], [.8, .452], [.9, .458], [.945, .49], [.962, .53], [.945, .565], [.89, .578], [.8, .57], [.72, .548]];
-const PROFILE_MOUTH = { corner: [.76, .6], lips: [.905, .58] };
+const PROFILE_MOUTH = { corner: [.8, .59], lips: [.865, .588] };
+const PROFILE_OPEN = { o: .03, O: .1, open: .07, grin: .055, teeth: .055, laugh: .09, wail: .12, yawn: .15 };   // how far each mouth opens (R)
 
 function survivorHead(u, sw, o, V, S, SB, gear, shY, drop, soot, rs) {
   const hcx = 0, hcy = -10.85 * u + drop, R = 2.35 * u, th = headTurn(V);
@@ -74,10 +75,12 @@ function survivorHead(u, sw, o, V, S, SB, gear, shY, drop, soot, rs) {
   if (gear.hazmat || gear.scientist) suitHeadGear(u, sw, o, V, S, hcx, hcy, R, gear, shY);
   else {
     const P = (lon, lat, k = 1) => turnPt(hcx, hcy, R, th, lon, lat, k);
-    const H = { u, sw, o, V, S, hcx, hcy, R, th, prof: V === SV.side, back: !!V.back, P,
+    const prof = V === SV.side, jaw = prof ? .6 * (PROFILE_OPEN[o.mouth] || 0) : 0;   // an open mouth drops the jaw (profile)
+    const H = { u, sw, o, V, S, hcx, hcy, R, th, prof, back: !!V.back, P, jaw,
       sk: (a, r = 1) => [hcx + Math.cos(a) * r * R, hcy + Math.sin(a) * r * R * .98],   // a point on the skull's outline
       ang: p => Math.atan2((p[1] - hcy) / .98, p[0] - hcx),                              // ...and the angle of one
-      pr: ([x, y]) => [hcx + x * R, hcy + y * R] };                                       // a profile point
+      pr: ([x, y]) => [hcx + x * R, hcy + y * R],                                         // a profile point
+      prJ: ([x, y]) => [hcx + x * R, hcy + (y > .585 ? y + jaw * clamp((x - .15) / .65) : y) * R] };   // ...below the mouth, on the dropped jaw
     headEars(H, true);
     headSkull(H);
     if (soot > 0 && !H.back) sootFace(H, soot, 'face' + (o.boilKey || ''));
@@ -92,16 +95,17 @@ function survivorHead(u, sw, o, V, S, SB, gear, shY, drop, soot, rs) {
   if (o.face) { rs('face'); o.face(u, sw, V, { hcx, hcy, R, th, pt: (lon, lat, k = 1) => turnPt(hcx, hcy, R, th, lon, lat, k) }); }
 }
 
-// Ears. From the front or the back (and the in-between qf) both ears stick out from behind the skull; turned further,
-// only the near one shows, on the back half of the head.
+// Ears. From the front (or the back) both ears stick out from behind the skull. Turned (qf and on) the near ear sits on
+// the head, on its back half, and the far ear's tip peeks out behind the skull until the turn hides it.
 function headEars(H, behind) {
-  const { u, sw, S, th, P } = H, wide = th < .35 || th > Math.PI - .35;
-  if (behind !== wide) return;
+  const { u, sw, S, th, P } = H, front = th < .2 || th > Math.PI - .35;
   const rim = (cx, cy, w, h, s, a0, a1) => inkLine(Array.from({ length: 9 }, (_, i) => { const a = lerp(a0, a1, i / 8); return [cx + s * Math.cos(a) * w, cy + Math.sin(a) * h]; }), sw * .4, S.dk, 'inkfine', .5);
-  if (wide) {   // seen from the front (or behind): the outer half of each ear shows, with its rim
-    for (const s of [-1, 1]) { const p = P(s * Math.PI / 2, .1); paint(ellPts(p[0], p[1], .48 * u, .62 * u, 12), { wash: S.col, ink: PAL.ink, sw: sw * .6 }); rim(p[0] + s * .06 * u, p[1] + .02 * u, .26 * u, .38 * u, s, -1.25, 1.35); }
+  if (behind) {
+    if (front) for (const s of [-1, 1]) { const p = P(s * Math.PI / 2, .1); paint(ellPts(p[0], p[1], .48 * u, .62 * u, 12), { wash: S.col, ink: PAL.ink, sw: sw * .6 }); rim(p[0] + s * .06 * u, p[1] + .02 * u, .26 * u, .38 * u, s, -1.25, 1.35); }
+    else if (th < .45) { const p = P(Math.PI / 2, .1), k = 1 - th / .45; paint(ellPts(p[0] - .12 * H.R * (1 - k), p[1], .44 * u, .58 * u, 12), { wash: S.col, ink: PAL.ink, sw: sw * .6 }); }   // the far ear's tip
     return;
   }
+  if (front) return;
   const p = P(-Math.PI / 2, .1), w = .46 * u * clamp(Math.sin(th), .35, 1);
   paint(ellPts(p[0], p[1], w, .6 * u, 12), { wash: S.col, ink: mixCol(S.dk, PAL.ink, .55), sw: sw * .4 });
   rim(p[0] + .05 * w, p[1] - .02 * u, .55 * w, .4 * u, -1, -1.3, 1.45);   // the rim curls round the back, open toward the face
@@ -114,8 +118,10 @@ function headSkull(H) {
   if (!prof) { paint(ellPts(H.hcx, H.hcy, H.R, H.R * .98, 28, u * .02), { wash: S.col, ink: PAL.ink, sw: sw * .9 }); return; }
   const a0 = Math.acos(PROFILE_FACE[PROFILE_FACE.length - 1][0]), a1 = TAU - .45, pts = [];
   for (let i = 0; i <= 26; i++) pts.push(sk(lerp(a0, a1, i / 26)));
-  for (const p of PROFILE_FACE) pts.push(pr(p));
-  paint(pts, { wash: S.col, ink: PAL.ink, sw: sw * .9 });
+  const back = pts.length; for (const p of PROFILE_FACE) pts.push(H.prJ(p));
+  paint(pts, { wash: S.col, ink: null });
+  inkLine([...pts.slice(back - 1), pts[0]], sw * .62, PAL.ink, 'ink', 0);   // the face's edge: finer ink, so the lips and nose read
+  inkLine(pts.slice(0, back), sw * .9, PAL.ink, 'ink', 0);
   inkLine([pr([.995, .225]), pr([1.035, .262]), pr([1.0, .29])], sw * .4, S.dk, 'inkfine', .5);   // the nostril
 }
 
@@ -134,7 +140,13 @@ function headFace(H) {
     if (sq > .8) inkLine([[-.8 * u, 0], [.8 * u, 0]], sw * 2.2, EYE_INK, 'ink', 0);
     else { if (sq > 0) scale(1, 1 - sq); humanEye(k, s, u, o, sw * 2.2); }
     pop();
-    const b = browOf(k), bp = P(lon, b === 'up' ? -.45 : -.36, .9), tilt = b === 'angry' ? .28 : b === 'worried' ? -.25 : 0, arch = b === 'flat' || b === 'up' ? .12 * u : .04 * u, bw = .44 * u * f;
+    const b = browOf(k);
+    if (prof) {   // a short wedge on the brow ridge, thicker toward the nose; angry slants down to the nose, worried up
+      const up = b === 'up' ? -.06 : 0, tl = b === 'angry' ? .05 : b === 'worried' ? -.04 : 0;
+      paint([[.69, -.325 + up - tl * .5], [.925, -.36 + up + tl], [.92, -.295 + up + tl], [.7, -.3 + up - tl * .5]].map(H.pr), { wash: hairCol(o), ink: null });
+      continue;
+    }
+    const bp = P(lon, b === 'up' ? -.45 : -.36, .9), tilt = b === 'angry' ? .28 : b === 'worried' ? -.25 : 0, arch = b === 'flat' || b === 'up' ? .12 * u : .04 * u, bw = .44 * u * f;
     inkLine([[bp[0] - bw, bp[1] + tilt * s * .5 * u], [bp[0], bp[1] - arch], [bp[0] + bw, bp[1] - tilt * s * .5 * u]], sw * .95, hairCol(o), 'ink', .5);
   }
   EYE_INK = PAL.ink;
@@ -147,7 +159,7 @@ function headFace(H) {
   else {
     const mp = P(0, .64, .96), sN = Math.cos(th * .4), sF = Math.cos(th * 1.56), MS = .42;   // the far half of the mouth foreshortens
     if (o.mouth) { push(); translate(mp[0], mp[1] + 4.3 * u * MS); scale(.5, MS); MOUTH_WARP = ([x, y]) => [x * (x < 0 ? sN : sF), y]; mouth(u, o.mouth, sw * 2.2); MOUTH_WARP = null; pop(); }
-    else inkLine([[mp[0] - .26 * u * sN, mp[1] - .01 * u], [mp[0], mp[1] + .07 * u], [mp[0] + .26 * u * sF, mp[1] - .01 * u]], sw * .45, mixCol(S.dk, PAL.ink, .5), 'inkfine', .5);   // a small resting smile
+    else inkLine([-2, -1, 0, 1, 2].map(i => [mp[0] + .15 * u * i * (i < 0 ? sN : sF), mp[1] + (.065 * (1 - (i / 2) ** 2) - .01) * u]), sw * .45, mixCol(S.dk, PAL.ink, .5), 'inkfine', .5);   // a small resting smile
   }
   if (full) headMoustache(H);
 }
@@ -158,10 +170,10 @@ function headBeard(H) {
   const { u, sw, o, R, th, prof, P, sk, ang, pr } = H, col = hairCol(o), fz = clamp(o.frizz || 0);
   const bristle = (pts, cx, cy) => fz > 0 ? pts.map(([x, y], i) => { const dx = x - cx, dy = y - cy, d = Math.hypot(dx, dy) || 1, k = (i % 2 ? .01 : .12 + .06 * hash(i)) * fz * R; return [x + dx / d * k, y + dy / d * k]; }) : pts;   // sharp spikes, like the frizz halo
   if (prof) {
-    const B = PROFILE_BEARD.map(pr), sil = bristle(through(B.slice(PB_SIL, PB_BACK + 1), 2), H.hcx, H.hcy);
+    const B = PROFILE_BEARD.map(H.prJ), sil = bristle(through(B.slice(PB_SIL, PB_BACK + 1), 2), H.hcx, H.hcy);
     const top = through(B.slice(0, PB_SIL + 1), 3), back = through([...B.slice(PB_BACK), B[0]], 3);
     paint([...top, ...sil, ...back], { wash: col, ink: null });
-    inkLine(sil, sw * .9, PAL.ink, 'ink', 0);
+    inkLine(sil, sw * (fz > 0 ? .55 : .75), PAL.ink, fz > 0 ? 'inkfine' : 'ink', 0);   // bristles: a fine line (the thick brush blobs on spikes)
     inkLine(top, sw * .32, hairLine(o), 'inkfine', 0);
     inkLine(back.slice(0, -2), sw * .32, hairLine(o), 'inkfine', 0);
     return;
@@ -178,7 +190,7 @@ function headBeard(H) {
   const J = bristle(jaw, H.hcx, H.hcy);
   const edge = [...nb.slice().reverse(), ...top, ...fb];   // near jaw corner → sideburn → across the face → far side
   paint([nD, ...edge, fD, ...J], { wash: col, ink: null });
-  inkLine(J, sw * .9, PAL.ink, 'ink', 0);
+  inkLine(J, sw * (fz > 0 ? .6 : .9), PAL.ink, fz > 0 ? 'inkfine' : 'ink', 0);
   inkLine([nD, ...edge, ...(fb.length ? [fD] : [])], sw * .32, hairLine(o), 'inkfine', 0);
 }
 
@@ -188,8 +200,7 @@ function headMoustache(H) {
   if (prof) {
     const M = PROFILE_MOUSTACHE.map(pr);
     paint(through([...M, M[0]], 3), { wash: hairCol(o), ink: null });
-    inkLine(M.slice(0, 3), sw * .3, hairLine(o), 'inkfine', .4);
-    inkLine(M.slice(2, 7), sw * .6, PAL.ink, 'ink', .4);   // its front is part of the silhouette
+    inkLine(M.slice(0, 7), sw * .32, hairLine(o), 'inkfine', .4);   // thin: the skull's silhouette ink runs just under it
     return;
   }
   const M = MOUSTACHE.map(([lon, lat]) => P(lon, lat, 1.0));
@@ -199,26 +210,25 @@ function headMoustache(H) {
   inkLine(through(M.slice(0, n).map(p => [p[0], p[1]]), 3), sw * .3, hairLine(o), 'inkfine', 0);
 }
 
-// The profile mouth: from the corner to the lips, on the leading edge. Open shapes are a dark wedge opening forward.
+// The profile mouth, on the leading edge between the moustache and the lower lip. Open shapes drop the jaw (H.jaw, set
+// in survivorHead) and show a dark wedge between the lips.
 function profileMouth(H, m) {
-  const { sw, S, pr } = H, C = PROFILE_MOUTH.corner, L = PROFILE_MOUTH.lips, line = (P, w = .75) => inkLine(P.map(pr), sw * w, PAL.ink, 'ink', .5);
-  const open = { o: .03, O: .1, open: .07, grin: .055, teeth: .055, laugh: .09, wail: .12, yawn: .15 }[m];
-  if (open != null) {
-    const h = open, W = [C, [.86, .565 - h * .2], [.935, .57 - h * .3], [.935, .61 + h], [.86, .62 + h * .85]];
-    paint(W.map(pr), { wash: '#4A1F2A', ink: PAL.ink, sw: sw * .6 });
-    if (['grin', 'teeth', 'laugh'].includes(m)) paint([[.88, .57 - h * .25], [.935, .572 - h * .3], [.935, .6 - h * .1], [.885, .6 - h * .1]].map(pr), { wash: PAL.cream, ink: null });
-    if (['open', 'laugh', 'wail', 'yawn'].includes(m)) paint(ellPts(...pr([.87, .6 + h * .7]), .05 * H.R, .025 * H.R, 10), { wash: PAL.rose, ink: null });
+  const { sw, S, pr, jaw } = H, C = PROFILE_MOUTH.corner, L = PROFILE_MOUTH.lips, line = (P, w = .6) => inkLine(P.map(pr), sw * w, mixCol(S.dk, PAL.ink, .6), 'ink', .5);
+  if (PROFILE_OPEN[m] != null) {
+    const W = [[.8, .59], [.87, .572], [.945, .575], [.935, .6 + jaw], [.87, .608 + jaw * .9]];
+    paint(W.map(pr), { wash: '#4A1F2A', ink: PAL.ink, sw: sw * .5 });
+    if (['grin', 'teeth', 'laugh'].includes(m)) paint([[.88, .574], [.942, .577], [.94, .59], [.885, .589]].map(pr), { wash: PAL.cream, ink: null });
+    if (['open', 'laugh', 'wail', 'yawn'].includes(m)) paint(ellPts(...pr([.89, .596 + jaw * .8]), .04 * H.R, .018 * H.R, 10), { wash: PAL.rose, ink: null });
     return;
   }
   switch (m) {
-    case 'smile': line([[C[0], C[1] - .03], [.83, .6], L]); break;
-    case 'smirk': line([[C[0], C[1] - .05], [.83, .595], L]); break;
-    case 'frown': line([[C[0], C[1] + .03], [.83, .595], L]); break;
-    case 'wobble': case 'cat': line([C, [.8, .585], [.84, .605], [.87, .585], L], .65); break;
-    case 'pout': line([C, [.84, .59], L], .65); paint([[.9, .575], [.95, .59], [.945, .625], [.905, .63]].map(pr), { wash: mixCol(S.col, PAL.rose, .4), ink: PAL.ink, sw: sw * .45 }); break;
-    case 'tongue': line([C, [.83, .6], L]); paint([[.9, .59], [.97, .6], [.975, .64], [.92, .645]].map(pr), { wash: PAL.rose, ink: PAL.ink, sw: sw * .45 }); break;
-    case 'flat': line([C, L], .7); break;
-    default: inkLine([C, [.83, .605], L].map(pr), sw * .45, mixCol(S.dk, PAL.ink, .5), 'inkfine', .5);   // resting
+    case 'smile': line([[C[0], C[1] - .02], [.835, .593], L]); break;
+    case 'smirk': line([[C[0], C[1] - .035], [.835, .591], L]); break;
+    case 'frown': line([[C[0], C[1] + .02], [.835, .588], L]); break;
+    case 'wobble': case 'cat': line([C, [.825, .582], [.845, .594], L], .55); break;
+    case 'pout': line([C, L], .55); paint([[.9, .576], [.952, .59], [.948, .626], [.905, .632]].map(pr), { wash: mixCol(S.col, PAL.rose, .4), ink: PAL.ink, sw: sw * .45 }); break;
+    case 'tongue': line([C, L]); paint([[.9, .59], [.97, .6], [.975, .64], [.92, .645]].map(pr), { wash: PAL.rose, ink: PAL.ink, sw: sw * .45 }); break;
+    default: line([C, [.835, .591], L], .45);   // flat or resting
   }
 }
 

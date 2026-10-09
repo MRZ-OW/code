@@ -241,7 +241,12 @@ function survivor(x, y, u, o = {}) {
     const d1 = [sideSign * Math.cos(a), -Math.sin(a)], a2 = a - b, d2 = [sideSign * Math.cos(a2), -Math.sin(a2)], ak = (which === 'L' ? o.armKL : o.armKR) ?? 1;
     const ex = shx + d1[0] * 1.85 * u * ak, ey = shy + d1[1] * 1.85 * u * ak, hx = ex + d2[0] * 1.75 * u * ak, hy = ey + d2[1] * 1.75 * u * ak;
     const top = gear.hoodie || suit, col0 = top ? (suit || (gear.hoodieCol || '#A8382E')) : SB.col, shade = far && !inFront;
-    const col = shade ? (top ? svShade(col0, .14) : farSkin) : col0;
+    // an arm over the body (a far arm reaching across it, a 3/4 arm raised across the chest, a front arm folded in) is a
+    // step darker than the chest and fully outlined, so it doesn't merge with it
+    // (3/4 and profile: per segment, by how far the upper arm and the forearm are raised)
+    const overU = shade ? 0 : inFront ? 1 : V.side ? clamp((a + 1.05) / .3) : clamp((2.1 * u * V.torsoW * .7 - sideSign * hx) / (.8 * u));
+    const overF = shade ? 0 : inFront ? 1 : V.side ? clamp((a2 + 1.05) / .3) : overU, over = Math.max(overU, overF);
+    const col = shade ? (top ? svShade(col0, .14) : farSkin) : mixCol(col0, top ? svShade(col0, .1) : mixCol(SB.col, SB.dk, .35), over);
     const w0 = (heavy ? 1.45 : top ? 1.15 : .95) * u, w1 = (heavy ? 1.2 : top ? .95 : .78) * u, [SA, SBd] = limbSides([shx, shy], [ex, ey], [hx, hy], w0, w1), RB = SA.concat([...SBd].reverse());
     if (shade) paint(RB, { wash: col, ink: PAL.ink, sw: sw * .8 });
     else {   // a near arm grows out of a round shoulder: no outline across the joint
@@ -251,8 +256,13 @@ function survivor(x, y, u, o = {}) {
       paint(RB, { wash: col, ink: null });
       const out = P => P.filter(p => Math.hypot(p[0] - shx, p[1] - shy) > w0 * .5);
       const sideA = out(densify(SA)), sideB = out(densify(SBd).reverse()), meanX = P => P.reduce((a, p) => a + p[0], 0) / (P.length || 1);
-      const backIsA = V.side && meanX(sideA) < meanX(sideB), soft = [sw * .4, top ? svShade(col0, .3) : mixCol(SB.col, SB.dk, .75)];   // the edge toward his back: the sleeve's (or skin's) own shade
-      inkLine(sideA, backIsA ? soft[0] : sw * .8, backIsA ? soft[1] : PAL.ink, 'ink', 0); inkLine(sideB, V.side && !backIsA ? soft[0] : sw * .8, V.side && !backIsA ? soft[1] : PAL.ink, 'ink', 0);
+      const backIsA = V.side && meanX(sideA) < meanX(sideB), softC = top ? svShade(col0, .3) : mixCol(SB.col, SB.dk, .75);   // the edge toward his back: the sleeve's (or skin's) own shade, full ink where the arm lies over the body
+      const edge = (P, soft) => {
+        if (!soft) { inkLine(P, sw * .8, PAL.ink, 'ink', 0); return; }
+        let i = 0, dm = Infinity; P.forEach((p, j) => { const dd = Math.hypot(p[0] - ex, p[1] - ey); if (dd < dm) { dm = dd; i = j; } });   // split at the elbow
+        for (const [Q, k] of [[P.slice(0, i + 1), overU], [P.slice(i), overF]]) if (Q.length > 1) inkLine(Q, sw * lerp(.4, .8, k), mixCol(softC, PAL.ink, k), 'ink', 0);
+      };
+      edge(sideA, backIsA); edge(sideB, V.side && !backIsA);
     }
     if (gear.hazmat) {   // a baggy fold at the elbow
       const n = [-d1[1], d1[0]], fc = svShade(col, .28), c = [ex - d1[0] * .3 * u, ey - d1[1] * .3 * u];
@@ -379,6 +389,7 @@ function survivor(x, y, u, o = {}) {
 
   if (o.farFront) for (const w of V.far) arm(w, true, true);   // over the body, under the near arm and what it holds
   for (const w of V.near) arm(w, false);
+  if (gear.hazmat) hazmatCapeOver(u, sw, o, V, shY);   // gear.js: the hood's cape over the tops of the sleeves
   if (o.draw) { rs('draw'); o.draw(u, sw, V); }
   pop();
 
