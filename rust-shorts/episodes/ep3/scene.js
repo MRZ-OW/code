@@ -24,6 +24,9 @@
 //   26   4D WIDE   hops in a circle on one foot, toes smoking; the eoka he flung comes down on the Chad's mask (27.6)
 (() => {
   const G = 1330, U = 36, NX = 260, CX = 790, HZ = 1170;   // the two-shot: ground line, unit, the Naked, the Chad, horizon
+  // Where the Chad sits: SX1 in 1D; after the wall transition (8.0) at SX, closer in, so the wide shots can frame tighter
+  // (lying down he reaches about 330 px right of his seat). The barrel stands at BX1 in S1 and BX2 after.
+  const SX1 = 765, SX = 680, BX1 = 80, BX2 = 150;
   const NK = 'naked', CH = 'chad';
   const CHAD_GEAR = { gear: { mask: 'metal', chest: 'metal', kilt: 'roadsign', hoodie: true, hoodieCol: '#5F6B52', pants: true, boots: true, gloves: true }, skin: 'tan', hair: 'buzz', hairCol: 'dark' };
   const P2 = (u, pts) => pts.map(([a, b]) => [a * u, b * u]);
@@ -87,9 +90,11 @@
   }
   // A sky with keyed colours (rustSky mixes blue into orange through grey): sky = { top, low, night }; the sun's colour
   // follows its height; stars come out with night.
+  // The low sky is stacked soft washes, each a little lower and stronger (a textured fill here bled into a jagged band
+  // with a ghostly star in it).
   function skyPaint(t, sky, sun, moon) {
     boilSeed('sky'); paint(rectPts(-1600, -1800, W + 3200, 4400), { wash: sky.top, ink: null });
-    staticSeed('skyband'); paint(rectPts(-1600, HZ - 520, W + 3200, 560), { fill: sky.low, fillOp: 190, bleed: .18, tex: .3, border: .2, ink: null });
+    for (let i = 0; i < 7; i++) { staticSeed('skyband' + i); const y0 = HZ - 560 + i * 78; paint([[-1600, y0 + 14], [540, y0 - 10], [W + 1600, y0 + 14], [W + 1600, HZ + 60], [-1600, HZ + 60]], { wash: sky.low, washOp: 58 + 8 * i, ink: null, curv: .2 }); }
     const nk = sky.night || 0;
     if (nk > .05) for (let i = 0; i < 40; i++) { boilSeed('star' + i); const x = hash(i) * 1700 - 150, y = hash(i + 50) * 950 - 150, tw = .6 + .4 * Math.sin(t * (2 + 2 * hash(i + 3)) + i); paint(starPts(x, y, (3 + 4 * hash(i + 9)) * tw, .35, 4), { wash: PAL.cream, washOp: 230 * nk, ink: null }); }
     if (sun && sun[1] < HZ + 80) {
@@ -123,7 +128,7 @@
     tufts(-260, 1500, 1290, t, 16, tone(RUST.grassDk, tod, '#7A6A3A', '#1E2A3C', .85), .7, 'far');
     tufts(-260, 1500, 1398, t, 14, tone(RUST.grassDk, tod, '#7A6A3A', '#1E2A3C', .85), .85, 'near');
     for (const [bx, bs] of [[-120, .55], [610, .42], [1240, .5]]) bush(bx, HZ + 34, bs, { tod });
-    barrel(80, 1296, 1, tod);
+    barrel(o.barrelX ?? BX2, 1296, 1, tod);
     foreground(t, tod);
   }
   // Grass tufts along a line (3-point blades: a 2-point curved inkLine doesn't render).
@@ -154,33 +159,44 @@
   }
 
   // ---------- the eoka (reference: the pistol.eoka icon) ----------
-  // A bent wooden stick for a grip, a dark metal pipe barrel taped along the top of its front half with a pale cap at the
-  // back, and a grey flint wired under the bend. Hand space: (0, 0) = the grip, +x = where it points (spans about
-  // x -.45..2.9u, y -1.3..1.1u).
-  const MUZZLE = [2.86, -1.01], HOLE = [.66, -1.27];
+  // A long, thick, bent wooden stick that is more than half the gun: held low on its grip, it rises, bends and runs
+  // forward under a dark grey pipe barrel tied onto its top with two wraps of tape; a pale cap closes the pipe's back, and
+  // a grey flint hangs under the bend. Eoka space, u: (0, 0) = the fist on the grip, +x = where the barrel points; it
+  // spans about x -.45..3.35u, y -2.55..1.0u. ES scales it (1.3 in the two-shots, where it would read small); each shot
+  // sets it before drawing anything.
+  let ES = 1;
+  const MUZZLE = [3.24, -2.22], HOLE = [1.62, -2.5], TAPE = [2.45, -2.5];   // the barrel's mouth, its touch hole, the front tape's top
+  const STICK = [[-.2, .98], [-.13, .3], [-.03, -.42], [.14, -1.03], [.5, -1.5], [1.06, -1.8], [1.8, -1.93], [2.5, -1.93], [3.04, -1.9]];
   function eokaProp(u, sw) {
-    const P = pts => P2(u, pts);
-    paint(ribbon(P([[-.42, 1.05], [-.24, .45], [-.04, -.1], [.3, -.52], [.9, -.72], [1.7, -.78], [2.4, -.8]]), .7 * u, .5 * u), { wash: '#7B5636', ink: PAL.ink, sw: sw * .7 });
-    inkLine(P([[-.3, .82], [-.14, .22], [.18, -.36], [.8, -.6], [1.7, -.66]]), sw * .45, '#A87C50', 'inkfine', .5);   // a streak of grain
-    paint(P([[.5, -.52], [1.06, -.48], [1.22, -.14], [.84, .1], [.5, -.12]]), { wash: '#57575E', ink: PAL.ink, sw: sw * .5, curv: .3 });   // the flint
-    inkLine(P([[.62, -.5], [.9, -.8]]), sw * .4, '#9A9EA4', 'inkfine', 0);                                                                    // its wire
-    paint(rrPts(.5 * u, -1.28 * u, 2.36 * u, .54 * u, .15 * u), { wash: '#3A3A42', ink: PAL.ink, sw: sw * .6 });                            // the pipe
-    inkLine([[.66 * u, -1.15 * u], [2.66 * u, -1.15 * u]], sw * .35, '#8E939B', 'inkfine', 0);
-    for (const k of [1.32, 2.14]) paint(rectPts(k * u, -1.34 * u, .26 * u, .66 * u), { wash: '#7A766C', ink: PAL.ink, sw: sw * .35 });   // tape
-    paint(ellPts(.5 * u, -1.01 * u, .13 * u, .27 * u, 10), { wash: '#D2CEC4', ink: PAL.ink, sw: sw * .4 });                               // the pale cap
-    paint(ellPts(2.86 * u, -1.01 * u, .1 * u, .23 * u, 10), { wash: '#18151C', ink: PAL.ink, sw: sw * .3 });                                // its mouth
+    const v = u * ES, P = pts => P2(v, pts);
+    paint(P([[.98, -1.42], [1.72, -1.5], [1.97, -1.05], [1.76, -.6], [1.2, -.5], [.94, -.9]]), { wash: '#686A72', ink: PAL.ink, sw: sw * .55, curv: .35 });   // the flint
+    paint(P([[1.1, -1.3], [1.52, -1.36], [1.38, -1.0], [1.1, -.96]]), { wash: '#A2A5AC', washOp: 170, ink: null, curv: .3 });
+    paint(ribbon(P(STICK), .9 * v, .66 * v), { wash: '#80593A', ink: PAL.ink, sw: sw * .8 });                                             // the stick
+    inkLine(P([[-.42, .82], [-.35, .2], [-.23, -.42], [-.06, -1.1], [.34, -1.64], [1.0, -1.98]]), sw * 1.1, '#AC825A', 'inkfine', .5);      // light down its outer edge
+    inkLine(P([[.04, .78], [.1, .15], [.19, -.42], [.34, -.92], [.67, -1.3], [1.12, -1.52]]), sw * .6, '#5A3B22', 'inkfine', .5);          // grain on the inside of the bend
+    inkLine(P([[-.2, .6], [-.13, -.2], [.04, -.85]]), sw * .45, '#9A7048', 'inkfine', .5);
+    paint(rrPts(1.42 * v, -2.5 * v, 1.82 * v, .56 * v, .16 * v), { wash: '#50525A', ink: PAL.ink, sw: sw * .65 });                     // the pipe, dark grey
+    inkLine([[1.62 * v, -2.38 * v], [3.1 * v, -2.38 * v]], sw * .55, '#8C929B', 'inkfine', 0);
+    for (const k of [2.2, 2.74]) {   // two wraps of tape round the pipe and the wood, striped by its turns
+      paint(P([[k, -2.57], [k + .27, -2.57], [k + .3, -1.5], [k + .03, -1.5]]), { wash: '#A39E92', ink: PAL.ink, sw: sw * .45 });
+      for (let j = 0; j < 4; j++) { const y0 = -2.46 + j * .26; inkLine(P([[k + .03, y0 + .13], [k + .28, y0]]), sw * .35, '#605C55', 'inkfine', 0); }
+    }
+    paint(ellPts(1.42 * v, -2.22 * v, .15 * v, .29 * v, 10), { wash: '#DCD8CE', ink: PAL.ink, sw: sw * .45 });                          // the pale cap
+    paint(ellPts(MUZZLE[0] * v, MUZZLE[1] * v, .1 * v, .24 * v, 10), { wash: '#1E1B22', ink: PAL.ink, sw: sw * .35 });                   // its mouth
   }
   // A point of the eoka (eoka space, u) held in a survivor's hand `w`, in the world. e = { g, aim, ys } as for nakedPose.
   const eYs = e => { const v = e.ys ?? 1; return Math.abs(v) < .06 ? (v < 0 ? -.06 : .06) : v; };
   function eokaPt(x, y, u, o, e, p, w = 'R') {
-    const [hx, hy] = handLocal(u, o, w), px = p[0] * u, py = p[1] * u * eYs(e), c = Math.cos(e.aim || 0), s = Math.sin(e.aim || 0);
+    const [hx, hy] = handLocal(u, o, w), px = p[0] * u * ES, py = p[1] * u * ES * eYs(e), c = Math.cos(e.aim || 0), s = Math.sin(e.aim || 0);
     return bodyPt(x, y, u, o, hx + px * c - py * s, hy + px * s + py * c);
   }
-  // body frame → world, matching survivor()'s transform
+  // A hold that puts eoka point p on the body point m (u), turned to aim (ys -1: turned over).
+  const holdAt = (p, m, aim, ys = 1) => { const c = Math.cos(aim), s = Math.sin(aim), px = p[0] * ES, py = p[1] * ES * ys; return { g: [m[0] - (px * c - py * s), m[1] - (px * s + py * c)], aim, ys }; };
+  // body frame → world, matching survivor()'s transform (a seated body squashes half as much and doesn't bob up)
   function bodyPt(x, y, u, o, lx, ly) {
-    const sq = (o.sq || 0) + (o.take || 0), fx = (o.flip ? -1 : 1) * (o.sx ?? 1) * (1 + sq * .55), fy = (o.sy ?? 1) * (1 - sq);
+    const sq = bodySq(o), fx = (o.flip ? -1 : 1) * (o.sx ?? 1) * (1 + sq * .55), fy = (o.sy ?? 1) * (1 - sq);
     const px = lx * fx, py = ly * fy, r = o.rot || 0, c = Math.cos(r), s = Math.sin(r);
-    return [x + (o.dx || 0) * u + px * c - py * s, y + (o.dy || 0) * u + px * s + py * c];
+    return [x + (o.dx || 0) * u + px * c - py * s, y + bodyDy(o) * u + px * s + py * c];
   }
   // The muzzle flash: a dry white-yellow star with a hot core, k 0..1 (gone in ~.12 s), pointing along ang.
   function muzzleFlash(x, y, s, k, ang, key) {
@@ -219,8 +235,8 @@
   // ---------- the Naked: rock in his near hand (L), eoka in his far hand (R) ----------
   // One strike (contact at 0), in eoka space: the rock comes up from below, its top edge scrapes forward along the flint
   // under the bend (flint and steel: sparks), then drops away. These are the rock's top edge; times are scaled by sp.
-  const STRIKE = [[-.14, [.62, 1.12]], [-.07, [.34, 1.32]], [0, [.56, .04]], [.06, [1.14, -.06]], [.15, [1.28, .3]], [.32, [.62, 1.12]]];
-  const ROCKTOP = [.85, -1.25], FLINT = [.92, -.02];   // the rock's top edge (rock space); where the sparks fly from
+  const STRIKE = [[-.14, [1.08, .78]], [-.07, [.86, .96]], [0, [1.14, -.48]], [.06, [1.82, -.58]], [.15, [2.0, -.2]], [.32, [1.08, .78]]];
+  const ROCKTOP = [.85, -1.25], FLINT = [1.46, -.56];   // the rock's top edge (rock space); where the sparks fly from (eoka space)
   // Which strike is under way at t (strikes = contact times): { t0, rel } or null
   function strikeAt(t, strikes, sp = 1) {
     let best = null;
@@ -241,7 +257,7 @@
     const ra = (e ? e.aim || 0 : 0) + (r.tilt ?? 0);
     let hand = null, rr = r.rot ?? 0;
     if (r.strikes && e) {
-      const st = strikeAt(r.t ?? T, r.strikes, r.sp ?? 1), c = st ? kf(st.rel, STRIKE, x => x) : STRIKE[0][1];
+      const st = strikeAt(r.t ?? T, r.strikes, r.sp ?? 1), c0 = st ? kf(st.rel, STRIKE, x => x) : STRIKE[0][1], c = [c0[0] * ES, c0[1] * ES];
       const ca = Math.cos(e.aim || 0), sa = Math.sin(e.aim || 0), cr = Math.cos(ra), sr = Math.sin(ra), ys = eYs(e);
       const cx = e.g[0] + c[0] * ca - c[1] * ys * sa, cy = e.g[1] + c[0] * sa + c[1] * ys * ca;
       hand = [cx - (ROCKTOP[0] * cr - ROCKTOP[1] * sr), cy - (ROCKTOP[0] * sr + ROCKTOP[1] * cr)];
@@ -853,9 +869,10 @@
 
   // ---------- a model sheet of the new props: studio.html?ep=3&loop=ep3kit ----------
   LOOPS.ep3kit = t => {
+    ES = 1;
     boilSeed('bg'); paint(rectPts(-50, -50, W + 100, H + 100), { wash: '#EFE6D6', ink: null });
-    push(); translate(300, 420); eokaProp(110, 4); pop();
-    barrel(820, 560, 1.4, 0);
+    push(); translate(640, 380); eokaProp(110, 4); pop();
+    barrel(150, 380, 1.1, 0);
     const e = { g: [2.9, -7.6], aim: -.05, ys: 1 };
     const s = [0.5, 1.5, 2.5];
     const o1 = nakedPose(48, { view: 'side', ...feel('determined', t) }, e, { strikes: s, t });
