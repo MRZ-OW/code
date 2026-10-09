@@ -84,6 +84,14 @@
     const [vx0] = ws(-60, 0), [vx1] = ws(W + 60, 0);
     for (const [f, n] of [[.28, 12], [.7, 12], [1.3, 11], [2.1, 10]]) tufts(t, -700, 1800, HZc + d * f, n, .3 + .62 * f, o.wind, f < .5 ? 2 : 3, vx0, vx1);
   }
+  // The low camera's foreground (S1, under the captions): darker grass close to the lens, big tufts and a few pebbles
+  // bending in the downwash, so the bottom of the frame isn't an empty field.
+  function foreground(t, wind) {
+    for (let i = 0; i < 5; i++) { staticSeed('e5fgshade' + i); paint(rectPts(-1600, G + 120 + i * 90, 4300, 1600), { wash: '#5E7E40', washOp: 34, ink: null }); }   // darker toward the lens, in soft steps
+    for (let i = 0; i < 3; i++) { const px = NX - 300 + i * 330 + 80 * hash(i + 31), py = G + 260 + 120 * hash(i + 33), r = 22 + 10 * hash(i + 35); boilSeed('e5pebble' + i); paint(ellPts(px, py, r * 1.5, r * .8, 10, r * .2), { wash: i % 2 ? '#9C9A8E' : '#B4AE9C', ink: PAL.ink, sw: 1.1 }); paint(ellPts(px - r * .4, py - r * .3, r * .6, r * .2, 8), { wash: '#D2CCBA', ink: null }); }
+    tufts(t, NX - 520, NX + 620, G + 200, 7, 2.0, wind);
+    tufts(t, NX - 560, NX + 640, G + 430, 6, 3.6, wind);
+  }
   // A row of grass tufts at ground line y (n of them along x0..x1, s = size); only the ones in view (cx0..cx1) are drawn.
   function tufts(t, x0, x1, y, n, s, wind, blades = 3, cx0 = -1e9, cx1 = 1e9) {
     for (let i = 0; i < n; i++) {
@@ -255,12 +263,12 @@
     paint(rectPts(-1.1 * u, -.55 * u, 2.6 * u, .8 * u, u * .02), { wash: '#26252B', ink: PAL.ink, sw: sw * .55 });   // receiver
     paint(ellPts(.15 * u, -.2 * u, .16 * u, .16 * u, 10), { wash: '#B8962A', ink: null });   // the smiley sticker, scorched
     paint(U2(u, [[-.55, .2], [-.15, .2], [-.25, 1.0], [-.65, 1.0]]), { wash: '#7A5034', ink: PAL.ink, sw: sw * .45 });   // grip
-    paint(U2(u, [[.3, .22], [.85, .22], [1.3, .85], [1.62, 1.35], [1.18, 1.55], [.82, 1.02]]), { wash: '#B5432E', ink: PAL.ink, sw: sw * .6, curv: .35 });   // the magazine (red-brown, like the stock)
-    inkLine(U2(u, [[.5, .35], [.95, .95], [1.25, 1.35]]), sw * .5, '#E07A5E', 'inkfine', .4);   // its highlight
+    paint(U2(u, [[.3, .22], [.85, .22], [1.3, .85], [1.62, 1.35], [1.18, 1.55], [.82, 1.02]]), { wash: '#45444C', ink: PAL.ink, sw: sw * .7, curv: .35 });   // the banana magazine
+    inkLine(U2(u, [[.5, .35], [.95, .95], [1.25, 1.35]]), sw * .6, '#9A9EA6', 'inkfine', .4);   // its highlight
     inkLine(U2(u, [[.98, .9], [.62, 1.0]]), sw * .9, '#8E949A', 'ink', 0);   // its tape
     paint(rectPts(1.4 * u, -.38 * u, 1.35 * u, .5 * u, u * .02), { wash: '#A55E36', ink: PAL.ink, sw: sw * .5 });   // the handguard, singed
     const B = U2(u, [[2.65, -.13], [3.35, -.15], [3.95, -.32], [4.3, -.8], [4.2, -1.4], [3.75, -1.72], [3.15, -1.72], [2.75, -1.45]]);
-    paint(ribbon(B, .34 * u, .3 * u), { wash: '#55545C', ink: PAL.ink, sw: sw * .6 });   // the barrel, bent back on itself
+    paint(ribbon(B, .44 * u, .38 * u), { wash: '#55545C', ink: PAL.ink, sw: sw * .6 });   // the barrel, bent back on itself
     inkLine(B.map(([bx, by]) => [bx, by - .08 * u]), sw * .45, '#A8ADB4', 'inkfine', .4);   // a shine along the bend
     paint(ellPts(B[B.length - 1][0], B[B.length - 1][1], .15 * u, .15 * u, 8), { wash: '#121014', ink: null });   // the muzzle, looking back at the gun
     for (let i = 0; i < 4; i++) paint(ellPts((-2.2 + i * 1.3) * u, (-.15 + .25 * hash(i)) * u, .45 * u, .2 * u, 9, u * .05), { wash: '#1E1C1E', washOp: 100, ink: null });   // soot
@@ -529,7 +537,7 @@
   function s1(t, lt) {
     const z = 1.15 + .03 * ease(seg(t, 0, 3.5));
     camBegin(...stage(z, 1238, 1238 - 77 * z, NX, 450));
-    const h = leaving(HOVER(t), t, 2.5), windK = 1 - seg(t, 2.9, 3.45), hx = ws(h.x, 0)[0];
+    const h = leaving(HOVER(t), t, 2.5, .8), windK = 1 - seg(t, 2.9, 3.45), hx = ws(h.x, 0)[0];
     scr(() => backdrop(t, sc(0, HZc)[1], { tower: 840 }));
     ground(t, { wind: [hx, windK] });
     downwash(t, hx, G, windK);
@@ -540,6 +548,7 @@
     clutchQ(No, U, 1);
     spawnling(NX, G, U, No);
     tufts(t, NX - 170, NX + 170, G + 28, 5, 1.2, [hx, windK]);
+    foreground(t, [hx, windK]);
     light(cx, cy, 200, on);
     drawHeli(h);
     snort(h, t - 2.62);
@@ -725,15 +734,18 @@
       spin: 1, fire: (t > 12.0 && t < 12.4) || (t > 13.0 && t < 13.35) ? .6 + .4 * flick(t, [1, .3, .8, .2]) : 0, key: 'h2d' });
     // the geared players, small, shooting up at it: one standing (P1, right), one crouched (P2, left), out of step;
     // P2 runs for it after P1 goes up
-    const shooter = (flip, crouch, burst, key, seed, skin) => {
-      const o = { ...feel('determined', t, { emote: null }), ...CHAD_GEAR, skin, boilKey: key, seed, view: 'q', flip, crouch, rawArms: true };
-      Object.assign(o, reachArm(PU, o, 'L', 1.45 * PU, -7.9 * PU + dropOf(o, PU)));
-      return { ...o, gunRot: -.62 - .15 * crouch, twoHand: true, fire: burst ? flick(t, [1, 0, .7, 0]) : 0, dy: burst ? -.05 : 0 };
+    // (two different players, not mirror twins: P1 stands leaning back, firing steeply up, in the olive kit; P2 kneels low
+    // in a brown hoodie with no kilt, aiming flatter, and bobs to his own rhythm)
+    const shooter = (flip, crouch, burst, key, seed, skin, x = {}) => {
+      const o = { ...feel('determined', t, { emote: null }), ...CHAD_GEAR, ...x, skin, boilKey: key, seed, view: 'q', flip, crouch, rawArms: true };
+      Object.assign(o, reachArm(PU, o, 'L', (x.handX ?? 1.45) * PU, (x.handY ?? -7.9) * PU + dropOf(o, PU)));
+      return { ...o, gunRot: (x.gunRot ?? -.62) - .15 * crouch, twoHand: true, fire: burst ? flick(t, [1, 0, .7, 0]) : 0, dy: (o.dy || 0) + (burst ? -.05 : 0) };
     };
-    if (t < 12.52) geared(P1X, PY, PU, shooter(true, 0, t > 11.15 && t < 11.95 && frac(t * 2) < .55, 'p1', 4, 'tan'));
+    if (t < 12.52) geared(P1X, PY, PU, shooter(true, 0, t > 11.15 && t < 11.95 && frac(t * 2) < .55, 'p1', 4, 'tan', { rot: .12, gunRot: -.95, handX: 1.2, handY: -8.6 }));
     if (t < 13.52) {
-      if (t < 12.5) geared(P2X, PY, PU, shooter(false, .45, t > 11.45 && t < 12.35 && frac(t * 2.6 + .3) < .45, 'p2', 6, 'brown'));
-      else geared(P2X, PY, PU, { ...feel('scared', t), ...CHAD_GEAR, skin: 'brown', boilKey: 'p2run', seed: 6, view: 'q', flip: true, walk: (t - 12.5) * 3.6, rawArms: true, aL: -.5, bendL: 1.2, aR: -.2, bendR: 1.3, gunRot: -.8, emote: null });
+      if (t < 12.5) geared(P2X, PY, PU, shooter(false, .85, t > 11.45 && t < 12.35 && frac(t * 2.6 + .3) < .45, 'p2', 6, 'brown',
+        { gear: { ...CHAD_GEAR.gear, kilt: null, hoodieCol: '#6E5038' }, hairCol: 'brown', rot: -.08 + .04 * Math.sin(t * 5), gunRot: -.3, handX: 1.6, handY: -7.2 }));
+      else geared(P2X, PY, PU, { ...feel('scared', t), ...CHAD_GEAR, gear: { ...CHAD_GEAR.gear, kilt: null, hoodieCol: '#6E5038' }, hairCol: 'brown', skin: 'brown', boilKey: 'p2run', seed: 6, view: 'q', flip: true, walk: (t - 12.5) * 3.6, rawArms: true, aL: -.5, bendL: 1.2, aR: -.2, bendR: 1.3, gunRot: -.8, emote: null });
     }
     clods(P1X, PY, 80, t - 12.5, 5, 'clodp1'); boom(P1X, PY - 6, 80, t - 12.5, 'b2d1');
     clods(120, PY, 80, t - 13.5, 5, 'clodp2'); boom(120, PY - 6, 80, t - 13.5, 'b2d2');
@@ -800,7 +812,7 @@
   // drool and the wipe, and he pulls the AK out of the sack (17.6) and hugs it, beaming.
   function s3b(t, lt) {
     const pan = ease(seg(t, 16.4, 17.35));
-    camBegin(...stage(1.55, 1236, 1236 - 180 * 1.55, lerp(440, NX3, pan), lerp(560, 520, pan)));
+    camBegin(...stage(1.55, 1236, 1236 - 180 * 1.55, lerp(440, NX3, pan), lerp(625, 520, pan)));   // (starts framed right so the sack at the left stays inside x 48)
     scr(() => backdrop(t, sc(0, HZc)[1], { pan: 30 * pan, tower: 960 }));
     ground(t);
     busyHeli(t, 800, 410, .22, 'h3b');
@@ -951,8 +963,8 @@
     ground(t, { wind: [hx, windK] });
     downwash(t, hx, G, windK * .7);
     clods(AKDROP[0], AKDROP[1], 180, 9, 9, 'clod3e');   // where they landed
-    crater(AKDROP[0] - 42, AKDROP[1] + 6, 86);   // left of him, clear of his feet
-    push(); translate(AKDROP[0] - 72, AKDROP[1] - 20); scale(-1, 1); bentAK(0, 0, 1.15, -.24); pop();   // the U-bent barrel out to the left, the red stock toward him
+    crater(AKDROP[0] - 50, AKDROP[1] + 6, 105);   // left of him, clear of his feet
+    push(); translate(AKDROP[0] - 76, AKDROP[1] - 30); scale(-1, 1); bentAK(0, 0, 1.0, -.08); pop();   // the U-bent barrel out to the left, the red stock toward him
     towel(...TOWEL, 300, 58, { singe: 1 });
     rockGround(...ROCK, .82);   // rocks don't burn
     const on = t > 22.3 && t < 23.2 ? 1 : t >= 23.2 && t < 23.26 ? .3 : 0, [tx, ty] = sc(NX3, G - 6.5 * U);

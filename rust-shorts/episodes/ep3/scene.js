@@ -667,7 +667,7 @@
   // ---------- S3: gave up (16–21) and S4: true faith (21–28), the next morning ----------
   const morning = t => meadow(t, { tod: .25, sun: MSUN, sky: MORNING, ct: 216 + (t - 16) });
   // After his dive he sits at SEATX, by the eoka. SCAM / HCAM: the N framings for that (HCAM keeps his feet above the captions).
-  const SEATX = 240, SCAM = () => { ES = 1; camBegin(SEATX + 55, 1160, 1.78); }, HCAM = () => { ES = 1; camBegin(SEATX + 80, 1195, 1.8); };
+  const SEATX = 262, SCAM = () => { ES = 1; camBegin(SEATX + 55, 1160, 1.78); }, HCAM = () => { ES = 1; camBegin(SEATX + 80, 1195, 1.8); };
   const SEAT = { sit: 1, legsOut: true, dy: 2.3 };
   const akHook = g => (uu, sw) => { push(); rotate(g); akProp(uu, sw, 0); pop(); };
   // the eoka on its own: grip at (x, y)
@@ -698,12 +698,12 @@
 
   // 3A (N): he looks at the eoka, heartbroken, sighs (16.0) and tosses it over his shoulder without looking: the arm
   // swings up past his face (16.86), lets go above and behind his head (17.0), and follows through before it falls.
-  const LOOK3 = { g: [2.45, -5.6], aim: .12, ys: 1 }, DIP = { g: [2.7, -5.2], aim: .3, ys: 1 }, BACK = { g: [-.9, -12.2], aim: -2.6, ys: 1 }, SLUMP = { g: [1.5, -4.5], aim: 1.15, ys: 1 };
+  const LOOK3 = { g: [2.45, -5.6], aim: .12, ys: 1 }, DIP = { g: [2.7, -5.2], aim: .3, ys: 1 }, BACK = { g: [-1.0, -12.6], aim: -2.6, ys: 1 }, SLUMP = { g: [1.5, -4.5], aim: 1.15, ys: 1 };
   function pose3a(t) {
     const N = emotions(t, [[16, 'sad', { eyes: 'teary', mouth: 'frown', emote: null, gloom: 0 }], [16.62, 'sad', { eyes: 'closed', mouth: 'frown', emote: null, gloom: 0 }]], { take: .2 });
     const sigh = t < 16.6 ? Math.sin(seg(t, 16.0, 16.6) * Math.PI) : 0;
     const e = t < 16.5 ? eBlend(SLUMP, LOOK3, ease(seg(t, 16.05, 16.4))) : t < 16.86 ? eBlend(LOOK3, DIP, ease(seg(t, 16.7, 16.86))) : eBlend(DIP, BACK, easeIn(seg(t, 16.86, 17.0)));
-    const up = t < 16.97;   // over the top his arm is in front of his face; behind his head it goes behind him
+    const up = t < 17.24;   // over the top and through the follow-through his arm is drawn over his head; dropping, it goes behind him
     const No = nakedPose(U, { ...N, view: 'side', farFront: up, swMul: .8, sq: (N.sq || 0) + .07 * sigh, rot: t > 16.86 ? -.06 * Math.sin(seg(t, 16.86, 17.3) * Math.PI) : 0, lookX: t < 16.62 ? .5 : -.2, lookY: t < 16.62 ? .6 : .2 }, t < 17.0 ? e : null, { at: ROCK_DOWN });
     if (t >= 17.0) Object.assign(No, armLerp(reachArm(U, No, 'R', BACK.g[0] * U, BACK.g[1] * U), { aR: TAU - 1.32, bendR: .25 }, ease(seg(t, 17.2, 17.45)), 'R'));   // held up behind his head, then down the back way
     return No;
@@ -722,10 +722,10 @@
   // Where the tossed eoka is (grip, aim), 17.5–19.92: it drops in from high up, lands upright on its butt behind his
   // heels (in depth) with the barrel past his toes and fires (17.6); the kick bounces it back a little; then it stands
   // there. Null once it's back in his hand.
-  const EOKA_LAND = [200, G + 2 - .98 * 1.3 * U], EOKA_REST = [188, G + 2 - .98 * 1.3 * U, -.04];
+  const EOKA_LAND = [222, G + 2 - .98 * 1.3 * U], EOKA_REST = [210, G + 2 - .98 * 1.3 * U, -.04];
   function eokaFree(t) {
     if (t < 17.5 || t >= 19.92) return null;
-    if (t < 17.6) { const k = seg(t, 17.5, 17.6); return { x: lerp(150, EOKA_LAND[0], k), y: lerp(440, EOKA_LAND[1], k * k), aim: (1 - k) * 2.6 }; }
+    if (t < 17.6) { const k = seg(t, 17.5, 17.6); return { x: lerp(170, EOKA_LAND[0], k), y: lerp(440, EOKA_LAND[1], k * k), aim: (1 - k) * 2.6 }; }
     if (t < 17.8) { const k = seg(t, 17.6, 17.8), p = arcPt(EOKA_LAND, EOKA_REST, 22, k); return { x: p[0], y: p[1], aim: -.3 * Math.sin(k * Math.PI) - .04 * k }; }
     return { x: EOKA_REST[0], y: EOKA_REST[1], aim: EOKA_REST[2] };
   }
@@ -816,7 +816,7 @@
     const land = ease(seg(t, 19.66, 19.86)), x = lerp(NX, SEATX, land), air = t > 19.66 && t < 19.86 ? Math.sin(seg(t, 19.66, 19.86) * Math.PI) : 0;
     const N = emotions(t, [[19.5, 'scared', { emote: 'sweat' }], [20.08, 'scared', { eyes: 'squeeze', mouth: 'wobble', emote: null }]], { take: .4 });
     const view = t < 19.66 ? 'front' : t < 19.69 ? 'qf' : t < 19.72 ? 'q' : 'side';
-    const o = { ...N, view, sit: land, legsOut: true, dy: 2.3 * land - .9 * air, rot: -.12 * air, dx: t < 19.66 ? .12 * Math.sin(t * 90) : 0, lookX: t < 20.08 ? .8 : -.6, emoteDx: -1 };
+    const o = { ...N, view, sit: land, legsOut: true, dy: 2.3 * land - .9 * air, rot: -.05 * air, farFront: t >= 19.86, dx: t < 19.66 ? .12 * Math.sin(t * 90) : 0, lookX: t < 20.08 ? .8 : -.6, emoteDx: -1 };
     const e = t >= 19.9 ? eBlend({ g: GRAB_G, aim: EOKA_REST[2], ys: 1 }, AIMS, ease(seg(t, 19.95, 20.25))) : null;
     const hands = ease(seg(t, 19.5, 19.56)) * (1 - ease(seg(t, 19.64, 19.74)));   // hands up!
     const r = t >= 20.2 ? { strikes: [20.36], t, sp: .9, at: REST_SIT, atK: 1 - ease(seg(t, 20.2, 20.28)) } : hands > .02 ? { at: [lerp(ROCK_DOWN[0], -1.1, hands), lerp(ROCK_DOWN[1], -12.2, hands)] } : { at: [lerp(ROCK_DOWN[0], REST_SIT[0], land), lerp(ROCK_DOWN[1], REST_SIT[1], land)] };
