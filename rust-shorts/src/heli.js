@@ -453,9 +453,12 @@ function tracers(x0, y0, x1, y1, t, o = {}) {
     boilSeed(key + i);
     if (p < 1) {
       const q0 = Math.max(0, p - len / L), hx = lerp(x0, tx, p), hy = lerp(y0, ty, p), sx = lerp(x0, tx, q0), sy = lerp(y0, ty, q0);
-      glow(hx, hy, 30, '#FFC24A', .9);
-      inkLine([[sx, sy], [hx, hy]], 1.4, '#F2A23A', 'ink', 0);
-      inkLine([[lerp(sx, hx, .35), lerp(sy, hy, .35)], [hx, hy]], .6, '#FFF6D2', 'inkfine', 0);
+      // a short yellow-orange streak, tapered to its tail, a pale-yellow core and only a small glow at the tip (a big
+      // round glow per round read as a string of pearls)
+      const w = o.w ?? 3.2, nx = -(hy - sy), ny = hx - sx, nl = Math.hypot(nx, ny) || 1, ox = nx / nl * w, oy = ny / nl * w;
+      paint([[sx, sy], [lerp(sx, hx, .7) + ox, lerp(sy, hy, .7) + oy], [hx + ox * .6, hy + oy * .6], [hx + dx * w * 1.5, hy + dy * w * 1.5], [hx - ox * .6, hy - oy * .6], [lerp(sx, hx, .7) - ox, lerp(sy, hy, .7) - oy]], { wash: '#FFAE34', washOp: 235, ink: null });
+      inkLine([[lerp(sx, hx, .45), lerp(sy, hy, .45)], [hx, hy]], .7, '#FFF4B8', 'inkfine', 0);
+      glow(hx, hy, 12, '#FFC24A', .55);
     } else if (o.hits !== false) {
       const a = age - fly; if (a > .28) continue;
       const kk = a / .28, r = 8 + 34 * Math.sqrt(kk);

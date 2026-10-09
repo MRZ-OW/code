@@ -647,7 +647,7 @@
     tufts(t, NX - 150, NX + 230, G + 30, 5, 1.15);
     light(cx2, cy2, 230, lockedOn);
     drawHeli(h);
-    lockOn(cx2, cy2 - 12, 300, 700, t < 10.0 ? seg(t, 9.0, 9.4) : 0, t);
+    lockOn(cx2, cy2 - 24, 300, 800, t < 10.0 ? seg(t, 9.0, 9.4) : 0, t);   // head (hat and all) to toes
     // the panic: a dust cloud, his clothes flying out of it (hat 9.4, hoodie 9.65, pants 9.9), thinning out over him
     scr(() => {
       const [bx, by] = sc(NX, G - 6.3 * U), ck = seg(t, 9.4, 9.46), cop = 1 - seg(t, 9.86, 10.08);
@@ -906,7 +906,7 @@
     if (down) { puff(NX3, G - 2.6 * U, 70, t - 23.6, { col: '#D9CDB4', key: 'faceplant', n: 6, life: .5, rise: .4 }); puff(NX3 + .5 * U, G - 2.8 * U, 40, t - 23.62, { col: '#3E3A38', key: 'ash', n: 4, life: .5 }); }
     smolder(AKDROP[0] + 20, AKDROP[1] - 40, .9, t - 21.4, { key: 'akwisp' });
     if (!down) smolder(NX3 + 6, G - 12.8 * U * lerp(1, .17, fall), 1.2, t - 21.5, { key: 'him' });
-    softSmoke(NX3 - 40, G - 6 * U, 150, t - 21.75, 'clear3f', 7, 1.0);   // the blast's smoke, clearing off him
+    softSmoke(NX3 - 40, G - 5 * U, 170, t - 21.62, 'clear3f', 8, .9);   // the blast's smoke, thinning off him as the shot opens
     light(tx, ty, 170, on);
     drawHeli(h);
     snort(h, t - 23.28);

@@ -512,7 +512,7 @@ TRANS_FX.sleepingBag = {
       // the stitched seam
       boilSeed('tr-bagst');
       const L = []; for (let y = top; y <= yf; y += 60) L.push([360 + trBagWave(360, y), y]);
-      inkLine(L, 1.8, '#3E3428', 'inkfine', .3);
+      if (L.length > 1) inkLine(L, 1.8, '#3E3428', 'inkfine', .3);
       for (let y = -40; y < yf - 20; y += 40) inkLine([[369 + trBagWave(360, y), y], [369 + trBagWave(360, y + 20), y + 20]], 1.4, '#D2C6A8', 'inkfine', 0);
       // patches, stitched on askew (reference: the icon's darker brown patches)
       for (const [px, py, pw, ph, rot, c] of [[160, 380, 210, 260, -.08, '#6E4632'], [520, 1180, 230, 190, .1, '#5E4C34'], [905, 600, 180, 230, .06, '#7A4E36'], [190, 1560, 190, 170, .12, '#6A4430']]) {
@@ -529,7 +529,7 @@ TRANS_FX.sleepingBag = {
       paint(strip(zx, -26, 26), { wash: '#3A3226', ink: null });
       for (let y = -60, i = 0; y < yf - 10; y += 11, i++) { const w = trBagWave(zx, y), sd = i % 2 ? 1 : -1; paint(rrPts(zx + w + (sd > 0 ? -3 : -15), y, 18, 9, 3), { wash: '#C9AE6C', ink: '#5E4A20', sw: .5 }); }
       const Lz = []; for (let y = top; y <= yf; y += 60) Lz.push([zx + trBagWave(zx, y), y]);
-      inkLine(Lz, 1, '#2A2218', 'inkfine', .3);
+      if (Lz.length > 1) inkLine(Lz, 1, '#2A2218', 'inkfine', .3);
       const zy = Math.min(yf - 40, lerp(110, H - 160, zk)), zw = zx + trBagWave(zx, zy);
       boilSeed('tr-bagzs');
       paint(rrPts(zw - 32, zy - 46, 64, 92, 14), { wash: '#C9A44E', ink: PAL.ink, sw: 1.6 });

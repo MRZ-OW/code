@@ -370,14 +370,14 @@
     } else {
       const k = seg(a, .6, .75), land = a >= .75, p = arcPt([NA, G], [NX, G], 110, k), age = a - .75;
       const O = { view: 'q', soot: .9, frizz: 1, sit: land ? 1 : ease(k), legsOut: true, hold: {}, dy: SEAT * (land ? 1 : ease(k)), noShadow: true };
-      if (!land) Object.assign(O, { eyes: 'x', mouth: 'o', rot: -.3 * Math.sin(k * Math.PI), aL: 2.3, bendL: .3, aR: 2.0, bendR: .3 });
+      if (!land) Object.assign(O, { eyes: 'x', mouth: 'o', rot: -.15 * Math.sin(k * Math.PI), aL: 2.3, bendL: .3, aR: 2.0, bendR: .3 });
       else Object.assign(O, { eyes: (a > .95 && a < 1.0) || (a > 1.08 && a < 1.13) ? 'closed' : 'normal', lookX: .3, mouth: 'o', sq: .2 * Math.exp(-age * 9) * Math.cos(age * 20), aL: -1.0 - .3 * clamp(age / .15), bendL: .4, aR: -.9, bendR: .4 });
       seatShadow(p[0], land ? 1 : .4 + .6 * k);
       naked(p[0], p[1], O);
       if (land) dust(NX - 10, G - 6, 44, age, 'land');
       smoke(p[0] - 6, tipsY(p[1], O), 1.1, a - .62, 'z2');
       // the rock leaves his raised hand and spins off on its own arc, landing beside him
-      const h0 = survivorHand(NA, G, U, J, 'L'), rl = seg(a, .6, .97), rk = 1 - (1 - rl) * (1 - rl) * .6 - (1 - rl) * .4, q = arcPt(h0, RK, 430, rk); q[0] -= 40 * Math.sin(rk * Math.PI);
+      const h0 = survivorHand(NA, G, U, J, 'L'), rl = seg(a, .6, .97), rk = 1 - (1 - rl) * (1 - rl) * .6 - (1 - rl) * .4, q = arcPt(h0, RK, 430, rk); q[0] += 70 * Math.sin(rk * Math.PI);
       rockAt(q[0], q[1], 2.6 * rk + 9 * rk * (1 - rk));
       if (a >= .97) dust(RK[0], RK[1], 22, a - .97, 'rockland', .5);
     }
