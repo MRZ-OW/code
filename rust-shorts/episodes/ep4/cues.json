@@ -12,6 +12,9 @@
     { "name": "S3A ominous (the Chad's rock), stops on the THOCK", "t0": 14, "t1": 15.75, "style": "ominous", "key": "Fm", "origin": 0, "hit": false, "cut": true }
   ],
   "cues": [
+    [6.82, "whoosh", { "dur": 0.18, "shape": "rise", "pitch": 0.8 }],
+    [7.0, "thock", { "pitch": 0.75, "chips": 0.4 }],
+    [7.05, "whoosh", { "dur": 0.35, "pitch": 1.1, "dir": 1 }],
     [17.0, "forest", { "dur": 15, "level": [[0, 0], [7, 0], [9, -4], [10.5, -10], [11.8, -30], [17, 0], [20, 0]] }],
     [0.5, "thock"],
     [0.56, "boing", { "pitch": 1.2 }],

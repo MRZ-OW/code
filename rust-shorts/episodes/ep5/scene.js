@@ -360,7 +360,7 @@
   // (heel up) while the other leg stays straight with its foot flat, sliding back. Returns pose options.
   function moonwalk(t, t0) {
     const ph = (t - t0) / .25, n = Math.floor(ph), f = frac(ph), k = ease(clamp(f / .4));   // the swap takes the first 40%
-    const pop = i => ((n + i) % 2 ? 1 - k : k) * .34;
+    const pop = i => ((n + i) % 2 ? 1 - k : k) * .48;
     return { liftL: pop(0), liftR: pop(1), dy: -.06 * Math.sin(Math.PI * clamp(f / .4)), slide: n % 2 };
   }
   // Sunbathing on the towel: sitting, 3/4 view facing left, legs out along the towel, leaning back on his far hand,
@@ -448,11 +448,14 @@
   // sideways, lift a little and thin out over life s.
   function dust(x, y, r, age, key, life = .4, col = '#E2D8BC') {
     if (age < 0 || age > life) return;
-    const kk = age / life;
-    for (let i = 0; i < 5; i++) {
-      const px = x + (i - 2) * r * .42 * (.7 + .8 * easeOut(kk)), py = y - r * (.12 + .25 * kk) * (.6 + .6 * hash(i + 7)), pr = r * (.3 + .3 * easeOut(kk)) * (.7 + .5 * hash(i + 2));
-      boilSeed(key + i); paint(ellPts(px, py, pr, pr * .55, 12), { wash: col, washOp: 190 * (1 - kk * kk), ink: null });
+    const kk = age / life, w = r * (.7 + .8 * easeOut(kk)), h = r * (.28 + .3 * easeOut(kk)), cy = y - h * .45, P = [];
+    for (let i = 0; i < 22; i++) {   // one billowing outline: bumpy on top, flat along the ground
+      const a = Math.PI + i / 21 * Math.PI, bump = 1 + .22 * Math.sin(i * 2.2 + hash(i) * 2);
+      P.push([x + Math.cos(a) * w * bump, cy + Math.sin(a) * h * bump * 1.2]);
     }
+    P.push([x + w, y], [x - w, y]);
+    boilSeed(key); paint(P, { wash: col, washOp: 175 * (1 - kk * kk), ink: null, curv: .5 });
+    paint(ellPts(x - w * .1, cy - h * .2, w * .55, h * .5, 12), { wash: '#F4EEDC', washOp: 110 * (1 - kk), ink: null });
   }
   // A blast in the painted style (world or screen): a white-yellow starburst, a layered fireball (a dark rim, red,
   // orange, yellow, a white-hot core) that rises as it burns out, then soft charcoal smoke. r = size, age in s.
@@ -674,12 +677,12 @@
 
   // 2D wide, a higher camera: the heli shreds two geared players out on the field (tracers; booms at 12.5 and 13.5)
   // while the Naked moonwalks under it (11–12), flexes (12–13) and flops onto a beach towel with shades and beans (13).
-  const TOWEL = [400, 1352], ROCK = [575, 1368], SIT = 470;   // the towel (2D–S3), his rock beside it, where he sits on it
+  const TOWEL = [400, 1352], ROCK = [598, 1368], SIT = 470;   // the towel (2D–S3), his rock beside it, where he sits on it
   function s2d(t, lt) {
     camBegin(...stage(1, 1215, 880, 540, 540));
     scr(() => backdrop(t, sc(0, HZc)[1], { tower: 945 }));
     ground(t);
-    const PY = HZc + (G - HZc) * .39, PU = depthU(PY), P1X = 790, P2X = t < 12.5 ? 250 : lerp(250, 120, seg(t, 12.5, 13.45));
+    const PY = HZc + (G - HZc) * .39, PU = depthU(PY), P1X = 808, P2X = t < 12.5 ? 250 : lerp(250, 120, seg(t, 12.5, 13.45));
     // the heli: facing right, it fires at P1 (12.0), a rocket (12.25 → 12.5); swings round (12.5–12.95); fires at P2
     // (13.0), a rocket (13.22 → 13.5)
     const swing = ease(seg(t, 12.5, 12.95));
@@ -702,10 +705,10 @@
     // the towel, with the shades and the beans waiting on it, and his rock beside it
     towel(...TOWEL, 300, 58);
     if (t < 13.06) { shadesProp(TOWEL[0] + 40, TOWEL[1] - 6, 1.1); beanCanAt(TOWEL[0] - 60, TOWEL[1] - 2, .6, { key: 'towel' }); }
-    rockGround(...ROCK, .9);
+    rockGround(...ROCK, .82);
     // the Naked
     if (t < 12.0) {   // the moonwalk: facing right, gliding left at a steady speed, knees popping in turn
-      const k = seg(t, 11.0, 12.0), x = lerp(700, 540, .2 * ease(k) + .8 * k), mw = moonwalk(t, 11.0);
+      const k = seg(t, 11.0, 12.0), x = lerp(675, 540, .2 * ease(k) + .8 * k), mw = moonwalk(t, 11.0);
       spawnling(x, G, U, { ...feel('cool', t), eyes: 'sly', mouth: 'smirk', lookX: -.3, emote: null, boilKey: NK, seed: 1, view: 'q', rawArms: true, prop: 'none', liftL: mw.liftL, liftR: mw.liftR, dy: mw.dy, aL: -1.05 + .3 * Math.sin(t * TAU * 2), bendL: .9, aR: -1.25 - .25 * Math.sin(t * TAU * 2), bendR: .6, rot: -.06 });
       boilSeed('slide'); for (let i = 0; i < 3; i++) { const fx = x + (1.2 + i * .8) * U, a = .7 - i * .2; inkLine([[fx, G - 4 + i * 3], [fx + (22 + 10 * i), G - 4 + i * 3]], 1.2, mixCol('#C9BC98', '#8DAA62', 1 - a), 'inkfine', 0); }   // the slide, trailing behind his flat foot
     } else if (t < 12.95) {   // flex, on the beat
@@ -743,14 +746,14 @@
   // 3A medium, a high camera on the towel: sunbathing. The sack in the grass glints (14.62); he sits up (14.88), takes
   // his shades by the temple and slides them down his nose (15.12–15.28): sparkling eyes over the top.
   function s3a(t, lt) {
-    camBegin(...stage(1.45, 1236, 1236 - 330 * 1.45, SIT, 700));
+    camBegin(...stage(1.45, 1236, 1236 - 330 * 1.45, SIT, 672));
     scr(() => backdrop(t, sc(0, HZc)[1], { pan: 10, tower: 300 }));
     ground(t);
     scr(() => boom(860, sc(0, HZc)[1] - 6, 24, t - 14.3, 'far3a'));   // a far-off boom on the horizon
     busyHeli(t, 790, 395, .2, 'h3a');
     sack(...SACK, .8, { glint: Math.max(0, Math.sin(Math.PI * seg(t, 14.62, 15.0))) + .8 * Math.max(0, Math.sin(Math.PI * seg(t, 15.5, 15.9))) });
     towel(...TOWEL, 300, 58);
-    rockGround(...ROCK, .9);
+    rockGround(...ROCK, .82);
     const notice = t >= 14.88, sparkle = t >= 15.28;
     const N = emotions(t, [[14.0, 'cool', { eyes: 'normal', mouth: 'smile', emote: null, lookX: .3, lookY: -.6 }], [14.88, 'surprised', { emote: null, mouth: 'o', eyes: 'wide', lookX: .8, lookY: .5 }], [15.28, 'starstruck', { mouth: 'open', emote: null, tint: null, lookX: .8, lookY: .5 }]], { take: .6 });
     sunbathe(SIT, G, U, t, { lean: notice ? lerp(.14, -.04, ease(seg(t, 14.88, 14.98))) : .14 + .02 * Math.sin(t * 4), can: !notice, shadesHand: t > 14.98 && t < 15.45, slide: ease(seg(t, 15.12, 15.28)),
@@ -769,7 +772,7 @@
     sack(...SACK, .8, { ak: t < 17.6, glint: Math.max(0, Math.sin(Math.PI * seg(t, 15.95, 16.35))) });
     towel(...TOWEL, 300, 58);
     beansDown();
-    rockGround(...ROCK, .9);
+    rockGround(...ROCK, .82);
     const st = (t - 16.5) / .25, n = Math.floor(st), f = frac(st), stepping = t >= 16.5 && t < 17.25;
     const x = t < 16.5 ? 440 : lerp(440, NX3, clamp((Math.min(n, 3) + (stepping ? ease(f) : 0)) / 3));
     const glance = t > 16.05 && t < 16.45, hug = t >= 17.75, lift = stepping ? Math.sin(Math.PI * f) : 0;
@@ -800,7 +803,7 @@
     sack(...SACK, .8, { ak: false });
     towel(...TOWEL, 300, 58);
     beansDown();
-    rockGround(...ROCK, .9);
+    rockGround(...ROCK, .82);
     const turn = ease(seg(t, 18.3, 18.95)), lightK = ease(seg(t, 18.6, 18.76));
     const h = heliAt({ x: 700, y: 430 + (t < 18.0 ? 4 * Math.sin(t * 2) : 0), s: .48, hd: lerp(.25, 2.15, turn), elev: .3, pitch: lerp(-.22, -.12, turn), spin: t < 18.0 ? 1 : 0, key: 'h3c' });
     const [tx, ty] = sc(NX3, G - 6.5 * U);
@@ -863,7 +866,7 @@
     const boomed = t >= 21.4;
     if (!boomed) { sack(...SACK, .8, { ak: false }); akGround(AKDROP[0], AKDROP[1] - 10, .1); }
     towel(...TOWEL, 300, 58);
-    rockGround(...ROCK, .9);
+    rockGround(...ROCK, .82);
     const h = heliAt({ x: 700 + (boomed ? sh[0] * .5 : 0), y: 430, s: .48, hd: 2.15, elev: .3, pitch: -.14, spin: 1, pods: t < 21.25 ? 1 : .3, key: 'h3e' });
     const [tx, ty] = sc(NX3, G - 6.5 * U);
     if (!boomed) beam(h, tx, ty, 1, { over: 1.12 });
@@ -901,7 +904,7 @@
     bentAK(AKDROP[0] + 14, AKDROP[1] - 16, 1.05);
     clods(AKDROP[0], AKDROP[1], 180, 9, 9, 'clod3e');   // where they landed
     towel(...TOWEL, 300, 58, { singe: 1 });
-    rockGround(...ROCK, .9);   // rocks don't burn
+    rockGround(...ROCK, .82);   // rocks don't burn
     const on = t > 22.3 && t < 23.2 ? 1 : t >= 23.2 && t < 23.26 ? .3 : 0, [tx, ty] = sc(NX3, G - 6.5 * U);
     beam(h, tx, ty, on, { over: 1.15 });
     // the Naked, sooty: stands through the scan, turns his back to watch it go (23.24–23.34), and falls flat on his
