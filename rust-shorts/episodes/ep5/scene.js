@@ -508,23 +508,23 @@
   // heli swings back in, lights him up and rakes him with tracers; he dives out of frame left and its rocket goes off
   // there. The Naked's jaw drops (5.3), his eyes go to the clothes lying in the grass beside him: lightbulb (5.55).
   function s1c(t, lt) {
-    camBegin(...stage(.85, 1238, 590, NX, 650));
+    camBegin(...stage(1.0, 1238, 560, NX, 760));
     scr(() => backdrop(t, sc(0, HZc)[1], { pan: -20, tower: 892 }));
     ground(t);
     // the heli: off the frame until it swings back in from the right at 4.3
     const sw = ease(seg(t, 4.3, 4.68)), sx = easeOut(seg(t, 4.3, 4.7)), dr = seg(t, 4.7, 5.4);
     const h = heliAt({ x: lerp(1580, 585, sx) - 70 * ease(dr), y: lerp(330, 415, sx) + 6 * Math.sin(t * 2.3), s: .74, hd: lerp(.15, 2.5, sw), elev: .32, pitch: -.22, bank: -.35 * Math.sin(Math.PI * sw),
       spin: t > 4.45 ? 1 : 0, fire: t > 4.6 && t < 5.2 ? .6 + .4 * flick(t, [1, .4, .9, .2]) : 0, key: 'h1c' });
-    // the runner, already sprinting at the cut (so he never enters under the UI column): from the far right of the
-    // field, forward and left, bigger as he comes; he dives out of frame left at 5.08
+    // the runner, already sprinting at the cut, out in the field left of him (so he never crosses his head or enters
+    // under the UI column): forward and left, bigger as he comes; he dives out of frame left at 5.08
     const run = seg(t, 3.5, 5.08), dive = seg(t, 5.08, 5.36);
-    const [rsx, rsy] = t < 5.08 ? [lerp(815, 300, run), lerp(690, 860, run)] : [lerp(300, -230, easeIn(dive)), lerp(860, 885, dive)];
+    const [rsx, rsy] = t < 5.08 ? [lerp(660, 190, run), lerp(670, 885, run)] : [lerp(190, -230, easeIn(dive)), lerp(885, 905, dive)];
     const [rx, RY] = ws(rsx, rsy), RU = depthU(RY), lit = t > 4.45 && t < 5.28, aimY = rsy - 6 * RU * CAM.zoom;
     if (lit) beam(h, rsx, aimY, 1, { over: 1.12 });
     clothesPile(...PILE, .85);
     if (dive < 1) geared(rx, RY, RU, { ...CHAD_GEAR, ...feel('scared', t, { emote: null }), boilKey: 'runner', seed: 3, view: 'q', flip: true, walk: (t - 3.5) * 3.6, rawArms: true, aL: -.5, bendL: 1.2, aR: -.15, bendR: 1.5, gunRot: -.8, rot: -1.3 * easeOut(dive), dy: -2.2 * Math.sin(Math.PI * dive) });
     // the rocket's blast, far left (5.4), inside the frame
-    const [bx, by] = ws(150, 868), br = 105 / CAM.zoom;
+    const [bx, by] = ws(175, 880), br = 105 / CAM.zoom;
     clods(bx, by + 8, br, t - 5.4, 6, 'clod1c');
     boom(bx, by, br, t - 5.4, 'b1c');
     // the Naked: one eye open (3.5), the "?" held till the heli comes back (4.3), his eyes follow the runner, the jaw
@@ -544,7 +544,7 @@
       const [gx, gy] = heliPt(h.x, h.y, h.s, h, 'gun');
       tracers(gx, gy, rsx + 60, rsy, t, { t0: 4.6, t1: 5.2, rate: 18, spread: 70, dirt: '#9C8A66', key: 'tr1c' });
       const [px, py] = heliPt(h.x, h.y, h.s, h, 'podL');
-      rocket(px, py, 150, 868, (t - 5.12) / .28, { s: .8, dur: .28, arc: -30, key: 'rk1c' });
+      rocket(px, py, 175, 880, (t - 5.12) / .28, { s: .8, dur: .28, arc: -30, key: 'rk1c' });
     });
     if (lit) light(rsx, aimY, 110, 1);
     camEnd();
