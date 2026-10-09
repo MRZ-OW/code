@@ -85,7 +85,7 @@ function survivorHead(u, sw, o, V, S, SB, gear, shY, drop, soot, rs) {
     headHair(H);
     headEars(H, false);
   }
-  if (gear.mask === 'metal' && !V.back) metalMaskGear(u, sw, V, hcx, hcy, R, o);
+  if (gear.mask === 'metal') metalMaskGear(u, sw, V, hcx, hcy, R, o);   // from behind: just the cap and straps
   // o.face(u, sw, V, head): drawn on the head, after hair and gear but under the arms (plasters, paint, overlays).
   // head = { hcx, hcy, R, th, pt(lon, lat, k) }, where pt places a point on the turned head (see turnPt).
   if (o.face) { rs('face'); o.face(u, sw, V, { hcx, hcy, R, th, pt: (lon, lat, k = 1) => turnPt(hcx, hcy, R, th, lon, lat, k) }); }

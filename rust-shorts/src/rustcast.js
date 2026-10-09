@@ -68,18 +68,43 @@ function torchProp(u, sw, t = T, lit = 1) {
     paint(ellPts(0, -4.05 * u, .16 * u, .3 * u, 10), { wash: '#FFF8DC', ink: null });
   }
 }
-// AK (reference icon): a black receiver with a smiley sticker, an orange taped handguard, a curved black magazine with
-// silver tape and a red D-handle stock wrapped in blue tape. Barrel along +x. fire 0..1 = muzzle flash.
+// AK (reference: rifle.ak icon): a dark receiver with a smiley sticker, a wooden grip, a black ribbed handguard with orange
+// tape bands at both ends, a curved black magazine wrapped in silver tape, and the improvised stock: a short wooden dowel,
+// blue tape, then a hollow red D loop whose butt crossbar is wrapped in blue tape with two thin red stripes. Barrel along +x,
+// the grip at the origin (the hand holds it there). fire 0..1 = muzzle flash.
 function akProp(u, sw, fire = 0, o = {}) {
-  inkLine(U2(u, [[-1.05, -.3], [-2.75, -.5], [-2.9, .6], [-1.05, .28]]), sw * 1.3, '#C43A2E', 'ink', 0);                  // the red D-handle stock
-  for (const k of [-.22, .06, .34]) inkLine(U2(u, [[-3.0, k - .08], [-2.66, k + .02]]), sw * 1.15, '#3E6FB8', 'ink', 0);  // blue tape bands
-  paint(rectPts(-1.1 * u, -.55 * u, 2.6 * u, .8 * u, u * .02), { wash: '#2E2D33', ink: PAL.ink, sw: sw * .55 });   // receiver
-  paint(ellPts(.15 * u, -.2 * u, .16 * u, .16 * u, 10), { wash: '#F2C230', ink: null });                             // the smiley sticker
-  paint(U2(u, [[-.55, .2], [-.15, .2], [-.25, 1.0], [-.65, 1.0]]), { wash: '#A8643F', ink: PAL.ink, sw: sw * .45 });  // grip
-  paint(U2(u, [[.3, .22], [.85, .22], [1.25, .95], [1.4, 1.6], [.95, 1.72], [.78, 1.05]]), { wash: '#2E2D33', ink: PAL.ink, sw: sw * .5, curv: .35 });   // banana magazine
-  inkLine(U2(u, [[.98, .9], [.58, 1.02]]), sw * .9, '#AEB4BA', 'ink', 0);                                            // silver tape round the mag
-  paint(rectPts(1.4 * u, -.38 * u, 1.5 * u, .5 * u, u * .02), { wash: '#C2703E', ink: PAL.ink, sw: sw * .5 });    // taped handguard
-  paint(rectPts(2.8 * u, -.28 * u, 1.7 * u, .26 * u), { wash: '#26252B', ink: PAL.ink, sw: sw * .45 });          // barrel
+  const RED = '#C9402F', BLUE = '#4A78C8', WOOD = '#B9773E';
+  // the stock: the red D loop (two arms from the apex to the butt), drawn as strokes so it stays hollow
+  for (const [A, B] of [[[-2.05, -.02], [-3.1, -.55]], [[-2.05, .02], [-3.1, .75]]]) {
+    paint(ribbon(U2(u, [A, [lerp(A[0], B[0], .5), lerp(A[1], B[1], .5) + (B[1] < 0 ? -.04 : .04)], B]), .3 * u, .34 * u), { wash: RED, ink: PAL.ink, sw: sw * .5 });
+  }
+  paint(gearRound(U2(u, [[-3.3, -.66], [-2.95, -.66], [-2.95, .86], [-3.3, .86]]), .1 * u, 3), { wash: BLUE, ink: PAL.ink, sw: sw * .5 });   // the butt crossbar, taped blue
+  for (const y of [-.12, .28]) paint(rectPts(-3.3 * u, y * u, .35 * u, .07 * u), { wash: RED, ink: null });   // two thin red stripes
+  paint(rectPts(-1.95 * u, -.25 * u, .9 * u, .28 * u), { wash: WOOD, ink: PAL.ink, sw: sw * .45 });   // the wooden dowel
+  inkLine(U2(u, [[-1.85, -.13], [-1.2, -.15]]), sw * .3, '#8A5428', 'inkfine', 0);
+  paint(gearRound(U2(u, [[-2.25, -.3], [-1.88, -.28], [-1.88, .06], [-2.25, .1]]), .06 * u, 3), { wash: BLUE, ink: PAL.ink, sw: sw * .45 });   // blue tape at the junction
+  // receiver, grip, magazine
+  paint(rectPts(-1.1 * u, -.55 * u, 2.6 * u, .8 * u, u * .02), { wash: '#34333A', ink: PAL.ink, sw: sw * .55 });   // receiver
+  paint(rectPts(-.9 * u, -.5 * u, 2.2 * u, .14 * u), { wash: '#4A4952', ink: null });   // the top cover's edge
+  paint(ellPts(.15 * u, -.2 * u, .17 * u, .17 * u, 10), { wash: '#E6D23A', ink: PAL.ink, sw: sw * .3 });   // the smiley sticker
+  inkLine(U2(u, [[.08, -.17], [.15, -.12], [.22, -.17]]), sw * .3, '#5A5020', 'inkfine', .5);
+  paint(U2(u, [[-.55, .2], [-.12, .2], [-.22, 1.05], [-.68, 1.0]]), { wash: '#A8643F', ink: PAL.ink, sw: sw * .45 });   // wooden grip
+  inkLine(U2(u, [[-.45, .45], [-.25, .45]]), sw * .3, '#7A4628', 'inkfine', 0);
+  const mL = [[.3, .22], [.78, 1.05], [.95, 1.72]], mR = [[.85, .22], [1.25, .95], [1.4, 1.6]];   // banana magazine (back edge, front edge)
+  paint(U2(u, [[.3, .22], [.85, .22], [1.25, .95], [1.4, 1.6], [.95, 1.72], [.78, 1.05]]), { wash: '#2E2D33', ink: PAL.ink, sw: sw * .5, curv: .35 });
+  const at = (E, t) => { const s2 = t * 2, i = Math.min(1, Math.floor(s2)), f = s2 - i; return [lerp(E[i][0], E[i + 1][0], f), lerp(E[i][1], E[i + 1][1], f)]; };
+  const band = []; for (let i = 0; i <= 6; i++) band.push(at(mL, lerp(.2, .8, i / 6))); for (let i = 6; i >= 0; i--) band.push(at(mR, lerp(.2, .8, i / 6)));
+  paint(U2(u, band), { wash: '#AEB4BA', ink: PAL.ink, sw: sw * .35 });   // silver tape round ~60% of it
+  inkLine(U2(u, [at(mL, .5), at(mR, .5)]), sw * .3, '#7E848A', 'inkfine', 0);
+  inkLine(U2(u, [at(mL, .35), [at(mL, .35)[0] + .15, at(mL, .35)[1] - .02], [at(mR, .6)[0] - .1, at(mR, .6)[1]]]), sw * .35, '#E2E6EA', 'inkfine', .5);
+  // the handguard: black and ribbed, orange tape at both ends; the gas tube above it
+  paint(rectPts(1.45 * u, -.62 * u, 1.45 * u, .2 * u, u * .02), { wash: '#26252B', ink: PAL.ink, sw: sw * .4 });
+  paint(rectPts(1.4 * u, -.42 * u, 1.55 * u, .56 * u, u * .02), { wash: '#2E2D33', ink: PAL.ink, sw: sw * .5 });
+  for (let i = 0; i < 4; i++) inkLine(U2(u, [[1.82 + i * .26, -.36], [1.82 + i * .26, .08]]), sw * .38, '#6A6973', 'inkfine', 0);
+  for (const x of [1.4, 2.78]) paint(rectPts(x * u, -.44 * u, .2 * u, .6 * u), { wash: '#E07A2A', ink: PAL.ink, sw: sw * .35 });
+  paint(rectPts(2.9 * u, -.3 * u, 1.6 * u, .24 * u), { wash: '#26252B', ink: PAL.ink, sw: sw * .45 });   // barrel
+  paint(rectPts(4.05 * u, -.55 * u, .14 * u, .28 * u), { wash: '#26252B', ink: PAL.ink, sw: sw * .35 });   // front sight
+  paint(rectPts(4.35 * u, -.36 * u, .35 * u, .36 * u), { wash: '#26252B', ink: PAL.ink, sw: sw * .4 });   // muzzle brake
   if (o.twoHand === 'fist') paint(ellPts(2.1 * u, .05 * u, .5 * u, .45 * u, 14), { wash: o.glove || '#5A4A3A', ink: PAL.ink, sw: sw * .7 });   // a lone fist (no arm drawn)
   if (fire > .02) {   // a spiky white-yellow burst
     glow(5.0 * u, -.15 * u, 2.6 * u * fire, '#FFD27A', fire);

@@ -65,12 +65,25 @@ function transShakeBegin(t, list = TRANS) {
 }
 // a closed ink loop (inkLine through the points and back to the first)
 const trLoop = (P, sw, col, br = 'ink') => inkLine([...P, P[0]], sw, col, br, .5);
-// Puffs painted as one silhouette: every rim first, then every fill, so only the outer edge keeps an outline.
-// P = [[x, y, r, col], ...]
-function trPuffs(P, op, rim = PAL.ink, rimW = 4, key = 'puffs') {
+// A scalloped billow (cartoon smoke / fire puff): an outline of round lobes, slightly squashed.
+function trBillow(x, y, r, sd, n = 44) {
+  const P = [], lobes = 5 + Math.floor(hash(sd) * 4);
+  for (let i = 0; i < n; i++) { const a = i / n * TAU, k = .84 + .16 * Math.abs(Math.sin(a * lobes / 2 + sd)) + .04 * Math.sin(a * 3 + sd * 2); P.push([x + Math.cos(a) * r * k, y + Math.sin(a) * r * k * .9]); }
+  return P;
+}
+// Billows painted as one mass: every rim first, then every fill, so only the outer edge keeps a full outline; then a
+// curl line along the top of each billow (where it overlaps the one behind) and a soft highlight.
+// P = [[x, y, r, col], ...] back to front. o.curl = curl colour, o.hi = highlight colour.
+function trPuffs(P, op, rim = PAL.ink, rimW = 4, key = 'puffs', o = {}) {
   if (op <= 2) return;
-  if (rim) P.forEach(([x, y, r], i) => { boilSeed(key + 'r' + i); paint(ellPts(x, y, r + rimW, r * .9 + rimW, 26, r * .012), { wash: rim, washOp: op, ink: null }); });
-  P.forEach(([x, y, r, c], i) => { boilSeed(key + 'r' + i); paint(ellPts(x, y, r, r * .9, 26, r * .012), { wash: c, washOp: op, ink: null }); });
+  if (rim) P.forEach(([x, y, r], i) => { boilSeed(key + 'r' + i); paint(trBillow(x, y, r + rimW, i * 1.7 + 3), { wash: rim, washOp: op, ink: null }); });
+  P.forEach(([x, y, r, c], i) => { boilSeed(key + 'f' + i); paint(trBillow(x, y, r, i * 1.7 + 3), { wash: c, washOp: op, ink: null }); });
+  if (o.hi) P.forEach(([x, y, r], i) => { boilSeed(key + 'h' + i); paint(trBillow(x - r * .18, y - r * .3, r * .48, i * 2.3 + 1, 30), { wash: o.hi, washOp: op * (o.hiOp ?? .45), ink: null }); });
+  if (o.curl) P.forEach(([x, y, r], i) => {
+    if (!i || r < 30) return;
+    const B = trBillow(x, y, r, i * 1.7 + 3), n = B.length, a0 = Math.floor(n * (.55 + .1 * hash(i))), a1 = Math.floor(n * (.9 + .06 * hash(i + 1)));
+    boilSeed(key + 'c' + i); inkLine(B.slice(a0, a1), clamp(r / 90, 1, 3.4) * (op / 255), o.curl, 'inkfine', 0);
+  });
 }
 
 // ---------- 1. rockSpin ----------
@@ -79,12 +92,12 @@ function trPuffs(P, op, rim = PAL.ink, rimW = 4, key = 'puffs') {
 function trRockAt(p) {
   const rot = -2.6 + 5.4 * p;
   if (p <= .5) {
-    const k = clamp(p / .4), u = p < .4 ? 60 * Math.pow(1500 / 60, k) : lerp(1500, 1750, seg(p, .4, .5));
+    const k = clamp(p / .45), u = p < .45 ? 60 * Math.pow(1500 / 60, k) : lerp(1500, 1650, seg(p, .45, .5));
     const e = easeOut(k);
     return { x: lerp(-170, 540, e), y: lerp(1850, 960, e) - 260 * Math.sin(Math.PI * e) * (1 - e), u, rot };
   }
-  const q = seg(p, .5, 1), e = Math.pow(q, 1.5);
-  return { x: lerp(540, 1430, e), y: lerp(960, -330, e), u: 1750 * Math.pow(95 / 1750, e), rot };
+  const q = seg(p, .5, 1), e = Math.pow(q, 1.25);
+  return { x: lerp(540, 1430, e), y: lerp(960, -330, e), u: 1650 * Math.pow(95 / 1650, e), rot };
 }
 // The rock, drawn like rockProp (rustcast.js) but with its curves smoothed here: p5.brush drops curved shapes (curv > 0)
 // once they're more than about 1100 px across, and this one gets to 4000.
@@ -107,8 +120,10 @@ function trRock(x, y, u, rot) {
   paint(trClosed(U2(u, [[-.4, .25], [-.1, .52], [.35, .78], [.9, .86], [1.15, .82], [.8, .6], [.3, .5], [-.05, .3]])), { wash: '#A8322A', washOp: 230, ink: null });   // the red smear on the striking edge
   paint(U2(u, [[.2, .62], [.5, .66], [.42, .72]]), { wash: '#7E2420', ink: null });
   paint(R, { ink: PAL.ink, sw: sw * .7 });
-  inkLine(through(U2(u, [[-.05, -.62], [.35, -.42], [.62, -.66]]), 5), sw * .38, '#8E7A5E', 'inkfine', 0);                 // creases
-  inkLine(U2(u, [[1.2, -.95], [1.45, -.6]]), sw * .3, '#8E7A5E', 'inkfine', 0);
+  if (u < 900) {   // creases (up close they'd read as stray hairs)
+    inkLine(through(U2(u, [[-.05, -.62], [.35, -.42], [.62, -.66]]), 5), sw * .38, '#8E7A5E', 'inkfine', 0);
+    inkLine(U2(u, [[1.2, -.95], [1.45, -.6]]), sw * .3, '#8E7A5E', 'inkfine', 0);
+  }
   pop();
 }
 TRANS_FX.rockSpin = {
@@ -119,10 +134,10 @@ TRANS_FX.rockSpin = {
     const C = [[S.x, S.y]], wd = [];
     for (let j = 1; j <= 6; j++) { const pj = p - j * .032; if (pj < 0 || (post && pj < .5 - .001)) break; const Q = trRockAt(pj); C.push([Q.x, Q.y]); }
     if (C.length > 2) {
-      const w0 = S.u * 1.9, fade = post ? 1 - seg(p, .5, .85) : 1;
+      const w0 = S.u * 1.9, fade = post ? 1 - seg(p, .5, .7) : 1;
       boilSeed('tr-whoosh');
-      paint(ribbon(C, w0, w0 * .15), { wash: '#EFE3C8', washOp: 110 * fade, ink: null });
-      for (const k of [-.32, 0, .3]) {
+      paint(ribbon(C, w0, w0 * .15), { wash: '#F3E7CC', washOp: 140 * fade, ink: null });
+      if (fade > .3) for (const k of [-.32, 0, .3]) {
         const L = C.map(([cx, cy], i) => { const a = C[Math.min(i + 1, C.length - 1)], b = C[Math.max(i - 1, 0)], dx = a[0] - b[0], dy = a[1] - b[1], l = Math.hypot(dx, dy) || 1; return [cx - dy / l * k * w0 * (1 - i / C.length), cy + dx / l * k * w0 * (1 - i / C.length)]; });
         inkLine(L, clamp(S.u / 60, 1, 4), '#BFAE8C', 'dry', .5);
       }
@@ -146,7 +161,7 @@ TRANS_FX.rockSpin = {
 // An armoured door (reference: door.hinged.toptier: dark rusty steel, rivet rows round the edges and across the middle,
 // a viewing slot, a latch plate) hinged at the left frame edge. It's a real rotation in perspective: the camera sits
 // D px in front of the closed door, so the free edge swells as it swings toward the lens and shrinks as it swings away.
-const TR_DOOR = { D: 1500, w: 1160, h: 2040, hx: -580, T: 70 };
+const TR_DOOR = { D: 1500, w: 1160, h: 2040, hx: -580, T: 34 };
 function trDoorPt(th, u, v, back = 0) {
   const s = u * TR_DOOR.w, X = TR_DOOR.hx + s * Math.cos(th) - Math.sin(th) * back, Z = TR_DOOR.D + s * Math.sin(th) + Math.cos(th) * back, k = TR_DOOR.D / Z;
   return [W / 2 + X * k, H / 2 + (v - .5) * TR_DOOR.h * k];
@@ -165,7 +180,7 @@ TRANS_FX.doorSlam = {
     const sc = TR_DOOR.D / (TR_DOOR.D + TR_DOOR.w * .5 * Math.sin(th));   // the door's middle scale, for line weights
     // the free edge's thickness, when it faces the camera
     const s1 = TR_DOOR.w, X = TR_DOOR.hx + s1 * Math.cos(th), Z = TR_DOOR.D + s1 * Math.sin(th);
-    if (-X * Math.cos(th) - Z * Math.sin(th) > 0) { boilSeed('tr-door-edge'); paint([M(1, 0), trDoorPt(th, 1, 0, TR_DOOR.T), trDoorPt(th, 1, 1, TR_DOOR.T), M(1, 1)], { wash: '#2E2A28', ink: PAL.ink, sw: 2 }); }
+    if (-X * Math.cos(th) - Z * Math.sin(th) > 0) { boilSeed('tr-door-edge'); paint([M(1, 0), trDoorPt(th, 1, 0, TR_DOOR.T), trDoorPt(th, 1, 1, TR_DOOR.T), M(1, 1)], { wash: '#4A4440', ink: PAL.ink, sw: 2 }); }
     boilSeed('tr-door');
     paint(Q(0, 0, 1, 1), { wash: '#5A534C', ink: PAL.ink, sw: 2.4 });
     paint(Q(.05, .035, .95, .965), { wash: '#665E56', ink: PAL.ink, sw: 1.2 * sc });                    // the raised face
@@ -248,7 +263,7 @@ TRANS_FX.garageDoor = {
       paint(rrPts(470, yb - 46, 140, 26, 10), { wash: '#3A3632', ink: PAL.ink, sw: 1.2 });
       // dust knocked out at the bottom on impact
       const a = (p - .28) * d;
-      if (a > 0 && a < .4) for (let i = 0; i < 6; i++) puff(60 + i * 192, Math.min(yb, H) - 10, 70, a, { life: .4, col: '#D9CDB4', key: 'tr-gd' + i, rot: i, rise: .8 });
+      if (a > 0 && a < .3) for (let i = 0; i < 6; i++) puff(60 + i * 192, Math.min(yb, H) - 20, 110, a, { life: .3, col: '#E2D8C2', key: 'tr-gd' + i, rot: i, rise: .8, noInk: true });
     }
     // the rusty roll housing
     if (hy > -148) {
@@ -269,10 +284,10 @@ function trC4(x, y, s, sx, sy, rot, led) {
   push(); translate(x, y); rotate(rot); scale(s * sx, s * sy);
   boilSeed('tr-c4');
   paint(rrPts(-180, -140, 360, 280, 46), { wash: '#E4DDC8', ink: PAL.ink, sw: 2.2 });
-  for (let i = 0; i < 4; i++) {   // the black tape wraps, slanting round the brick
-    const x0 = -128 + i * 78;
+  for (let i = 0; i < 5; i++) {   // the black tape wraps, slanting round the brick, the wrap peeking out between them
+    const x0 = -150 + i * 70;
     boilSeed('tr-c4t' + i);
-    paint([[x0 - 30, -136], [x0 + 26, -136], [x0 + 52, 136], [x0 - 4, 136]], { wash: '#222127', ink: null });
+    paint([[x0 - 32, -136], [x0 + 28, -136], [x0 + 56, 136], [x0 - 4, 136]], { wash: '#222127', ink: null });
     inkLine([[x0 - 12, -120], [x0 + 22, 110]], 1.1, '#6E6C76', 'inkfine', 0);   // its sheen
   }
   boilSeed('tr-c4x');
@@ -285,23 +300,34 @@ function trC4(x, y, s, sx, sy, rot, led) {
   inkLine([[70, -120], [96, -178], [150, -160], [140, -120]], 3.2, '#3E8E4A', 'ink', .5);
   paint(rrPts(10, -150, 120, 62, 8), { wash: '#3D5A3A', ink: PAL.ink, sw: 1.4 });
   for (let i = 0; i < 3; i++) paint(rectPts(24 + i * 22, -136, 12, 10), { wash: '#C9B48A', ink: null });
-  if (led) glow(104, -120, 90, '#FF3048', 1);
-  paint(ellPts(104, -120, 12, 12, 10), { wash: led ? '#FF5A66' : '#6A2026', ink: PAL.ink, sw: .8 });
+  if (led) { glow(104, -120, 170, '#FF3048', 1); glow(104, -120, 60, '#FFD0D0', .8); }
+  paint(ellPts(104, -120, 17, 17, 12), { wash: led ? '#FF5A66' : '#6A2026', ink: PAL.ink, sw: .8 });
   pop();
 }
-// the smoke that the fireball turns into: a grid of overlapping puffs that covers the frame, then breaks apart from the
-// middle out (q 0..1) while it rises and thins
+// the smoke that the fireball turns into: a grid of overlapping billows that covers the frame, then breaks apart from
+// the middle out (q 0..1) while it rises and thins
 function trBlastSmoke(q, key) {
   const P = [];
   for (let r = 0; r < 6; r++) for (let c = 0; c < 4; c++) {
     const i = r * 4 + c, bx = -60 + c * 400 + 70 * (hash(i + 3) - .5), by = -20 + r * 392 + 60 * (hash(i + 7) - .5);
     const dx = bx - 540, dy = by - 960, dn = clamp(Math.hypot(dx * 1.6, dy) / 1600), l = Math.hypot(dx, dy) || 1;
-    const e = easeOut(q), rad = 345 * (1 + .25 * hash(i)) * clamp(1 - q * (1.65 - dn));
+    const e = ease(q), rad = 360 * (1 + .25 * hash(i)) * clamp(1 - q * (1.3 - .6 * dn));
     if (rad < 8) continue;
-    P.push([bx + dx / l * 650 * e, by + dy / l * 500 * e - 260 * q, rad, mixCol('#4A4650', '#7E7A86', clamp(q * 1.3 + .25 * hash(i + 1)))]);
+    P.push([bx + dx / l * 650 * e, by + dy / l * 500 * e - 420 * q, rad, mixCol('#4E4954', '#B4B0B8', clamp(q * 1.6 + .2 * hash(i + 1)))]);
   }
   P.sort((a, b) => b[2] - a[2]);
-  trPuffs(P, 250 * (1 - Math.pow(q, 1.6)), q < .5 ? PAL.ink : null, 5, key);
+  trPuffs(P, 245 * Math.pow(1 - q, .9), q < .2 ? PAL.ink : null, 5, key, { curl: mixCol('#2E2A34', '#77737E', q), hi: '#B6B2BE', hiOp: .4 });
+}
+// the fireball, R px across, heat 0..1 (white-yellow → orange → red), op 0..1
+function trFireball(x, y, R, heat, op, key) {
+  const P = [[x, y, R, mixCol('#F08A34', '#B8402A', heat)]];   // the body: on its own it covers the frame once R > 1150
+  for (let i = 0; i < 13; i++) { const ang = i / 13 * TAU + hash(i) * .5, dd = R * (.58 + .2 * hash(i + 1)); P.push([x + Math.cos(ang) * dd, y + Math.sin(ang) * dd * 1.3, R * (.28 + .14 * hash(i + 2)), mixCol('#EC7A30', '#A8361F', heat * .7 + .3 * hash(i + 3))]); }
+  trPuffs(P, 255 * op, heat < .8 ? '#6A2418' : PAL.ink, 7, key, { curl: mixCol('#B8452A', '#6A2418', heat) });
+  const M = []; for (let i = 0; i < 8; i++) { const ang = i / 8 * TAU + 1 + hash(i + 9), dd = R * (.2 + .2 * hash(i + 5)); M.push([x + Math.cos(ang) * dd, y - R * .05 + Math.sin(ang) * dd * 1.3, R * (.24 + .1 * hash(i + 6)), mixCol('#FFC24A', '#E8692C', heat)]); }
+  trPuffs(M, 255 * op, null, 0, key + 'm', { curl: mixCol('#E8822C', '#B8452A', heat), hi: '#FFE9A8', hiOp: .6 * (1 - heat) });
+  const core = clamp(1 - heat * 1.2);
+  if (core > 0) { const C = []; for (let i = 0; i < 4; i++) { const ang = i / 4 * TAU + .5; C.push([x + Math.cos(ang) * R * .1, y - R * .08 + Math.sin(ang) * R * .12, R * .18, '#FFF3C8']); } trPuffs(C, 255 * op * core, null, 0, key + 'c'); }
+  glow(x, y, R * .9, '#FF9A3A', .8 * op);
 }
 TRANS_FX.c4Blast = {
   dur: .9,
@@ -319,20 +345,11 @@ TRANS_FX.c4Blast = {
       return;
     }
     const a = (p - pb) * d;
-    // smoke under the fireball once it fills the frame
-    if (p > .43) trBlastSmoke(seg(p, .62, 1), 'tr-c4s');
-    // the fireball: grows to fill the frame in ~2 frames, burns, then thins away into the smoke
-    const fire = 1 - seg(p, .5, .63);
+    if (p > .43) trBlastSmoke(seg(p, .63, 1), 'tr-c4s');   // smoke under the fireball once it fills the frame
+    const fire = 1 - seg(p, .5, .63);                         // it burns, then thins away into the smoke
     if (fire > 0) {
-      const R = 1350 * easeOut(clamp(a / .07)) + 140 * a, heat = clamp(a / .2), P = [];
-      for (let i = 0; i < 11; i++) { const ang = i / 11 * TAU + .4, dd = R * (.45 + .1 * hash(i)); P.push([540 + Math.cos(ang) * dd, 930 + Math.sin(ang) * dd * 1.3, R * (.48 + .14 * hash(i + 3)), mixCol('#F29A3A', '#C8432A', heat * .8 + .2 * hash(i))]); }
-      P.push([540, 930, R * .98, mixCol('#FFC24A', '#E8692C', heat)]);
-      trPuffs(P, 255 * clamp(fire * 1.4), fire > .7 ? '#7A2A1E' : null, 6, 'tr-fire');
-      const C2 = []; for (let i = 0; i < 6; i++) { const ang = i / 6 * TAU, dd = R * .3; C2.push([540 + Math.cos(ang) * dd, 900 + Math.sin(ang) * dd * 1.2, R * .32, mixCol('#FFE9A0', '#F7A23B', heat)]); }
-      trPuffs(C2, 230 * fire, null, 0, 'tr-firec');
-      glow(540, 930, R * .9, '#FF9A3A', .8 * fire);
-      // shreds of tape flung out
-      if (a < .25) for (let i = 0; i < 8; i++) { const ang = i / 8 * TAU + 1, r = 200 + 2600 * a; push(); translate(540 + Math.cos(ang) * r, 930 + Math.sin(ang) * r); rotate(a * 18 + i); boilSeed('tr-shred' + i); paint(rectPts(-26, -14, 52, 28), { wash: i % 2 ? '#222127' : '#E4DDC8', ink: PAL.ink, sw: 1 }); pop(); }
+      trFireball(540, 930, 1380 * easeOut(clamp(a / .07)) + 140 * a, clamp(a / .2), clamp(fire * 1.4), 'tr-fire');
+      if (a < .25) for (let i = 0; i < 8; i++) { const ang = i / 8 * TAU + 1, r = 200 + 2600 * a; push(); translate(540 + Math.cos(ang) * r, 930 + Math.sin(ang) * r); rotate(a * 18 + i); boilSeed('tr-shred' + i); paint(rectPts(-26, -14, 52, 28), { wash: i % 2 ? '#222127' : '#E4DDC8', ink: PAL.ink, sw: 1 }); pop(); }   // shreds of tape
     }
     flash(1 - a / .09);   // the one bright flash
   },
@@ -361,24 +378,22 @@ TRANS_FX.supplySmoke = {
   dur: .9,
   draw(p, d) {
     const nozzle = pp => { const S = trSignalAt(pp), r = 162 * S.s; return [S.x + Math.cos(S.rot) * r, S.y + Math.sin(S.rot) * r]; };
-    if (p < .52) { const S = trSignalAt(p); trSignal(S.x, S.y, S.s, S.rot); }
-    // billows: each puff leaves the nozzle and swells to its place in a column that fills the frame, bottom rows first
-    const q = seg(p, .56, 1), dq = easeIn(q), P = [], hi = [];
+    // billows: each leaves the nozzle and swells to its place in a column that fills the frame, bottom rows first; after
+    // the cut the wind takes the whole mass off to the upper left, thinning
+    const q = seg(p, .56, 1), dq = ease(q), P = [];
     const tg = [];
-    for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) tg.push([180 + c * 360 + 90 * (hash(r * 3 + c) - .5) + (r % 2 ? 60 : -40), 1760 - r * 372 + 50 * (hash(r * 3 + c + 9) - .5), 440 + 80 * hash(r * 3 + c + 4)]);
-    const trail = [[1150, 1300, 120], [960, 1250, 170], [780, 1210, 220]];   // early wisps along the roll
-    const all = [...trail, ...tg];
+    for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) tg.push([180 + c * 360 + 90 * (hash(r * 3 + c) - .5) + (r % 2 ? 60 : -40), 1760 - r * 372 + 50 * (hash(r * 3 + c + 9) - .5), 450 + 80 * hash(r * 3 + c + 4)]);
+    const all = [[1150, 1290, 110], [990, 1240, 160], [820, 1200, 210], ...tg];   // early wisps along the roll, then the column
     all.forEach(([tx, ty, R], i) => {
       const pe = .03 + i * .018, age = seg(p, pe, pe + .12); if (p < pe) return;
       const e = easeOut(age), [nx, ny] = nozzle(pe), h = hash(i + 40);
-      const x = lerp(nx, tx, e) - 1500 * dq * (.75 + .5 * h), y = lerp(ny, ty, e) - 120 * Math.sin(p * 6 + i) * .2 - 650 * dq * (.6 + .8 * h);
-      const rad = lerp(40, R, e) * (1 + .5 * q);
-      P.push([x, y, rad, mixCol('#7C4DA2', '#9C6BC4', h)]);
-      hi.push([x - rad * .22, y - rad * .3, rad * .5]);
+      const x = lerp(nx, tx, e) - 2000 * dq * (.8 + .4 * h), y = lerp(ny, ty, e) - 700 * dq * (.6 + .8 * h);
+      P.push([x, y, lerp(40, R, e) * (1 + .3 * q), mixCol('#7A4AA0', '#9466BC', h)]);
     });
-    const op = 252 * (1 - Math.pow(q, 1.4));
-    trPuffs(P, op, '#3A2350', 5, 'tr-smk');
-    hi.forEach(([x, y, r], i) => { boilSeed('tr-smkh' + i); paint(ellPts(x, y, r, r * .75, 18, 2), { wash: '#C7A4E2', washOp: op * .55, ink: null }); });
+    const op = 252 * (1 - Math.pow(q, 2.2)), o = { curl: '#55337A', hi: '#C9A8E4', hiOp: .5 }, nb = Math.min(3, P.length);
+    trPuffs(P.slice(0, nb), op, '#3A2350', 5, 'tr-smk', o);
+    if (p < .58) { const S = trSignalAt(p); trSignal(S.x, S.y, S.s, S.rot); }   // the canister, in front of its first wisps; the rest engulf it
+    trPuffs(P.slice(nb), op, '#3A2350', 5, 'tr-smk2', o);
   },
 };
 
@@ -387,52 +402,78 @@ TRANS_FX.supplySmoke = {
 // blind (the roll shrinks as it pays out), its zipper runs down and back up, then it rolls away up.
 function trBagRoll(p) {   // [roll centre y, radius]
   const r = k => lerp(170, 100, k);
-  if (p < .36) { const k = ease(p / .36); return [lerp(-190, H + 120, k), r(k)]; }
-  if (p < .64) return [H + 120, 100];
-  const k = 1 - ease(seg(p, .64, 1)); return [lerp(-190, H + 120, k), r(k)];
+  if (p < .4) { const k = ease(p / .4); return [lerp(-190, H + 120, k), r(k)]; }
+  if (p < .6) return [H + 120, 100];
+  const k = 1 - ease(seg(p, .6, 1)); return [lerp(-190, H + 120, k), r(k)];
 }
+const TR_BAG = { x0: -50, x1: W + 50, seams: [-50, 360, 720, W + 50], zx: 720 };
+// how far the quilted tube bulges at x: 1 mid-tube, 0 at a seam
+const trBagBulge = x => { const S = TR_BAG.seams; for (let k = 0; k + 1 < S.length; k++) if (x <= S[k + 1]) return Math.sin(Math.PI * clamp((x - S[k]) / (S[k + 1] - S[k]))); return 0; };
+// the soft wander of a seam at height y (the fabric isn't ruler-straight)
+const trBagWave = (sx, y) => sx < 0 || sx > W ? 0 : 14 * Math.sin(y / 170 + sx * .01) + 6 * Math.sin(y / 61 + sx);
 TRANS_FX.sleepingBag = {
   dur: .8,
   draw(p, d) {
-    const [yr, rr] = trBagRoll(p), x0 = -50, x1 = W + 50, zx = 720;
+    const [yr, rr] = trBagRoll(p), { x0, x1, seams, zx } = TR_BAG;
     if (yr + rr < 0) return;
-    const yf = yr;   // the unrolled part hangs from above the frame down to the roll
-    boilSeed('tr-bag');
+    const yf = yr, top = -80, hgt = yf - top;
+    // a strip that follows a seam's wander: from offset a to offset b px off the seam
+    const strip = (sx, a, b) => { const L = [], R = []; for (let y = top; y <= yf + 40; y += 60) { const w = trBagWave(sx, y); L.push([sx + a + w, y]); R.push([sx + b + w, y]); } return [...L, ...R.reverse()]; };
     if (yf > -60) {
-      paint(rectPts(x0, -80, x1 - x0, yf + 80), { wash: '#B09A73', ink: null, hatch: { d: 22, a: Math.PI / 2, o: { rand: .2 }, b: 'HB', c: '#8C7754', w: .7 } });
-      for (const [cx, cw] of [[180, 300], [540, 300], [900, 260]]) {   // the quilted tubes: lighter in the middle, dark at the seams
-        boilSeed('tr-bagq' + cx);
-        paint(rectPts(cx - cw * .22, -80, cw * .44, yf + 80), { wash: '#CBB68E', washOp: 120, ink: null });
+      // burlap: a grey-tan wash woven with fine hatching both ways
+      boilSeed('tr-bag');
+      paint(rectPts(x0, top, x1 - x0, hgt), { wash: '#9C8A6A', ink: null, hatch: { d: 18, a: Math.PI / 2, o: { rand: .3 }, b: 'HB', c: '#7A6A4E', w: .8 } });
+      paint(rectPts(x0, top, x1 - x0, hgt), { ink: null, hatch: { d: 22, a: 0, o: { rand: .3 }, b: 'HB', c: '#857356', w: .7 } });
+      // the quilted tubes: shadowed where the seams pinch them, lit along the middle of each puff
+      for (let k = 0; k + 1 < seams.length; k++) {
+        const a = seams[k], b = seams[k + 1], w = b - a;
+        boilSeed('tr-bagq' + k);
+        paint(strip(a, 0, 90), { wash: '#6E5C42', washOp: 100, ink: null }); paint(strip(b, -90, 0), { wash: '#6E5C42', washOp: 100, ink: null });
+        paint(strip(a, w * .3, w * .66), { wash: '#C2AF88', washOp: 120, ink: null });
+        for (let f = 0; f < 4; f++) {   // folds where the stuffing sags
+          const fy = 180 + f * 470 + 120 * hash(k * 7 + f), fx = a + w * (.25 + .2 * hash(k + f * 3)); if (fy > yf - 60) break;
+          boilSeed('tr-bagf' + k + f);
+          inkLine([[fx, fy], [fx + w * .2, fy + 26], [fx + w * .42, fy + 6]], 1.3, '#6E5C42', 'inkfine', .5);
+          inkLine([[fx + 10, fy + 12], [fx + w * .2, fy + 38], [fx + w * .38, fy + 20]], 1.1, '#D2C29E', 'inkfine', .5);
+        }
       }
-      for (const sx of [360, zx]) { boilSeed('tr-bags' + sx); paint(rectPts(sx - 28, -80, 56, yf + 80), { wash: '#8E7752', washOp: 140, ink: null }); }
-      boilSeed('tr-bagst');   // the stitched seam
-      for (let y = -40; y < yf - 20; y += 46) inkLine([[360 + jit(1), y], [360 + jit(1), y + 24]], 1.4, '#5E4A30', 'inkfine', 0);
-      // patches, stitched on
-      for (const [px, py, pw, ph, c] of [[110, 330, 170, 210, '#8A5A3E'], [430, 1140, 200, 150, '#7E5A3C'], [850, 520, 150, 190, '#9A6A46'], [140, 1560, 150, 140, '#86603F']]) {
-        if (py > yf - 30) continue;
-        const h2 = Math.min(ph, yf - 10 - py);
-        boilSeed('tr-bagp' + px); paint(rectPts(px, py, pw, h2, 3), { wash: c, washOp: 190, ink: '#4A3A26', sw: 1 });
-        inkLine([[px + 10, py + 10], [px + pw - 10, py + 10]], .8, '#E2D3B0', 'inkfine', 0);
+      // the seam, stitched, and little pinch creases fanning into the tubes
+      boilSeed('tr-bagst');
+      const L = []; for (let y = top; y <= yf; y += 60) L.push([360 + trBagWave(360, y), y]);
+      inkLine(L, 1.8, '#4E3E28', 'inkfine', .3);
+      for (let y = -40; y < yf - 20; y += 42) inkLine([[369 + trBagWave(360, y), y], [369 + trBagWave(360, y + 22), y + 22]], 1.4, '#D9C8A2', 'inkfine', 0);
+      for (const sx of [360, zx]) for (let y = 90; y < yf - 40; y += 210) { const yy = y + 60 * hash(y + sx), w = trBagWave(sx, yy); for (const sd of [-1, 1]) { boilSeed('tr-bagc' + sx + y + sd); inkLine([[sx + w + sd * 26, yy], [sx + w + sd * 80, yy - 30], [sx + w + sd * 130, yy - 36]], 1.3, '#5E4C34', 'inkfine', .5); } }
+      // patches, stitched on askew (reference: the icon's darker brown patches)
+      for (const [px, py, pw, ph, rot, c] of [[160, 380, 210, 260, -.08, '#6E4632'], [520, 1180, 230, 190, .1, '#5E4C34'], [905, 600, 180, 230, .06, '#7A4E36'], [190, 1560, 190, 170, .12, '#6A4430']]) {
+        if (py + ph / 2 > yf - 10) continue;
+        push(); translate(px, py); rotate(rot);
+        boilSeed('tr-bagp' + px);
+        const Pp = [[-pw / 2, -ph / 2], [pw * .1, -ph / 2 - 8], [pw / 2, -ph / 2 + 10], [pw / 2 - 6, ph / 2], [-pw * .2, ph / 2 + 6], [-pw / 2 + 4, ph / 2 - 6]];
+        paint(Pp, { wash: c, washOp: 220, ink: '#3E2E20', sw: 1.4 });
+        for (let e = 0; e < Pp.length; e++) { const A = Pp[e], B = Pp[(e + 1) % Pp.length], n = Math.round(Math.hypot(B[0] - A[0], B[1] - A[1]) / 34); for (let k = 0; k < n; k++) { const t0 = (k + .2) / n, t1 = (k + .65) / n, ins = .84; inkLine([[lerp(A[0], B[0], t0) * ins, lerp(A[1], B[1], t0) * ins], [lerp(A[0], B[0], t1) * ins, lerp(A[1], B[1], t1) * ins]], 1.6, '#D9C8A2', 'inkfine', 0); } }
+        pop();
       }
-      // the zipper: a dark tape with teeth, and the slider + pull tab, which runs down and back up while it's shut
+      // the zipper: a dark tape with brass teeth; its slider runs down and back up while the bag covers the frame
       boilSeed('tr-bagz');
-      paint(rectPts(zx - 20, -80, 40, yf + 80), { wash: '#3E3628', ink: null });
-      for (let y = -60, i = 0; y < yf - 10; y += 22, i++) paint(rectPts(zx - (i % 2 ? 2 : 14), y, 16, 12), { wash: '#B8A06A', ink: null });
-      const zk = p < .5 ? ease(seg(p, .38, .5)) : 1 - ease(seg(p, .5, .62)), zy = Math.min(yf - 40, lerp(110, H - 160, zk));
+      paint(strip(zx, -22, 22), { wash: '#3E3628', ink: null });
+      for (let y = -60, i = 0; y < yf - 10; y += 20, i++) { const w = trBagWave(zx, y); paint(rectPts(zx + w - (i % 2 ? 1 : 15), y, 16, 11), { wash: '#C2A866', ink: null }); }
+      const zk = p < .5 ? ease(seg(p, .41, .5)) : 1 - ease(seg(p, .5, .59)), zy = Math.min(yf - 40, lerp(110, H - 160, zk)), zw = zx + trBagWave(zx, zy);
       boilSeed('tr-bagzs');
-      paint(rrPts(zx - 30, zy - 44, 60, 88, 14), { wash: '#C9A44E', ink: PAL.ink, sw: 1.6 });
-      paint(rrPts(zx - 16, zy + 20, 32, 96, 12), { wash: '#B48C3A', ink: PAL.ink, sw: 1.4 });
-      paint(ellPts(zx, zy + 92, 8, 12, 8), { wash: '#3E3628', ink: null });
+      paint(rrPts(zw - 32, zy - 46, 64, 92, 14), { wash: '#C9A44E', ink: PAL.ink, sw: 1.6 });
+      paint(rrPts(zw - 17, zy + 20, 34, 100, 12), { wash: '#B48C3A', ink: PAL.ink, sw: 1.4 });
+      paint(ellPts(zw, zy + 96, 8, 12, 8), { wash: '#3E3628', ink: null });
     }
-    // the roll: a fat tube across the frame, its turns and seams rolling with it, and its shadow below
+    // the roll: a fat soft tube, bulging with the quilting and pinched at the seams, its turns rolling as it pays out
+    const ry = (x, f) => yr + f * rr * (.84 + .16 * trBagBulge(x)), xs = []; for (let x = x0; x <= x1; x += 30) xs.push(x);
+    const band = (f0, f1) => [...xs.map(x => [x, ry(x, f0)]), ...xs.slice().reverse().map(x => [x, ry(x, f1)])];
     boilSeed('tr-bagroll');
-    paint(rectPts(x0, yr + rr * .6, x1 - x0, rr * .7), { wash: '#2B2233', washOp: 50, ink: null });
-    paint(rrPts(x0, yr - rr, x1 - x0, 2 * rr, rr * .9), { wash: '#A38C66', ink: PAL.ink, sw: 2.4 });
-    paint(rectPts(x0 + 10, yr - rr * .7, x1 - x0 - 20, rr * .35), { wash: '#D1BD96', washOp: 160, ink: null });
-    paint(rectPts(x0 + 10, yr + rr * .35, x1 - x0 - 20, rr * .5), { wash: '#6E5C40', washOp: 140, ink: null });
-    for (const sx of [360, zx]) paint(rectPts(sx - 14, yr - rr * .95, 28, rr * 1.9), { wash: sx === zx ? '#3E3628' : '#7E6848', washOp: 200, ink: null });
-    const ph = yr / rr;   // the turns roll as it pays out
-    for (let i = 0; i < 3; i++) { const ang = ph + i * TAU / 3, c = Math.cos(ang); if (Math.sin(ang) < 0) continue; boilSeed('tr-bagturn' + i); inkLine([[x0, yr - c * rr * .9], [x1, yr - c * rr * .9]], 1.6, '#5E4A30', 'inkfine', 0); }
+    paint(rectPts(x0, yr + rr * .7, x1 - x0, rr * .7), { wash: '#2B2233', washOp: 45, ink: null });   // its shadow
+    paint(band(-1, 1), { wash: '#94815F', ink: PAL.ink, sw: 2.4 });
+    paint(band(-.78, -.3), { wash: '#C2AF8A', washOp: 150, ink: null });
+    paint(band(.35, .92), { wash: '#5E4E38', washOp: 140, ink: null });
+    for (const sx of [360, zx]) paint(rectPts(sx - 14, ry(sx, -1) + 4, 28, 2 * rr * .84 - 8), { wash: sx === zx ? '#3E3628' : '#7E6848', washOp: 200, ink: null });
+    const ph = yr / rr;
+    for (let i = 0; i < 3; i++) { const ang = ph + i * TAU / 3; if (Math.sin(ang) < 0) continue; boilSeed('tr-bagturn' + i); inkLine(xs.map(x => [x, ry(x, -Math.cos(ang) * .92)]), 1.6, '#5E4A30', 'inkfine', 0); }
   },
 };
 
@@ -442,11 +483,31 @@ TRANS_FX.sleepingBag = {
 // top with its tail boom last and the rotor blur dragging over the next shot.
 function trHeliAt(p) {
   if (p <= .5) {
-    const k = p / .5, zd = 15 * Math.pow(1 - k, 1.6), dist = Math.hypot(1, zd);
-    return { s: 11 / dist, elev: Math.atan2(1, zd), yaw: lerp(1.28, Math.PI / 2, ease(k)), y: lerp(1060, 960, ease(k)), light: 1 - seg(k, .62, .9), k };
+    // a constant zoom (it doubles in size every couple of frames), and the view swings under it as it closes
+    const k = p / .5, kk = clamp(k / .86), s = .45 * Math.pow(12.5 / .45, kk), zd = Math.sqrt(Math.max(0, (12.5 / s) ** 2 - 1));
+    return { s: s * (1 + .04 * seg(k, .86, 1)), elev: Math.atan2(1, zd), yaw: lerp(1.28, Math.PI / 2, ease(kk)), y: lerp(560, 960, ease(kk)), light: 1 - seg(kk, .7, .92), k: kk };
   }
   const q = seg(p, .5, 1);
-  return { s: 11, elev: Math.PI / 2, yaw: Math.PI / 2, y: 960 - 5800 * Math.pow(q, 1.6), light: 0, k: 1 };
+  return { s: 13, elev: Math.PI / 2, yaw: Math.PI / 2, y: 960 - 6300 * q * q, light: 0, k: 1 };
+}
+// Belly details over patrolHeli's hull, in its own model space (so they sit right in every view): panel seams and
+// rivets, the cargo hook, a red beacon, an access hatch, oil streaks.
+function trHeliBelly(x, y, s, o) {
+  const C = heliCam(o); if (hFacing(C, [0, -1, 0]) < .5) return;
+  const by = X => hStation(HCAB, X)[1] + .5, pt = (X, Z) => hWorld(x, y, s, o, hProj(C, [X, by(X), Z])), hw = X => hStation(HCAB, X)[2] * .78;
+  const sw = clamp(s * .3, 1, 3.6);
+  boilSeed('tr-belly');
+  for (const [z, X0] of [[10, -30], [-14, -10]]) paint([pt(X0, z), pt(X0, z + 6), pt(-118, z + 9), pt(-118, z - 2)], { wash: '#3A3E44', washOp: 110, ink: null });   // oil streaks
+  for (const z of [-27, 27]) { const L = []; for (let X = -112; X <= 150; X += 12) L.push(pt(X, z)); inkLine(L, sw, '#3E464E', 'inkfine', 0); L.forEach((q, i) => { if (i % 2) paint(ellPts(q[0] + s * 1.8, q[1], s * 1.1, s * 1.1, 6), { wash: '#9AA3AB', ink: null }); }); }
+  for (const X of [-92, -40, 30, 96]) { const L = []; for (let z = -hw(X); z <= hw(X); z += 8) L.push(pt(X, z)); inkLine(L, sw, '#3E464E', 'inkfine', 0); L.forEach((q, i) => { if (i % 2) paint(ellPts(q[0], q[1] + s * 1.8, s * 1.1, s * 1.1, 6), { wash: '#9AA3AB', ink: null }); }); }
+  paint([pt(48, -18), pt(80, -18), pt(80, 14), pt(48, 14)], { wash: '#4E565E', ink: PAL.ink, sw: sw * .8 });   // access hatch
+  paint([pt(60, -6), pt(68, -6), pt(68, 2), pt(60, 2)], { wash: '#2E3238', ink: null });
+  paint([pt(-12, -12), pt(12, -12), pt(12, 12), pt(-12, 12)], { wash: '#454C53', ink: null });   // the cargo hook
+  inkLine([pt(6, 0), pt(-4, 0), pt(-8, 4), pt(-5, 8), pt(0, 7)], sw * 3, '#1E2226', 'ink', .5);
+  inkLine([pt(6, -.5), pt(-4, -.5), pt(-7.5, 3.5)], sw * 1.2, '#8A9096', 'inkfine', .5);
+  const bc = pt(-62, 0); glow(bc[0], bc[1], s * 26, '#FF3048', .9);   // the red beacon
+  paint(ellPts(bc[0], bc[1], s * 7, s * 7, 14), { wash: '#E23A3A', ink: PAL.ink, sw: sw * .7 });
+  paint(ellPts(bc[0] - s * 2, bc[1] - s * 2, s * 2.4, s * 2, 8), { wash: '#FFB0A0', ink: null });
 }
 TRANS_FX.heliFlyover = {
   dur: .7,
@@ -454,9 +515,18 @@ TRANS_FX.heliFlyover = {
     const S = trHeliAt(p);
     const ho = { yaw: S.yaw, elev: S.elev, t, key: 'tr', light: S.light > .01 ? { on: S.light, aim: Math.PI / 2 + .55 * Math.sin(p * 9 - 1), len: 700 + 900 * S.k, w: .2 } : null };
     // its shadow darkens the frame as it comes over
-    const sh = seg(p, .3, .48) * (1 - seg(p, .6, .85));
+    const sh = seg(p, .3, .46) * (1 - seg(p, .6, .85));
     if (sh > 0) { boilSeed('tr-heli-shade'); paint(rectPts(-60, -60, W + 120, H + 120), { wash: '#1E2230', washOp: 90 * sh, ink: null }); }
+    if (p > .5) {   // the rotor blur dragging over the next shot as it goes: a dark disc, fat blade smears turning
+      const C = heliCam(ho), [mx, my] = hWorld(540, S.y, S.s, ho, hProj(C, [0, 134, 0])), R = 280 * S.s * .93, fade = 1 - seg(p, .8, 1);
+      boilSeed('tr-rotor'); paint(ellPts(mx, my, R, R, 48), { wash: '#3C4148', washOp: 80 * fade, ink: null });
+      if (fade > .2) for (let b = 0; b < 4; b++) for (const rk of [.97, .8, .6]) {
+        const a1 = (t * 3.3 + .13) * TAU + b * Math.PI / 2, A = Array.from({ length: 12 }, (_, i) => { const a = a1 - .8 * i / 11; return [mx + Math.cos(a) * R * rk, my + Math.sin(a) * R * rk]; });
+        boilSeed('tr-rotor' + b + rk); inkLine(A, rk > .9 ? 8 : 12, rk > .9 ? '#D9AE3E' : '#23272C', 'dry', .5);
+      }
+    }
     patrolHeli(540, S.y, S.s, ho);
+    trHeliBelly(540, S.y, S.s, ho);
   },
 };
 
@@ -502,6 +572,24 @@ function trArmorCell(c, dx, dy, rot, inkW) {
   if (hash(c.i * 5 + c.j * 3) < .5) paint(ellPts(c.cx + 40 * (hash(c.i + c.j) - .5), c.cy + 50, 70, 34, 12, 3), { wash: '#8E5A3A', washOp: 110, ink: null });
   pop();
 }
+// the twig frame, sized for the full frame: rough lashed sticks (wallPanel's own is drawn for 300 px walls)
+function trTwigFrame(off) {
+  const S = [[[30, -80], [50, 2000]], [[370, -80], [356, 2000]], [[712, -80], [726, 2000]], [[1050, -80], [1036, 2000]],
+    [[-60, 90], [1140, 70]], [[-60, 660], [1140, 690]], [[-60, 1260], [1140, 1240]], [[-60, 1850], [1140, 1870]], [[30, 90], [1040, 1850]], [[1040, 90], [40, 1850]]];
+  S.forEach(([a, b], i) => {
+    a = [a[0], a[1] + off]; b = [b[0], b[1] + off];
+    const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L, bend = (hash(i * 5) - .5) * 70;
+    const P = [a, [lerp(a[0], b[0], .35) + nx * bend, lerp(a[1], b[1], .35) + ny * bend], [lerp(a[0], b[0], .7) + nx * bend * .5, lerp(a[1], b[1], .7) + ny * bend * .5], b];
+    boilSeed('tr-twig' + i);
+    paint(ribbon(P, 50, 36), { wash: i % 3 ? '#CDA76D' : '#BE9860', ink: PAL.ink, sw: 2.2 });
+    inkLine(through(P, 4).map(([x, y]) => [x + nx * 8, y + ny * 8]), 1, '#8E6B3D', 'inkfine', .3);   // the grain
+    for (let k = 0; k < 2; k++) { const q = .25 + .5 * hash(i + k * 7), c = through(P, 4)[Math.floor(q * 12)]; paint(ellPts(c[0], c[1], 13, 9, 8), { wash: '#8E6B3D', ink: PAL.ink, sw: .8 }); }
+  });
+  for (const x of [40, 363, 719, 1043]) for (const y of [80, 675, 1250, 1860]) {   // rope lashings where they cross
+    boilSeed('tr-lash' + x + y);
+    for (let k = 0; k < 3; k++) inkLine([[x - 30, y + off - 14 + k * 13], [x + 30, y + off - 6 + k * 13]], 2.6, '#E2D3A6', 'ink', 0);
+  }
+}
 function trMallet(px, py, rot, sq) {   // pivot at the end of the handle; the head points along -y
   push(); translate(px, py); rotate(rot);
   boilSeed('tr-mallet');
@@ -519,26 +607,33 @@ TRANS_FX.wallUpgrade = {
   draw(p, d) {
     const { x0, y0, w, h, hit, steps } = TR_WALL, grades = ['twig', 'wood', 'stone', 'metal', 'armor'];
     let g = 0; for (const s of steps) if (p >= s) g++;
-    const crumble = seg(p, .64, 1);
+    const crumble = seg(p, .62, 1);
     if (g < 4) {
       const off = (H + 2200) * (1 - easeOut(seg(p, 0, .17)));   // it rises out of the ground
       push(); translate(x0, y0 + off); scale(2);
       if (g > 0) { boilSeed('tr-wall-back'); paint(rectPts(-4, -4, w / 2 + 8, h / 2 + 8), { wash: GRADES[grades[g]].col, ink: null }); }
-      wallPanel(0, h / 2, w / 2, h / 2, grades[g], { sw: 1.4 });
+      if (g) wallPanel(0, h / 2, w / 2, h / 2, grades[g], { sw: 1.4 });
       pop();
+      if (!g) trTwigFrame(off);
     } else {
-      const C = trWallCells(), crack = seg(p, .6, .66);
+      const C = trWallCells(), crack = seg(p, .56, .62);
       if (crumble <= 0) { boilSeed('tr-wall-armor'); paint(rectPts(x0, y0, w, h), { wash: '#5E6670', ink: null }); }
       for (const c of C) {
-        const dn = clamp(Math.hypot((c.cx - 540) * 1.5, c.cy - 960) / 1500), a = (p - (.64 + .1 * dn)) * d;
+        const dn = clamp(Math.hypot((c.cx - 540) * 1.5, c.cy - 960) / 1500), a = (p - (.62 + .06 * dn)) * d;
         if (a <= 0) { trArmorCell(c, 0, 0, 0, crack > dn ? 2.2 : 0); continue; }
-        const l = Math.hypot(c.cx - 540, c.cy - 960) || 1, vx = (c.cx - 540) / l * 1600, vy = (c.cy - 960) / l * 900 - 400;
-        trArmorCell(c, vx * a, vy * a + 26000 * a * a, (hash(c.i * 3 + c.j) - .5) * 9 * a, 2.2);
+        const l = Math.hypot(c.cx - 540, c.cy - 960) || 1, vx = (c.cx - 540) / l * 1500;
+        trArmorCell(c, vx * a, 200 * a + 25000 * a * a, (hash(c.i * 3 + c.j) - .5) * 9 * a, 2.2);
       }
-      // the raid charge going off in the middle
-      if (p > .6) explosion(540, 980, 170, (p - .6) * d, { debris: 10, debrisCol: '#5E6670' });
+      // the raid charge going off in the middle: a short fireball, then dust that thins out by the end
+      const ra = (p - .56) * d;
+      if (ra > 0) {
+        const dk = seg(p, .56, .98), D = [];
+        for (let i = 0; i < 8; i++) { const ang = i / 8 * TAU + .3, dd = 120 + 520 * easeOut(dk); D.push([540 + Math.cos(ang) * dd, 980 + Math.sin(ang) * dd * .8 - 200 * dk, 160 + 120 * dk, mixCol('#8A8478', '#C9C0AE', dk)]); }
+        trPuffs(D, 230 * (1 - dk), null, 0, 'tr-raid', { curl: '#6E685E' });
+        if (ra < .2) trFireball(540, 980, 330 * easeOut(ra / .06), clamp(ra / .15), 1 - seg(ra, .08, .2), 'tr-raidf');
+      }
       // a few bright cracks of light through the gaps as it breaks
-      if (crack > 0 && crumble <= .2) glow(540, 980, 500 * crack, '#FFB060', .5 * (1 - crumble * 5));
+      if (crack > 0 && crumble <= .2) glow(540, 980, 500 * crack, '#FFB060', .4 * (1 - crumble * 5));
     }
     // the hammer: in from the lower right, four bonks, out again
     const [mx, my] = [1010, 1590], imp = -.68, wind = .1;
@@ -554,13 +649,13 @@ TRANS_FX.wallUpgrade = {
     steps.forEach((s, k) => {
       const a = (p - s) * d; if (a < 0 || a > .16) return;
       const kk = a / .16;
-      glow(hit[0], hit[1], 220 * (1 - kk), '#FFF2C4', .7 * (1 - kk));
+      glow(hit[0], hit[1], 130 * (1 - kk), '#FFF2C4', .5 * (1 - kk));
       for (let i = 0; i < 9; i++) {
         const ang = i / 9 * TAU + k, r = 60 + 420 * easeOut(kk) * (.7 + .5 * hash(i + k * 9));
         boilSeed('tr-spark' + i);
         paint(starPts(hit[0] + Math.cos(ang) * r, hit[1] + Math.sin(ang) * r, 34 * (1 - kk * .8), .3, 4, kk * 2), { wash: i % 2 ? '#FFF6D6' : '#FFD86A', ink: null });
       }
-      puff(hit[0], hit[1] + 40, 200, a, { life: .2, col: '#E6DCC4', key: 'tr-up' + k, n: 6, noInk: true });
+      puff(hit[0], hit[1] + 40, 170, a, { life: .09, col: '#E6DCC4', key: 'tr-up' + k, n: 6, noInk: true });
     });
   },
 };
@@ -593,5 +688,9 @@ TRANS_FX.wallUpgrade = {
   LOOPS.transitionsKey = loop([keyA, keyB]); LOOPS.transitionsKey.len = ORDER.length * SLOT;
 })();
 // TEMP-DEBUG
-LOOPS.trdbg = t => { boilSeed('bg'); paint(rectPts(-60,-60,W+120,H+120),{wash:'#88AACC',ink:null}); const u=[800,1100,1300,1500,1750,2000][Math.round(t*10)%6]; const curv=Math.round(t*10)>=6; push(); translate(540,960); translate(-.7*u,.17*u); const P=[[-.25, -1.05], [.85, -1.3], [1.7, -.75], [1.85, .25], [1.15, .95], [.1, .9], [-.45, .2]]; boilSeed('x'); paint(U2(u,P),{wash:'#E3D3B6', ink:PAL.ink, sw:4, curv: curv? .35: 0}); pop(); };
+LOOPS.trdbg = t => { boilSeed('bg'); paint(rectPts(-60,-60,W+120,H+120),{wash:'#88AACC',ink:null}); const m=Math.round(t*10);
+  const cy = -1300, R = [3385, 2500, 1800, 1200][m % 4];
+  boilSeed('d'); paint(ellPts(540, cy, R, R, 48), { wash: '#3C4148', washOp: 120, ink: null });
+  for (let b=0;b<4;b++){ const a1=b*Math.PI/2+.3, A=Array.from({length:10},(_,i)=>{const a=a1-.5*i/9; return [540+Math.cos(a)*R*.9, cy+Math.sin(a)*R*.9];}); inkLine(A, 9, '#2E3238', m>=4?'ink':'dry', .5); }
+};
 LOOPS.trdbg.len = 2;

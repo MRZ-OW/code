@@ -658,9 +658,9 @@
     const [px, py] = maskFront(sleeperAt(17.66));
     tracer(LAND_MUZZLE[0], LAND_MUZZLE[1], px, py, seg(t, 17.6, 17.66), 'b');
     // the Naked: slumped, eyes shut; the bang makes him jump; then he turns to look back at it
-    const jp = jump(t, 17.64, 17.86, 1.8), tk = take(t, 17.62, 1.1), turned = t > 17.92;
+    const jp = jump(t, 17.64, 17.86, 1.8), tk = take(t, 17.62, 1.1), turned = t > 17.92, view3b = t < 17.84 ? 'side' : t < 17.88 ? 'q' : t < 17.92 ? 'qf' : 'front';   // a drawn turn
     const N = t < 17.62 ? feel('sad', t, { eyes: 'closed', mouth: 'frown', emote: null, gloom: 0 }) : { eyes: 'wide', mouth: t < 17.92 ? 'O' : 'o' };
-    const No = nakedPose(U, { ...N, view: turned ? 'front' : 'side', dy: jp.dy, sq: jp.sq + tk.sq, lookX: turned ? -.9 : .3, lookY: turned ? .5 : 0, rot: 0 }, null, { at: turned ? [-1.6, -5.2] : ROCK_DOWN });
+    const No = nakedPose(U, { ...N, view: view3b, dy: jp.dy, sq: jp.sq + tk.sq, lookX: turned ? -.9 : .3, lookY: turned ? .5 : 0, rot: 0 }, null, { at: turned ? [-1.6, -5.2] : ROCK_DOWN });
     Object.assign(No, turned ? { aR: -.6, bendR: .5 } : t < 17.62 ? { aR: -1.32, bendR: .25 } : { aR: .9, bendR: .6 });
     survivor(NX, G, U, No);
     const E = eokaFree(t);
@@ -709,7 +709,7 @@
   function nakedDive(t) {
     const land = ease(seg(t, 19.62, 19.85)), x = lerp(NX, SEATX, land), air = t > 19.62 && t < 19.85 ? Math.sin(seg(t, 19.62, 19.85) * Math.PI) : 0;
     const N = emotions(t, [[19.5, 'scared', { emote: 'sweat' }], [20.08, 'scared', { eyes: 'squeeze', mouth: 'wobble', emote: null }]], { take: .4 });
-    const o = { ...N, view: t < 19.62 ? 'front' : 'side', sit: land, legsOut: true, dy: 2.3 * land - 1.6 * air, rot: -.35 * air, dx: t < 19.62 ? .12 * Math.sin(t * 90) : 0, lookX: t < 20.08 ? .8 : -.6, emoteDx: -1 };
+    const o = { ...N, view: t < 19.56 ? 'front' : t < 19.59 ? 'qf' : t < 19.62 ? 'q' : 'side', sit: land, legsOut: true, dy: 2.3 * land - 1.6 * air, rot: -.35 * air, dx: t < 19.62 ? .12 * Math.sin(t * 90) : 0, lookX: t < 20.08 ? .8 : -.6, emoteDx: -1 };
     const e = t >= 19.92 ? eBlend({ g: GRAB_G, aim: EOKA_REST[2], ys: 1 }, AIMS, ease(seg(t, 19.95, 20.25))) : null;
     const r = t >= 20.2 ? { strikes: [20.36], t, sp: .9, at: REST_SIT, atK: 1 - ease(seg(t, 20.2, 20.28)) } : { at: [lerp(ROCK_DOWN[0], REST_SIT[0], land), lerp(ROCK_DOWN[1], REST_SIT[1], land)] };
     const No = nakedPose(U, o, e, r);

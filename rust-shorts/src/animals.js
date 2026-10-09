@@ -26,6 +26,7 @@
 //            stretch < 0 about the ground point, keeping volume), head (an extra head pitch in radians, + = snout down,
 //            e.g. rooting), squeal 0..1 (the jaw drops open: a squeal or an oink), stride 0..1 (scales a moving gait's
 //            steps and bob: ease it to 0 as the boar comes to a stop, then switch to 'stand'). boarRump follows them too.
+//     coat   'charcoal' (today's in-game boar: cooler, darker grey-brown); default: the warm brown 2016 boar
 //   chicken(x, y, s, o)   (x, y) = the ground point between the feet. s = 1 is about 120 px tall (u = 30·s too).
 //     pose   'stand' | 'walk' | 'sit' (nesting, legs hidden) | 'crow' (head up, beak open) | 'sleep' (sitting, head
 //            sunk, eyes shut) | 'flap' (wings out and beating, running on the spot)
@@ -92,6 +93,8 @@ function critterEll(cx, cy, rx, ry, rot = 0, n = 18) { const c = Math.cos(rot), 
 // ---------- the boar ----------
 const BOAR_COL = { body: '#6A5241', dk: '#3F332D', lt: '#AA9682', face: '#3A302D', socket: '#7A6253', snout: '#B08C80', nostril: '#4A3430',
   tusk: '#F3EAD3', hoof: '#2A2328', mane: '#2E2728', leg: '#4A3C34', inEar: '#8A6A62', dust: '#BBA88C' };
+// o.coat 'charcoal': today's in-game boar, a cooler dark grey-brown with a grizzled lighter coat (refimg boar_fandom_view)
+const BOAR_COATS = { charcoal: { body: '#57514C', dk: '#36312E', lt: '#9A928A', face: '#332E2C', socket: '#6E6560', snout: '#A3898A', nostril: '#3E3234', mane: '#262224', leg: '#3B3634', inEar: '#7E6A68' } };
 // Key views (drawn, never projected), in u, +x toward the head; ox shifts the drawing so the middle of the body sits over
 // (x, y). body: the torso outline; ham, grizzle, belly: soft shading ellipses; ticks: hair strokes [x, y, light?];
 // crest: the spine the bristles grow along; neck: where the head pivots; head: its outline in head space, inked from
@@ -198,7 +201,7 @@ function boarRump(x, y, s = 1, o = {}) {
 
 function boar(x, y, s = 1, o = {}) {
   const id = o.boilKey ?? ++CLAWD_N, rs = part => boilSeed(`boar ${id} ${part}`);
-  const u = 30 * s, sw = clamp(u / 16, .45, 2.4) * (o.swMul || 1), t = o.t ?? T, C = BOAR_COL, dir = o.flip ? -1 : 1;
+  const u = 30 * s, sw = clamp(u / 16, .45, 2.4) * (o.swMul || 1), t = o.t ?? T, C = BOAR_COATS[o.coat] ? { ...BOAR_COL, ...BOAR_COATS[o.coat] } : BOAR_COL, dir = o.flip ? -1 : 1;
   const vn = o.view === 'q' ? 'q' : 'side', V = BOAR_VIEWS[vn], P = boarPose(o, t, id), { G, M, moving } = P;
   const eyeKind = o.eyes && !BOAR_MOODS[o.eyes] ? o.eyes : M.eyes, eo = { ...o, seed: o.seed ?? hash(id) * 3 };
   const U = pts => critterPts(pts, u), E = (a, b, rx, ry, n, j = 0, r = 0) => ellPts(a * u, b * u, rx * u, ry * u, n, j, r);

@@ -253,7 +253,8 @@
       inkLine(P, 4 * (1 - k * .6), PAL.ink, 'ink', 0); inkLine(P, 2.2 * (1 - k * .6), o.col || '#FFE27A', 'ink', 0);
     }
   }
-  const dust = (x, y, r, age, key, o = {}) => puff(x, y, r, age, { col: '#C9B98E', key, n: o.n ?? 5, life: o.life ?? .6, rise: o.rise ?? .5 });
+  // dust kicked up off the forest floor: soft grey-green puffs with no outline (cream ones read as spare rocks)
+  const dust = (x, y, r, age, key, o = {}) => puff(x, y, r, age, { col: o.col || '#AEB68F', noInk: true, key, n: o.n ?? 5, life: o.life ?? .42, rise: o.rise ?? .35 });
 
   // ---------- posing helpers (survivor() maths) ----------
   const dropOf = o => clamp(o.crouch || 0) * 1.2 * U + clamp(o.sit || 0) * 2.05 * U;
@@ -297,29 +298,67 @@
   function face(t, keys) { const E = emotions(t, keys), F = {}; for (const k of FACE) if (E[k] !== undefined) F[k] = E[k]; return F; }
   // the rock in the Naked's near hand, along his forearm (the fist wraps it: handOver)
   const rockHand = (u, sw, info) => { push(); rotate(info.ang); translate(-.12 * u, 0); rockProp(u, sw); pop(); };
-  // the plaster cross on his forehead (a draw hook, body-local, facing +x); big: the one he wears after the bonk
-  const dropU = (o, u) => (clamp(o.crouch || 0) * 1.2 + clamp(o.sit || 0) * 2.05) * u;
-  // Where the rig paints a spot of the head (body-local, facing +x): on the turned head in 3/4 and profile (survivor.js
-  // turnPt: lon 0 = the middle of the face, lat − = up), on the flat face otherwise. [x, y, how flat-on it is to us]
-  function headPt(u, V, drop, lon, lat, k = 1) {
-    const hcy = -10.85 * u + drop, R = 2.35 * u;
-    if (V.side && typeof turnPt === 'function') { const th = V === SV.side ? HEAD_TURN.side : HEAD_TURN.q, p = turnPt(0, hcy, R, th, lon, lat, k); return [p[0], p[1], clamp(Math.cos(lon + th), .3, 1)]; }
-    const F = V.face || { cx: 0, fw: 1 };
-    return [F.cx * u + Math.sin(lon) * R * F.fw * .9, hcy + Math.sin(lat) * R, F.fw];
-  }
-  const browPt = (u, V, drop) => headPt(u, V, drop, .05, -.48);   // the plaster's spot: on the hairline above the brows
-  const plaster = (big, xOn = 0, o = {}) => (u, sw, V) => {
-    const [cx, cy] = browPt(u, V, dropU(o, u)), L = (big ? 1.05 : .72) * u, wd = (big ? .38 : .28) * u;
-    if (big) paint(ellPts(cx, cy + .1 * u, L * .7, L * .45, 14), { wash: '#F2A890', ink: null });   // the bump under it
+  // ---------- on the head: o.face(u, sw, V, head) hooks (drawn on the head, under the arms). head.pt(lon, lat, k) puts a
+  // spot on the turned head (lon 0 = the middle of the face, − = the near side; lat − = up) in every view, and returns
+  // [x, y, depth]; depth ≤ 0 has turned away from us.
+  const fore = (head, lon) => clamp(Math.cos(lon + head.th), .3, 1);   // how flat-on a spot of the face is to us
+  const BROW = [.05, -.5], XBROW = [.05, -.66], MASKX = [0, .13, 1.12];   // the plaster, the X above it, the X on a facemask
+  function plasterOn(u, sw, head, big) {   // the plaster cross; big: the one he wears after the bonk
+    const p = head.pt(...BROW); if (p[2] <= .05) return;
+    const L = (big ? 1.05 : .72) * u, wd = (big ? .38 : .28) * u;
+    push(); translate(p[0], p[1]); scale(fore(head, BROW[0]), 1);
+    if (big) paint(ellPts(0, .1 * u, L * .7, L * .45, 14), { wash: '#F2A890', ink: null });   // the bump under it
     for (const a of [.62, -.62]) {
-      push(); translate(cx, cy); rotate(a);
+      push(); rotate(a);
       paint(rrPts(-L, -wd / 2, 2 * L, wd, wd * .45), { wash: '#E0BE8E', ink: PAL.ink, sw: sw * .45 });
       paint(rrPts(-L * .32, -wd * .38, L * .64, wd * .76, wd * .3), { wash: '#C9A06E', ink: null });
       for (const d of [-.7, .7]) for (const e of [-.2, .2]) paint(ellPts(d * L, e * wd, wd * .07, wd * .07, 6), { wash: '#A88358', ink: null });
       pop();
     }
-    if (xOn > 0) xMark(cx, cy, .95 * u * xOn, { key: 'brow', glow: .35 });
+    pop();
+  }
+  function xOnBrow(u, head, k, o = {}) { const p = head.pt(...XBROW); if (p[2] > .05) xMark(p[0], p[1], .9 * u * k, { key: 'brow', glow: .35, ...o }); }
+  // the red X reflected in each eye (lookX/lookY as the rig moves the pupils)
+  function eyeGlints(u, head, o, k) {
+    for (const s of [-1, 1]) {
+      const p = head.pt(s * .4, -.02, .84); if (p[2] <= .08) continue;
+      const f = fore(head, s * .4), x = p[0] + (o.lookX || 0) * u * .25 * f, y = p[1] + (o.lookY || 0) * u * .15;
+      xMark(x - .08 * u * f, y - .14 * u, .15 * u * k, { key: 'eyex' + s, glow: .35, sx: Math.max(.6, f) });
+    }
+  }
+  // dizzy swirl eyes, drawn over blank eyes
+  function swirlEyes(u, sw, head, t) {
+    for (const s of [-1, 1]) {
+      const p = head.pt(s * .4, -.02, .84); if (p[2] <= .08) continue;
+      const f = fore(head, s * .4), P = [];
+      for (let i = 0; i < 18; i++) { const a = i * .72 + t * 7 * s, r = i * .019 * u; P.push([p[0] + Math.cos(a) * r * f, p[1] + Math.sin(a) * r * 1.35]); }
+      inkLine(P, sw * .8, PAL.ink, 'inkfine', .6);
+    }
+  }
+  // a wide, trembling forced grin of gritted teeth, corners up
+  function grinOn(u, sw, head, t) {
+    const top = [], bot = [], n = 7, wob = .025 * Math.sin(t * 33);
+    for (let i = -n; i <= n; i++) {
+      const k = i / n, lon = k * .5, c = k * k, tw = Math.abs(i) >= n - 1 ? wob * Math.sign(i || 1) : 0;
+      const a = head.pt(lon, .63 - .07 * c + tw, 1), b = head.pt(lon, .79 - .14 * c + tw, 1);
+      if (a[2] > .03) { top.push([a[0], a[1]]); bot.push([b[0], b[1]]); }
+    }
+    if (top.length < 4) return;
+    paint([...top, ...bot.slice().reverse()], { wash: '#FFF8EA', ink: PAL.ink, sw: sw * .65 });
+    inkLine(top.map((p, i) => [p[0], lerp(p[1], bot[i][1], .5)]), sw * .4, PAL.ink, 'inkfine', .4);   // between the rows of teeth
+    for (let i = 2; i < top.length - 2; i += 2) inkLine([top[i], bot[i]], sw * .3, mixCol(PAL.ink, '#FFF8EA', .3), 'inkfine', 0);
+  }
+  // the Naked's head: plaster (big after the bonk), the X on his brow, X glints, swirls, a grin
+  const nakedFace = (o = {}) => (u, sw, V, head) => {
+    plasterOn(u, sw, head, o.big);
+    if (o.swirl) swirlEyes(u, sw, head, T);
+    if (o.grin) grinOn(u, sw, head, T);
+    if (o.glints) eyeGlints(u, head, o.look || {}, o.glints);
+    if (o.xOn > 0) xOnBrow(u, head, o.xOn);
   };
+  // a spot on a survivor's turned head, in the world (for aiming things at it)
+  const viewTurn = v => v === 'side' ? HEAD_TURN.side : v === 'q' ? HEAD_TURN.q : v === 'qf' ? .3 : 0;
+  function worldHeadPt(x, y, o, lon, lat, k = 1) { const p = turnPt(0, -10.85 * U + dropOf(o), 2.35 * U, viewTurn(o.view), lon, lat, k); return bodyPt(x, y, o, p[0], p[1]); }
 
   // ---------- S1: the X (0–7) ----------
   const XA = [416, 1080], XB = [402, 880], XPEEK = 948, XLOW = 1132;   // chest, head height, the peek, the low exit
