@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Rust Shorts studio</title>
+<style>
+  @font-face { font-family: "Permanent Marker"; src: url("assets/fonts/PermanentMarker-Regular.woff") format("woff"); font-display: block; }
+  html, body { margin: 0; background: #1b1820; color: #eee; font: 13px system-ui, sans-serif; }
+  main { padding: 12px; display: grid; gap: 8px; justify-items: start; }
+  #out { height: min(86vh, 1280px); width: auto; background: #F3EBDC; }
+  .p5Canvas { display: none !important; }
+  .bar { display: flex; gap: 10px; align-items: center; width: min(100%, 720px); }
+  #scrub { flex: 1; }
+  #tt { font-variant-numeric: tabular-nums; min-width: 190px; }
+</style>
+<script src="node_modules/p5/lib/p5.min.js"></script>
+<script src="lib/p5.brush.js"></script>
+</head>
+<body>
+<main>
+  <canvas id="out" width="1080" height="1920"></canvas>
+  <div class="bar"><input id="scrub" type="range" min="0" max="60" step="0.0417" value="0"><span id="tt">loading…</span></div>
+</main>
+<!-- the episode: studio.html?ep=1 loads episodes/ep1/config.js before the engine and episodes/ep1/scene.js after it -->
+<script>
+  const EP = new URLSearchParams(location.search).get('ep') || '1';
+  document.write(`<script src="episodes/ep${EP}/config.js"><\/script>`);
+</script>
+<script>try { PROJECT; } catch (e) { window.PROJECT = { duration: 10, bpm: 120, offset: 0, width: 1080, height: 1920 }; }   // no episode config: a 10 s test frame</script>
+<!-- engine -->
+<script src="src/core.js"></script>
+<script src="src/clawd.js"></script>
+<script src="src/timeline.js"></script>
+<!-- the Rust series: cast, props, places, model sheets -->
+<script src="src/rustcast.js"></script>
+<script src="src/rustsets.js"></script>
+<script src="src/sheets.js"></script>
+<script>document.write(`<script src="episodes/ep${EP}/scene.js"><\/script>`);</script>
+<script>
+  // studio.html?ep=1&loop=cast scrubs a standalone loop (model sheets) instead of the episode
+  const q = new URLSearchParams(location.search).get('loop'); if (q && LOOPS[q]) window.LOOP = LOOPS[q];
+  if (new URLSearchParams(location.search).has('guides')) window.GUIDES = true;
+</script>
+</body>
+</html>
