@@ -371,17 +371,19 @@
   const clutch = (o, k = 1) => { const [hx, hy] = handLocal(U, o, 'L'), r = reachArm(U, o, 'R', hx - .25 * U, hy + .35 * U); return { aR: lerp(o.aR ?? -1.2, r.aR, k), bendR: lerp(o.bendR ?? .3, r.bendR, k), armKR: lerp(1, r.armKR, k) }; };
 
   // ---------- S1: the X (0–7) ----------
-  const XA = [416, 1080], XB = [402, 880], XPEEK = 948, XLOW = 1132;   // chest, head height, the peek, the low exit
+  const XA = [416, 1080], XB = [402, 880], XPEEK = 780, XLOW = 1132;   // chest, head height, the peek (over his head), the low exit
+  const RX = 600, HITB = [edgeR(800) + 3, 800];   // where he swings at the peek from, and where his rock hits the bark
+  const BOARO = { boilKey: BO, seed: 3, coat: 'charcoal' };
   const COCK = [-4.43, -1.1];   // elbow up, forearm cocked back, the rock behind his head (≡ 1.85 rad): frame 0
   const N1 = [[0, 'determined', { eyes: 'determined', mouth: 'flat' }], [.46, 'determined', { eyes: 'determined', mouth: 'teeth' }], [.62, 'surprised', { emote: null }],
     [1.02, 'determined', { mouth: 'flat' }], [1.68, 'surprised', { emote: null }], [2.0, 'mischief', { eyes: 'sly', mouth: 'smirk' }], [2.86, 'surprised', { emote: null }],
-    [3.0, 'determined', { mouth: 'teeth' }], [3.32, 'disgusted', { eyes: 'squeeze', mouth: 'wobble', tint: null }], [3.7, 'suspicious', { mouth: 'frown' }],
-    [4.2, 'surprised', { emote: '!' }], [4.42, 'angry', { mouth: 'open', emote: null, tint: null }]];
+    [3.04, 'determined', { mouth: 'teeth' }], [3.32, 'disgusted', { eyes: 'squeeze', mouth: 'wobble', tint: null }], [3.62, 'suspicious', { eyes: 'look', mouth: 'frown' }],
+    [3.9, 'surprised', { eyes: 'wide', mouth: 'o', emote: null }], [4.2, 'surprised', { eyes: 'wide', mouth: 'o', emote: '!' }], [4.42, 'angry', { mouth: 'open', emote: null, tint: null }]];
   // The opening swing (t in -.5 .. 1 around the first THOCK at 0.5): 3D's last half second runs it from -.5.
   function swing1(t, big) {
     const base = { view: 'q', flip: true, rawArms: true, crouch: 0 };
     const hit = strike(NX, G, { ...base, rot: -.1, aL: -6.25, bendL: .02 }, XA[0] + 4, XA[1] + 2);
-    const A = [...kf(t, [[-.5, [-.1, .05]], [0, COCK], [.3, [-4.55, -1.25]], [.5, [hit.aL, .02]], [.62, [hit.aL + .38, .3]], [1.0, [-7.35, .3]]], (k) => k < 0 ? 0 : ease(k))];
+    const A = [...kf(t, [[-.5, [-.1, .05]], [0, COCK], [.3, [-4.55, -1.25]], [.5, [hit.aL, .02]], [.62, [hit.aL + .38, .3]], [1.0, CHEST]], (k) => k < 0 ? 0 : ease(k))];
     // the strike itself accelerates into the trunk
     if (t > .3 && t < .5) { const k = easeIn(seg(t, .3, .5)); A[0] = lerp(-4.55, hit.aL, k); A[1] = lerp(-1.25, .02, k); }
     const rot = kf(t, [[-.5, 0], [0, .12], [.3, .17], [.5, -.1], [.75, 0]]), dx = kf(t, [[.3, 0], [.5, hit.dx], [1, hit.dx * .6]]);
@@ -391,43 +393,53 @@
   function nakedS1(t) {
     // returns { x, behind (drawn before the trunk), o }
     const F = face(t, N1), S = { ...F, boilKey: NK, seed: 1, prop: 'none', handOver: true, handL: rockHand };
+    if (t > 3.85 && t < 4.46) S.squint = 0;   // the stare: eyes wide open (no blink between the expressions)
     if (t < 1.0) return { x: NX, o: { ...S, ...swing1(t) } };
     const x0 = NX + swing1(1).dx * U;   // where the first swing left him
     if (t < 2.0) {
-      // looks up at it, crouches, jumps and hits it at the top of the hop (1.6), lands
+      // looks up at it, crouches, jumps and hits it at the top of the hop (1.6), lands with the rock back at his chest
       const J = jump(t, 1.4, 1.8, 2.2), crouch = .35 * ease(seg(t, 1.15, 1.38)) * (1 - seg(t, 1.38, 1.42));
-      const pre = { view: 'q', flip: true, rawArms: true, crouch, dy: J.dy, rot: kf(t, [[1.38, 0], [1.6, -.12], [1.85, 0]]), bendL: kf(t, [[1.0, .3], [1.3, -.5], [1.6, .05], [1.75, .25]]) };
+      const pre = { view: 'q', flip: true, rawArms: true, crouch, dy: J.dy, rot: kf(t, [[1.38, 0], [1.6, -.12], [1.85, 0]]), bendL: kf(t, [[1.0, CHEST[1]], [1.3, -.5], [1.6, .05], [1.67, .2], [1.8, CHEST[1]]]) };
       const hitPose = { ...pre, dy: -2.2, rot: -.12, crouch: 0, bendL: .05, aL: -5.75 };
       const hit = strike(x0, G, hitPose, XB[0] + 6, XB[1] + 4);
-      const aL = t < 1.3 ? kf(t, [[1.0, -7.35], [1.3, COCK[0]]]) : t < 1.6 ? lerp(COCK[0], hit.aL, easeIn(seg(t, 1.42, 1.6))) : kf(t, [[1.6, hit.aL], [1.75, hit.aL + .32], [2.0, -6.95]]);
+      const aL = t < 1.3 ? kf(t, [[1.0, CHEST[0]], [1.3, COCK[0]]]) : t < 1.6 ? lerp(COCK[0], hit.aL, easeIn(seg(t, 1.42, 1.6))) : kf(t, [[1.6, hit.aL], [1.67, hit.aL + .22], [1.8, CHEST[0]]]);
       const dx = kf(t, [[1.4, 0], [1.6, hit.dx], [2.0, hit.dx]]);
       return { x: x0, o: { ...S, ...pre, aL, dx, sq: J.sq, aR: kf(t, [[1.0, -1.2], [1.4, -.2], [1.8, -1.0]]), bendR: .4, lookX: t < 1.66 ? .2 : kf(t, [[1.66, .2], [1.9, 1]]), lookY: t < 1.66 ? -1 : kf(t, [[1.66, -1], [1.9, 0]]) } };
     }
     const x1 = x0 + strike(x0, G, { view: 'q', flip: true, rawArms: true, dy: -2.2, rot: -.12, bendL: .05, aL: -5.75 }, XB[0] + 6, XB[1] + 4).dx * U;
     if (t < 2.9) {
       // tiptoes behind the trunk, then leans out from its left edge to look for it
-      const k = ease(seg(t, 2.0, 2.35)), x = lerp(x1, 404, k), lean = ease(seg(t, 2.35, 2.5)) * (1 - ease(seg(t, 2.85, 2.9)));
+      const k = ease(seg(t, 2.0, 2.35)), x = lerp(x1, 404, k), lean = ease(seg(t, 2.35, 2.5)) * (1 - ease(seg(t, 2.84, 2.9)));
       return { x, behind: true, o: { ...S, view: 'q', flip: true, rawArms: true, crouch: .3 * (1 - .4 * lean), walk: (x1 - x) / (3 * U), dy: -.25 * Math.abs(Math.sin(k * Math.PI * 3)), rot: -.4 * lean,
-        aL: -6.95, bendL: -2.0, aR: -.9 + .5 * lean, bendR: 1.0, lookX: .9, lookY: .1 } };
+        aL: CHEST[0], bendL: CHEST[1], aR: -.9 + .5 * lean, bendR: 1.0, lookX: .9, lookY: .1 } };
     }
-    // he senses it, zips round to the right side and swings at the peeking X: it ducks, he hits bark (3.3)
-    const RX = 566, side = { view: 'q', flip: true, rawArms: true };
-    const hitBark = strike(RX, G, { ...side, rot: -.1, aL: -6.2, bendL: .02 }, edgeR(1010) + 3, 1010);
+    // he senses it behind him: dashes back round the trunk (2.9–3.04, smeared), skids and turns, and hops to swing at
+    // the peeking X over his head: it ducks (3.2) and his rock thuds into the bark (3.3)
+    const side = { view: 'q', flip: true, rawArms: true }, HOP = [3.1, 3.5, 1.6];
+    const hitBark = strike(RX, G, { ...side, rot: -.12, aL: -5.3, bendL: .02, armKL: 1.15, dy: -HOP[2] }, HITB[0], HITB[1]);
     if (t < 3.6) {
-      const k = ease(seg(t, 2.92, 3.02)), x = lerp(404, RX, k);
-      const aL = t < 3.05 ? kf(t, [[2.9, -6.95], [3.04, COCK[0]]]) : t < 3.3 ? lerp(COCK[0], hitBark.aL, easeIn(seg(t, 3.08, 3.3))) : hitBark.aL + .1 * Math.sin(t * 90) * Math.exp(-(t - 3.3) * 9);
-      const bendL = t < 3.05 ? kf(t, [[2.9, -2.0], [3.04, COCK[1]]]) : t < 3.3 ? lerp(COCK[1], .02, easeIn(seg(t, 3.08, 3.3))) : .02;
-      const dx = kf(t, [[3.1, 0], [3.3, hitBark.dx], [3.6, hitBark.dx]]);
-      return { x, behind: x < RX - 4, o: { ...S, ...side, crouch: .3 * (1 - k), walk: k > 0 && k < 1 ? k * 1.2 : undefined, rot: kf(t, [[3.02, 0], [3.1, .1], [3.3, -.1], [3.6, -.04]]), aL, bendL, dx,
-        aR: kf(t, [[2.9, -.9], [3.1, -.5], [3.3, -1.1]]), bendR: .5, lookX: .6, lookY: .1 } };
+      if (t < 3.04) {
+        const k = ease(seg(t, 2.9, 3.04)), x = lerp(404, RX, k);
+        return { x, behind: x < RX - 4, dash: k, o: { ...S, view: 'side', flip: false, rawArms: true, walk: (x - 404) / (2.4 * U), smear: .85 * Math.sin(Math.PI * Math.min(1, k * 1.1)), smearDir: -1,
+          rot: .14, ...RAISED, aR: -.3, bendR: 1.2, lookX: .9 } };
+      }
+      const J = jump(t, ...HOP), turn = t < 3.09;
+      const aL = t < 3.12 ? kf(t, [[3.04, RAISED.aL], [3.12, COCK[0]]]) : t < 3.3 ? lerp(COCK[0], hitBark.aL, easeIn(seg(t, 3.12, 3.3))) : hitBark.aL + .1 * Math.sin(t * 90) * Math.exp(-(t - 3.3) * 9);
+      const bendL = t < 3.12 ? kf(t, [[3.04, RAISED.bendL], [3.12, COCK[1]]]) : t < 3.3 ? lerp(COCK[1], .02, easeIn(seg(t, 3.12, 3.3))) : .02;
+      const armKL = t < 3.12 ? kf(t, [[3.04, RAISED.armKL], [3.12, 1]]) : t < 3.3 ? lerp(1, 1.15, easeIn(seg(t, 3.12, 3.3))) : lerp(1.15, 1, seg(t, 3.45, 3.6));
+      const dx = kf(t, [[3.12, 0], [3.3, hitBark.dx], [3.6, hitBark.dx]]);
+      return { x: RX, o: { ...S, ...side, view: turn ? 'front' : 'q', flip: !turn, dy: J.dy, sq: J.sq, crouch: turn ? .25 : 0, rot: kf(t, [[3.09, 0], [3.14, .1], [3.3, -.12], [3.6, -.04]]), aL, bendL, armKL, dx,
+        aR: kf(t, [[3.04, -.9], [3.12, -.5], [3.3, -1.1]]), bendR: .5, lookX: turn ? -.6 : .55, lookY: -.45 } };
     }
     const xs = RX + hitBark.dx * U;
     if (t < 4.48) {
-      // annoyed; the boing; he sees the X on the boar: a stare (4.2); he raises his rock (4.3)
-      const tk = take(t, 4.2, 1.1), up = ease(seg(t, 4.26, 4.44));
+      // shakes out his arm, looks round for it; spots it low on the trunk (3.9) and follows its hop onto the boar: a wide-
+      // eyed stare at the boar's backside (4.2, a small take); raises his rock over his head (4.3)
+      const tk = take(t, 4.2, .3), up = ease(seg(t, 4.26, 4.44)), rest = ease(seg(t, 3.6, 3.85));
+      const look = t < 3.9 ? [kf(t, [[3.62, .2], [3.76, -.6], [3.88, .5]]), .1] : t < 4.0 ? [.75, .75] : [lerp(.75, 1, seg(t, 4.0, 4.2)), lerp(.75, .95, seg(t, 4.0, 4.2))];
       return { x: xs, o: { ...S, view: 'q', flip: true, rawArms: true, sq: tk.sq, dy: tk.dy, crouch: .3 * up, rot: lerp(-.04, .08, up),
-        aL: lerp(lerp(hitBark.aL, -7.4, ease(seg(t, 3.6, 3.85))), -4.75, up), bendL: lerp(lerp(.02, .3, ease(seg(t, 3.6, 3.85))), -.35, up), aR: lerp(-1.25, -.6, up), bendR: .3,
-        lookX: t < 4.1 ? .3 : 1, lookY: t < 4.1 ? .2 : .6 } };
+        aL: lerp(lerp(hitBark.aL, CHEST[0], rest), RAISED.aL, up), bendL: lerp(lerp(.02, CHEST[1], rest), RAISED.bendL, up), armKL: lerp(1, RAISED.armKL, up), aR: lerp(-1.25, -.6, up), bendR: .3,
+        lookX: look[0], lookY: look[1] } };
     }
     return null;   // the chase (4.48–) is posed by chaseNaked()
   }
@@ -464,12 +476,12 @@
       const k = easeOut(seg(t, 3.5, 4.35)), x = lerp(-300, 240, k), stride = 1 - seg(t, 4.2, 4.35);
       const look = ease(seg(t, 4.5, 4.56)), tk = t > 4.52 ? { dy: -.7 * Math.sin(Math.PI * seg(t, 4.52, 4.66)), sq: -.18 * Math.sin(Math.PI * seg(t, 4.52, 4.66)) } : { dy: 0, sq: 0 };
       const turnV = t < 4.6 ? 'side' : 'q', flip = t >= 4.63;
-      const o = { gait: t < 4.35 ? 'trot' : 'stand', phase: (x + 300) / boarStride(BS, 'trot'), stride, mood: t > 4.52 ? 'scared' : 'neutral', boilKey: BO, seed: 3,
+      const o = { gait: t < 4.35 ? 'trot' : 'stand', phase: (x + 300) / boarStride(BS, 'trot'), stride, mood: t > 4.52 ? 'scared' : 'neutral', ...BOARO,
         head: t < 4.5 ? .32 * ease(seg(t, 4.3, 4.45)) + .06 * Math.sin(t * 24) * seg(t, 4.35, 4.45) : -.12 * look, dy: tk.dy, sq: tk.sq, squeal: t > 4.53 && t < 4.66 ? .8 : 0, view: turnV, flip, rump, emote: null };
       return { x, y: 1425, o, front: true };
     }
     const r = runner(t, sBoar), sc = r.s;
-    return { x: r.p[0], y: r.p[1], front: r.front, s: BS * sc, o: { gait: 'run', phase: r.d / (boarStride(BS, 'run') * 1.7), mood: 'scared', boilKey: BO, seed: 3, view: r.turn ? 'q' : 'side', flip: r.flip, squeal, rump, emote: t > 6.4 ? null : 'sweat', emoteK: 1 } };
+    return { x: r.p[0], y: r.p[1], front: r.front, s: BS * sc, o: { gait: 'run', phase: r.d / (boarStride(BS, 'run') * 1.7), mood: 'scared', ...BOARO, view: r.turn ? 'q' : 'side', flip: r.flip, squeal, rump, emote: t > 6.4 ? null : 'sweat', emoteK: 1 } };
   }
   // the X in S1: where it is and how it looks. layer: 'tree' (on the bark), 'behind' (behind the trunk), 'air', or onBoar
   function xS1(t) {
@@ -480,9 +492,9 @@
     if (t < 1.66) return { layer: 'tree', p: XB, sx: 1.35, sy: .55 };
     if (t < 1.97) { const k = easeIn(seg(t, 1.66, 1.97)), x = lerp(XB[0], edgeL(XB[1]) + 2, k); return { layer: 'tree', p: [x, XB[1] + 6 * Math.sin(k * 9)], rot: -.35 * Math.sin(Math.PI * Math.min(1, k * 1.6)), sx: 1.12 }; }
     if (t < 2.8) return null;
-    if (t < 3.16) {   // peeks out past the trunk's right edge, wiggling, then ducks back (3.1)
-      const out = backOut(seg(t, 2.8, 2.92)) * (1 - ease(seg(t, 3.08, 3.16))), ex = edgeR(XPEEK);
-      return { layer: 'behind', p: [ex - XR * 1.1 + out * XR * 1.55, XPEEK], rot: .3 * out + .1 * Math.sin((t - 2.8) * 30) * out, sx: 1, sy: 1 };
+    if (t < 3.25) {   // peeks right out past the trunk's right edge (over his head), wiggling; ducks back as the rock comes (3.2)
+      const out = backOut(seg(t, 2.8, 2.9)) * (1 - easeIn(seg(t, 3.2, 3.25))), ex = edgeR(XPEEK), a = t - 2.8;
+      return { layer: 'behind', p: [ex - XR * 1.2 + out * XR * 2.35, XPEEK + 5 * Math.sin(a * 26) * out], rot: .22 * out + .16 * Math.sin(a * 22) * out, sx: 1 + .06 * Math.sin(a * 30) * out, sy: 1 - .06 * Math.sin(a * 30) * out };
     }
     if (t < 3.62) return null;
     if (t < 4.0) {   // creeps back round the left edge onto the front of the trunk, low
@@ -504,7 +516,7 @@
     const k = ease(seg(t, 4.48, 4.62));   // blend out of the stare pose onto the loop
     if (k < 1) { const s0 = nakedS1(4.47); r.p = [lerp(s0.x + (s0.o.dx || 0) * U, r.p[0], k), lerp(G, r.p[1], k)]; }
     return { x: r.p[0], y: r.p[1], front: r.front, s: r.s, o: { ...face(t, N1), boilKey: NK, seed: 1, prop: 'none', handOver: true, handL: rockHand, view: r.turn ? 'q' : 'side', flip: r.flip, rawArms: true,
-      walk: ph, dy: -.55 * Math.abs(Math.sin(ph * Math.PI)), rot: (r.flip ? -1 : 1) * (.18 + .05 * Math.sin(ph * TAU)), aL: lerp(-4.75, -5.55 + .14 * Math.sin(ph * TAU), k), bendL: lerp(-.35, .15, k),
+      walk: ph, dy: -.55 * Math.abs(Math.sin(ph * Math.PI)), rot: (r.flip ? -1 : 1) * (.18 + .05 * Math.sin(ph * TAU)), ...RAISED, aL: RAISED.aL + .12 * Math.sin(ph * TAU) * k,
       aR: -.5 + .9 * Math.sin(ph * TAU + Math.PI), bendR: 1.1, mouth: Math.max(0, ...YELPS.map(ty => t > ty - .02 && t < ty + .25 ? 1 : 0)) ? 'O' : 'open', eyes: 'angry', lookX: .8 } };
   }
 
@@ -515,7 +527,7 @@
     camBegin(c.cx, c.cy, c.z);
     floor();
     const X = xS1(t), N = t < 4.48 ? nakedS1(t) : nakedChase(t), B = boarS1(t, X || {});
-    const drawNaked = () => { if (!N) return; if (N.y) survivor(N.x, N.y, U * N.s, { ...HERO, ...N.o, draw: plaster(false) }); else spawnling(N.x, G, U, { ...N.o, draw: plaster(false) }); };
+    const drawNaked = () => { if (!N) return; const o = { ...N.o, face: nakedFace() }; if (N.y) survivor(N.x, N.y, U * N.s, { ...HERO, ...o }); else spawnling(N.x, G, U, o); };
     const drawBoar = () => { if (B) boar(B.x, B.y, B.s || BS, B.o); };
     // behind the trunk: the X peeking, the Naked sneaking, runners on the far side of the loop
     if (B && !B.front) drawBoar();
@@ -526,19 +538,23 @@
     bigPine(c);
     needles(t, .5); needles(t, 1.6, 5);
     if (X && X.layer === 'tree') drawX(X);
+    // the dash round the trunk: a puff where he vanished, speed lines behind him, a skid where he stops
+    dust(edgeL(G - 40) - 10, G + 4, 40, t - 2.88, 'zip', { n: 5 });
+    if (N && N.dash > 0) speedLines(N.x - 70, G - 260, 320, Math.sin(Math.PI * N.dash), -1, 'dash');
+    dust(RX - 20, G + 8, 46, t - 3.03, 'skid', { n: 6 }); dust(nakedS1(3.5).x + (nakedS1(3.5).o.dx || 0) * U, G + 6, 34, t - 3.5, 'hopland');
     if (t > 6.5) for (let i = 0; i < 4; i++) dust(60 + 150 * i, 1418, 54, t - 6.5 - .04 * (3 - i), 'zoom' + i, { life: .65, n: 6 });
     if (t > 6.48 && t < 6.75) { boilSeed('zoomlines'); const k = seg(t, 6.48, 6.75); for (let i = 0; i < 4; i++) { const y = 1130 + i * 70 + 20 * hash(i), x0 = -150 + 260 * k + 80 * hash(i), L = 300 * (1 - k); inkLine([[x0, y], [x0 + L, y]], 1.1, mixCol(PAL.ink, '#8F9C5F', .35), 'inkfine', 0); } }
     if (B && B.front) drawBoar();
     if (N && !N.behind && N.front !== false) drawNaked();
     if (X && X.layer === 'air') drawX(X);
     const tipAt = tt => { const n = nakedS1(tt); return n ? alongArm(n.x, G, n.o, 1.3) : [0, 0]; };
-    swoosh(t, .36, .5, tipAt, 'h1'); swoosh(t, 1.47, 1.6, tipAt, 'h2'); swoosh(t, 3.14, 3.3, tipAt, 'h3');
+    swoosh(t, .36, .5, tipAt, 'h1'); swoosh(t, 1.47, 1.6, tipAt, 'h2'); swoosh(t, 3.13, 3.3, tipAt, 'h3');
     // hits: chips, impact ticks
     chips(XA[0] + 20, XA[1], t - .5, 1, { seed: 1 }); ticks(XA[0] + 10, XA[1], t - .5, { r: 36 });
     chips(XB[0] + 20, XB[1], t - 1.6, 1, { seed: 2 }); ticks(XB[0] + 10, XB[1], t - 1.6, { r: 36 });
-    chips(edgeR(1010), 1010, t - 3.3, 1, { seed: 3, n: 6 }); ticks(edgeR(1010), 1010, t - 3.3, { r: 30, n: 5 });
-    if (t > 1.78 && t < 2.4) dust(nakedS1(1.8).x + 10, G, 34, t - 1.8, 'land');
-    if (t > 4.48 && t < 5.2) dust(566, G + 10, 46, t - 4.5, 'charge', { n: 6 });
+    chips(HITB[0], HITB[1], t - 3.3, 1, { seed: 3, n: 6 }); ticks(HITB[0], HITB[1], t - 3.3, { r: 30, n: 5 });
+    if (t > 1.78 && t < 2.4) dust(nakedS1(1.8).x + 10, G + 6, 40, t - 1.8, 'land');
+    if (t > 4.48 && t < 5.2) { const n0 = nakedS1(4.47); dust(n0.x + (n0.o.dx || 0) * U, G + 10, 50, t - 4.5, 'charge', { n: 6 }); }
     camEnd();
     if (t < 2.5) titleCard(t);
   }

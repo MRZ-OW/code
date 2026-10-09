@@ -318,12 +318,11 @@
   const R1 = NA - 95;
   function s1d(t, lt) {
     const hy = G - 10.85 * U, Z = 3.0;
-    camBegin(R1 + 70 / Z, hy + 100 / Z, Z);   // his head at about (470, 860) on screen
+    camBegin(R1 + 40 / Z, hy + 100 / Z, Z);   // his head at about (500, 860) on screen
     set(t);
     const idea = t >= 3.6, waggle = Math.floor(t * 7) % 2;
-    const O = { soot: .35, frizz: .6, view: 'front', hold: { R: 'rock' }, aR: -1.2, bendR: .3, aL: -1.2, bendL: .3 };
-    if (idea) O.hold = { L: 'rock' };
-    if (!idea) Object.assign(O, { eyes: 'look', lookX: .35, lookY: -.9, mouth: 'flat' }, reachArm(U, O, 'L', -.45 * U, -9.15 * U));   // finger on chin, eyes up
+    const O = { soot: .35, frizz: .6, view: 'front', hold: { L: 'rock' }, aR: -1.2, bendR: .3, aL: -1.2, bendL: .3 };
+    if (!idea) Object.assign(O, { eyes: 'look', lookX: .35, lookY: -.9, mouth: 'flat' }, reachArm(U, O, 'R', .45 * U, -9.15 * U));   // fist on chin, eyes up
     else Object.assign(O, { eyes: t < 3.8 ? 'shine' : waggle ? 'sly' : 'narrow', lookX: .01, mouth: 'grin', dy: -.3 * Math.exp(-(t - 3.6) * 8), aR: 1.2, bendR: .75, handR: fingerUp });   // eureka finger up at the bulb, then smug
     naked(R1, G, O);
     smoke(R1 - 10, tipsY(G, O), .7, t - 2.3, 'z1');
