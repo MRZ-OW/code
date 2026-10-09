@@ -301,7 +301,7 @@ function composite(t) {
 }
 // Review aid (render.mjs --guides): outlines where the YouTube Shorts UI covers a vertical frame. Never in final frames.
 function drawGuides(c) {
-  const G = window.SAFE || { top: 230, bottom: 420, right: 170, left: 60 };
+  const G = window.SAFE || { top: 288, bottom: 672, right: 192, left: 48 };   // Google's vertical safe-zone template (Shorts UI)
   c.save(); c.fillStyle = 'rgba(255, 0, 90, .16)'; c.strokeStyle = 'rgba(255, 0, 90, .8)'; c.lineWidth = 3;
   c.fillRect(0, 0, W, G.top); c.fillRect(0, H - G.bottom, W, G.bottom); c.fillRect(W - G.right, G.top, G.right, H - G.top - G.bottom); c.fillRect(0, G.top, G.left, H - G.top - G.bottom);
   c.strokeRect(G.left, G.top, W - G.left - G.right, H - G.top - G.bottom); c.restore();

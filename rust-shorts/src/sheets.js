@@ -8,7 +8,7 @@
     oreNode(900, 1180, .7, 'metal', { glint: true });
     bush(980, 1650, .8);
     spawnling(420, 1330, 34, { ...feel('happy', t), view: 'q', aL: .9 + .5 * Math.sin(t * 6), propRot: .3 });
-    spawnling(300, 1720, 26, { ...feel('neutral', t), skin: 'teal', prop: 'torch', view: 'front', aR: .3 });
+    spawnling(300, 1720, 26, { ...feel('neutral', t), skin: 'tan', prop: 'torch', view: 'front', aR: .3 });
     geared(760, 1720, 34, { ...feel('determined', t), view: 'q', flip: true, aL: .15, fire: frac(t * 4) < .25 ? 1 : 0 });
   };
   LOOPS.kit.len = 2;
@@ -26,4 +26,19 @@
     explosion(780, 1780, 90, frac(t / 1.8) * 1.8);
   };
   LOOPS.base.len = 1.8;
+})();
+(() => {
+  LOOPS.naked = t => {
+    boilSeed('bg'); paint(rectPts(-50, -50, W + 100, H + 100), { wash: '#EFE6D6', ink: null });
+    for (const yy of [610, 1180, 1760]) inkLine([[0, yy], [W, yy]], .6, PAL.ink, 'inkfine', 0);
+    // row 1: the four views of the hero, holding the rock
+    ['front', 'q', 'side', 'back'].forEach((v, i) => spawnling(140 + i * 265, 600, 32, { ...feel('neutral', t), view: v }));
+    // row 2: emotions
+    ['happy', 'angry', 'scared', 'sad', 'surprised'].forEach((e, i) => spawnling(110 + i * 215, 1170, 27, { ...feel(e, t + i), view: 'front', prop: i === 0 ? 'torch' : 'rock' }));
+    // row 3: a side-view walk, the geared player, a hazmat
+    spawnling(170, 1750, 30, { ...feel('determined', t), view: 'side', walk: t * 2, aL: .2 + .4 * Math.sin(t * TAU * 2) });
+    geared(560, 1750, 30, { ...feel('determined', t), view: 'q', flip: true, aL: .9 });
+    survivor(900, 1750, 30, { ...feel('neutral', t), gear: { hazmat: true }, view: 'front' });
+  };
+  LOOPS.naked.len = 2;
 })();
