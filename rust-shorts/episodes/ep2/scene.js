@@ -471,9 +471,9 @@
     const O = { view: 'front', soot, frizz, crouch: 1 - up, aL: -1.15, bendL: .35, aR: -1.15, bendR: .35, eyes: 'closed', mouth: 'smile' };
     if (t < 13.75) { Object.assign(O, reachArm(U, O, 'L', ...toBody(NX, G, U, O, RK[0] + 12, RK[1] - 16))); if (t >= 13.62) O.hold = { L: 'rock' }; }
     else if (t < 14.55) O.hold = { L: 'rock' };
-    const rockUnder = (u, sw) => { push(); translate(-1.35 * u, -6.5 * u); rotate(.4); scale(-1, 1); rockProp(u * .8, sw); pop(); };
+    const rockUnder = (u, sw) => { push(); translate(-2.55 * u, -6.15 * u); rotate(.4); scale(-1, 1); rockProp(u * .8, sw); pop(); };   // tucked under his left arm, poking out at his side (not hidden behind his folded arms)
     if (t < 13.62) rockAt(...RK);
-    const pats = [13.8, 13.97, 14.14, 14.31, 14.48], spots = [[.7, -6.9], [-.3, -5.7], [.9, -3.6], [-1.3, -7.3], [.4, -6.0]];
+    const pats = [13.8, 13.97, 14.14, 14.31, 14.48], spots = [[.8, -7.0], [.2, -5.95], [1.25, -6.15], [-.55, -7.1], [.6, -6.5]];   // all on his chest and belly (a pale puff over the purple briefs reads as a stain), within an easy reach of his right hand
     let pi = -1; for (let i = 0; i < pats.length; i++) if (t >= pats[i] - .085) pi = i;
     if (t >= 13.72 && t < 14.6 && pi >= 0) {   // the right hand pats each spot (an open palm), landing on the puff
       const tp = pats[pi], hit = 1 - Math.abs(clamp((t - tp) / .085, -1, 1)), [sx, sy] = spots[pi]; O.openR = true;
@@ -482,13 +482,16 @@
     }
     if (t >= 14.55) {
       O.under = rockUnder; O.eyes = t < 14.65 ? 'closed' : 'sly'; O.lookX = .01; O.mouth = 'grin';
-      const cr = [15.0, 15.13, 15.26].reduce((m, tq) => Math.max(m, t >= tq && t < tq + .12 ? 1 - (t - tq) / .12 : 0), 0), push_ = ease(seg(t, 14.75, 15.0));
-      if (t >= 14.7) {   // fingers interlaced at the chest, pushed out on each crack
-        const hy = lerp(-6.6, -6.2, cr) * U;
-        if (push_ < 1) Object.assign(O, reachArm(U, O, 'L', lerp(-1.9, -.35, push_) * U, lerp(-5.4, -6.6, push_) * U), reachArm(U, O, 'R', lerp(1.9, .35, push_) * U, lerp(-5.4, -6.6, push_) * U));
-        else Object.assign(O, straightTo('L', -.12 * U, hy, 1 - .12 * cr), straightTo('R', .12 * U, hy, 1 - .12 * cr), { sq: .05 * cr });
-        O.draw = (u, sw) => { if (push_ < .9) return; boilSeed('interlace'); for (let f = 0; f < 4; f++) inkLine([[(-.45 + f * .3) * u, hy - .35 * u], [(-.3 + f * .3) * u, hy + .3 * u]], sw * .45, mixCol(SKIN.dk, PAL.ink, .5), 'inkfine', 0); if (cr > .2) for (const a of [-2.6, -1.6, -.5]) inkLine([[Math.cos(a) * .9 * u, hy + Math.sin(a) * .9 * u], [Math.cos(a) * 1.45 * u, hy + Math.sin(a) * 1.45 * u]], sw * .8, '#FFF6DA', 'ink', 0); };
-      }
+      const cr = [15.0, 15.13, 15.26].reduce((m, tq) => Math.max(m, t >= tq && t < tq + .12 ? 1 - (t - tq) / .12 : 0), 0);
+      // the smug pose: arms folded (14.55–14.66), forearms stacked level across the chest (the right over the left), the
+      // rock under his left arm; then (14.85–15.0) the hands meet in the middle, fingers interlaced, elbows out, and
+      // squeeze down on each crack
+      const fold = ease(seg(t, 14.55, 14.66)), meet = ease(seg(t, 14.85, 15.0)), hy = (-6.35 + .3 * cr) * U;
+      const FL = reachArm(U, O, 'L', lerp(1.0, -.3, meet) * U, lerp(-5.95 * U, hy, meet)), FR = reachArm(U, O, 'R', lerp(-1.0, .3, meet) * U, lerp(-6.4 * U, hy, meet));
+      for (const k of ['aL', 'bendL', 'armKL']) O[k] = lerp(O[k] ?? (k === 'armKL' ? 1 : 0), FL[k], fold);
+      for (const k of ['aR', 'bendR', 'armKR']) O[k] = lerp(O[k] ?? (k === 'armKR' ? 1 : 0), FR[k], fold);
+      if (meet > 0) O.sq = .04 * cr;
+      if (meet > .9) O.draw = (u, sw) => { boilSeed('interlace'); for (let f = 0; f < 4; f++) inkLine([[(-.42 + f * .28) * u, hy - .3 * u], [(-.3 + f * .28) * u, hy + .28 * u]], sw * .45, mixCol(SKIN.dk, PAL.ink, .5), 'inkfine', 0); if (cr > .2) for (const a of [-2.6, -1.6, -.5]) inkLine([[Math.cos(a) * .9 * u, hy + Math.sin(a) * .9 * u], [Math.cos(a) * 1.45 * u, hy + Math.sin(a) * 1.45 * u]], sw * .8, '#FFF6DA', 'ink', 0); };
     }
     naked(NX, G, O);
     for (let i = 0; i < pats.length; i++) { const [sx, sy] = spots[i]; dust(NX + sx * U, G + sy * U, 26, t - pats[i], 'soot' + i); }

@@ -762,7 +762,7 @@
     const o = { ...F, boilKey: NK, seed: 1, prop: 'none', handOver: true, handL: out > 0 ? rockOut(out) : rockHand, ...base, aL, bendL, armKL: armK, dx, rot, aR: -1.2, bendR: .3, lookX: look[0], lookY: look[1], crouch: t > 13.1 ? .12 * ease(seg(t, 13.1, 13.5)) : 0, emoteDx: 4.8, emoteDy: .3 };
     if (t < 12.45) {   // the far hand: on the rock at his chest, then out in front as a guard through the wind-up and swing,
       // back to his side after the recoil (hanging, its lone fist floated by the AK's barrel)
-      const cl = clutch(o), gd = reachArm(U, o, 'R', 2.3 * U, -6.5 * U), g = ease(seg(t, 11.5, 11.75)), rel = ease(seg(t, 12.15, 12.45));
+      const cl = clutch(o), gd = reachArm(U, o, 'R', 3.0 * U, -6.7 * U), g = ease(seg(t, 11.5, 11.75)), rel = ease(seg(t, 12.15, 12.45));
       for (const [k, rest] of [['aR', -1.2], ['bendR', .3], ['armKR', 1]]) o[k] = lerp(lerp(cl[k], gd[k], g), rest, rel);
     }
     if (hug > 0) Object.assign(o, clutch(o, hug));
