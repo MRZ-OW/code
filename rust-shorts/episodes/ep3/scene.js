@@ -330,10 +330,10 @@
   }
   // A wristwatch on a hand hook: a dark strap and a round cream face, .8u back up the forearm (the fist covers the hand end).
   const watchHook = (uu, sw, info) => {
-    const a = info.ang, wx = -Math.cos(a) * .8 * uu, wy = -Math.sin(a) * .8 * uu;
-    push(); translate(wx, wy); rotate(a); paint(rectPts(-.2 * uu, -.56 * uu, .4 * uu, 1.12 * uu), { wash: '#3A3430', ink: PAL.ink, sw: sw * .45 }); pop();
-    paint(ellPts(wx, wy, .4 * uu, .4 * uu, 14), { wash: '#F4ECDA', ink: PAL.ink, sw: sw * .6 });
-    inkLine([[wx, wy], [wx, wy - .27 * uu]], sw * .5, PAL.ink, 'inkfine', 0); inkLine([[wx, wy], [wx + .2 * uu, wy + .05 * uu]], sw * .5, PAL.ink, 'inkfine', 0);
+    const a = info.ang, wx = -Math.cos(a) * 1.3 * uu, wy = -Math.sin(a) * 1.3 * uu;
+    push(); translate(wx, wy); rotate(a); paint(rectPts(-.26 * uu, -.66 * uu, .52 * uu, 1.32 * uu), { wash: '#3A3430', ink: PAL.ink, sw: sw * .45 }); pop();
+    paint(ellPts(wx, wy, .56 * uu, .56 * uu, 16), { wash: '#F4ECDA', ink: PAL.ink, sw: sw * .7 });
+    inkLine([[wx, wy], [wx, wy - .38 * uu]], sw * .6, PAL.ink, 'inkfine', 0); inkLine([[wx, wy], [wx + .28 * uu, wy + .08 * uu]], sw * .6, PAL.ink, 'inkfine', 0);
   };
 
   // 1A: cold open, both aiming. Strike (0.3): sparks, nothing, both flinch. Strike (1.2): sparks, a click and a wisp of
@@ -373,17 +373,18 @@
     // taps the watch with his gun hand on each tick
     const C = emotions(t, [[1.42, 'confused', { emote: '?' }], [2.5, 'neutral', { emote: '?' }], [3.05, 'bored', { emote: null }]], { take: .3 });
     const lower = ease(seg(t, 2.88, 3.2)), watch = ease(seg(t, 3.12, 3.3)), base = { view: 'side', flip: true, rawArms: true };
-    const tap = [3.3, 3.55].reduce((a, t0) => Math.max(a, Math.sin(Math.PI * clamp((t - t0 + .07) / .15))), 0);
-    const aimP = chadAim(U), down = armLerp(aimP, { aL: -1.05, bendL: .35 }, lower, 'L');
-    const W = [2.25, -9.75], wr = reachArm(U, base, 'R', W[0] * U, W[1] * U);
-    const near = tap > 0 ? armLerp(down, reachArm(U, base, 'L', (W[0] - .55) * U, (W[1] + .7) * U), tap, 'L') : down;
-    const gunRot = lerp(.03, 1.05, lower) + .3 * tap;
-    const hg = handguard(U, { ...base, ...down, gunRot });
+    const tick = [3.3, 3.55].reduce((a, t0) => a + (t > t0 ? Math.exp(-(t - t0) * 12) * Math.sin((t - t0) * 50) : 0), 0);   // a flick of the wrist on each tick
+    const near = armLerp(chadAim(U), { aL: -1.05, bendL: .35 }, lower, 'L'), gunRot = lerp(.03, 1.0, lower);
+    const W = [3.05, -8.75 + .3 * tick], wr = reachArm(U, base, 'R', W[0] * U, W[1] * U);
+    const hg = handguard(U, { ...base, ...near, gunRot });
     let far = armLerp(hg, { aR: -1.32, bendR: .22 }, ease(seg(t, 2.95, 3.12)), 'R');
     if (watch > 0) far = armLerp(far, wr, watch, 'R');
     const rot = -.07 * (1 - ease(seg(t, 2.2, 2.6))) - .2 * watch;
-    chad(CX, G, U, { ...C, ...base, ...near, ...far, gunRot, handR: watch > .3 ? watchHook : null, farFront: lower < .5 || watch > .2, lookX: watch > .5 ? .6 : C.lookX, lookY: watch > .5 ? 1 : C.lookY,
-      rot, emote: t < 2.62 ? '?' : null, emoteK: t < 2.62 ? 1 - seg(t, 2.42, 2.62) : 0, emoteDx: -.3, emoteDy: -.5 });
+    const Co = { ...C, ...base, ...near, ...far, gunRot, handR: watch > .3 ? watchHook : null, farFront: lower < .5 || watch > .2, lookX: watch > .5 ? .6 : C.lookX, lookY: watch > .5 ? 1 : C.lookY,
+      rot, emote: t < 2.62 ? '?' : null, emoteK: t < 2.62 ? 1 - seg(t, 2.42, 2.62) : 0, emoteDx: -.3, emoteDy: -.5 };
+    chad(CX, G, U, Co);
+    // tick marks off the watch on each tick
+    if (watch > .5) for (const t0 of [3.3, 3.55]) { const a = t - t0; if (a < 0 || a > .16) continue; const [hx, hy] = bodyPt(CX, G, U, Co, ...handLocal(U, Co, 'R')); for (const d of [-1, 0, 1]) { const ang = -Math.PI / 2 + d * .6, r0 = 30, r1 = 30 + 90 * a / .16 * .5 + 14; inkLine([[hx + 20 + Math.cos(ang) * r0, hy - 10 + Math.sin(ang) * r0], [hx + 20 + Math.cos(ang) * r1, hy - 10 + Math.sin(ang) * r1]], 2, PAL.ink, 'ink', 0); } }
     if (t > 3.62) { const [dx, dy] = bodyPt(CX, G, U, { flip: true, rot }, -.3 * U, -14.6 * U); dots(dx, dy, U * .62, t - 3.62); }
     camEnd();
     label(t);
