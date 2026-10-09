@@ -178,7 +178,16 @@ function confetti(t, t0, n = 60, area = [0, -100, W, H]) {
     pop();
   }
 }
-function firework(x, y, age, col = '#F2C14E', n = 12) {
+// A firework at (x, y): with rise > 0 a rocket streaks up from below for `rise` seconds before age 0 (the whistle), then
+// it bursts at age 0 (the boom).
+function firework(x, y, age, col = '#F2C14E', n = 12, rise = 0) {
+  if (age < 0 && age > -rise) {
+    const k = easeOut(1 + age / rise), ry = lerp(y + 650, y, k);
+    boilSeed('rocket' + Math.round(x));
+    glow(x, ry, 50, col, .8);
+    inkLine([[x + 6 * Math.sin(age * 40), ry + 90], [x, ry]], 2.4, '#FFF5E2', 'ink', 0);
+    return;
+  }
   if (age < 0 || age > 1.1) return;
   const k = clamp(age / 1.1);
   boilSeed('fw' + Math.round(x));

@@ -366,7 +366,7 @@
       const mx = px - 120, my = 520 + 30 * Math.sin(lt * 3);
       mercy(mx, my, 22, mo);
       if (!cheer) { const h = staffHead(mx, my, 22, mo); healBeam(h[0], h[1], px - 300, G - 140, t, seg(lt, 2.4, 2.6)); }
-      for (const [k, fx, fy, col] of [[4.0, STREET.arch - 300, 300, '#F2C14E'], [4.4, STREET.arch + 280, 260, '#4FB3C8'], [4.8, STREET.arch - 20, 220, '#E2476E']]) firework(fx, fy, lt - k, col);
+      for (const [k, fx, fy, col] of [[4.0, STREET.arch - 300, 300, '#F2C14E'], [4.4, STREET.arch + 280, 260, '#4FB3C8'], [4.8, STREET.arch - 20, 220, '#E2476E']]) firework(fx, fy, lt - k - .32, col, 12, .32);   // the whistle rises from the cue, the boom lands .32 s later (tools/music.mjs)
     }
     camEnd();
     whipLines(1 - easeOut(seg(lt, 0, .4)), 1, WHIP_STREET);
