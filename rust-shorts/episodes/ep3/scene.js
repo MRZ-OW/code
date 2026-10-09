@@ -149,8 +149,12 @@
   }
   // The near meadow below the road: a darker band, big tufts that sway, a few white wildflowers.
   function foreground(t, tod) {
+    // the darker near meadow: a textured band by day; from sunset on (when it would read as a hard-edged dark slab) it
+    // fades out and a stack of thin soft washes takes over, darkening gradually down the field like light falloff
+    const fade = clamp((tod - .3) / .7);   // 0 for the morning (tod .25) the other shots use
     staticSeed('fg-band');
-    paint(rectPts(-1600, 1470, W + 3200, 1400), { fill: tone('#6F9450', tod, '#8A7A48', '#1C2438', .85), fillOp: 120, bleed: .1, tex: .45, border: .3, ink: null });
+    if (fade < 1) paint(rectPts(-1600, 1470, W + 3200, 1400), { fill: tone('#6F9450', tod, '#8A7A48', '#1C2438', .85), fillOp: 120 * (1 - fade), bleed: .1, tex: .45, border: .3, ink: null });
+    if (fade > 0) for (let i = 0; i < 10; i++) { staticSeed('fg-fall' + i); const y0 = 1400 + i * 22; paint([[-1600, y0 + 6], [540, y0 - 6], [W + 1600, y0 + 6], [W + 1600, 3000], [-1600, 3000]], { wash: tone('#5E7E46', tod, '#7A6A40', '#141A2C', .85), washOp: 9 * fade, ink: null, curv: .2 }); }
     const dk = tone('#4E7038', tod, '#6A5A30', '#18202E', .85), lt = tone('#7FA25A', tod, '#9A8A50', '#222C40', .85);
     for (let i = 0; i < 16; i++) {
       boilSeed('fgtuft' + i);
@@ -197,6 +201,11 @@
   function eokaPt(x, y, u, o, e, p, w = 'R') {
     const [hx, hy] = handLocal(u, o, w), px = p[0] * u * ES, py = p[1] * u * ES * eYs(e), c = Math.cos(e.aim || 0), s = Math.sin(e.aim || 0);
     return bodyPt(x, y, u, o, hx + px * c - py * s, hy + px * s + py * c);
+  }
+  // The same from e alone (its grip e.g is the eoka's origin, wherever the hand is)
+  function eokaBodyPt(x, y, u, o, e, p) {
+    const px = p[0] * u * ES, py = p[1] * u * ES * eYs(e), c = Math.cos(e.aim || 0), s = Math.sin(e.aim || 0);
+    return bodyPt(x, y, u, o, e.g[0] * u + px * c - py * s, e.g[1] * u + px * s + py * c);
   }
   // A hold that puts eoka point p on the body point m (u), turned to aim (ys -1: turned over).
   const holdAt = (p, m, aim, ys = 1) => { const c = Math.cos(aim), s = Math.sin(aim), px = p[0] * ES, py = p[1] * ES * ys; return { g: [m[0] - (px * c - py * s), m[1] - (px * s + py * c)], aim, ys }; };
@@ -451,13 +460,30 @@
   // hoodie, holds it up and pulls the ring (7.12: pop, the lid flips up). The wall transition covers 7.37–8.27.
   const AKG_ROT = .27, akGround = sx => [sx - 4.3 * U, G + 14 - 1.35 * U];   // the AK lying by the seated Chad's boots, on its stock and magazine
   function groundAK(sx = SX, sw = 2.25) { const [ax, ay] = akGround(sx); boilSeed('groundak'); push(); translate(ax, ay); rotate(AKG_ROT); scale(-1, 1); akProp(U, sw, 0); pop(); }
-  const CAN1 = [2.3, -5.6], CAN_S = 1.6;   // the can held up in front of his chest in 1D (seated body, u), and its size
+  const CAN1 = [2.3, -5.4], CAN_S = 2.1;   // the can held up in front of his chest in 1D (seated body, u), and its size
+  // The can in 1D, drawn bold to read at phone size (beanCan's geometry, so the lid sits where lidFlip expects it): a
+  // bright red label with a big cream "BEANS!" band and orange beans, a shiny silver rim and lid with its pull ring.
+  function heroCan(u, sw, open) {
+    push(); translate(.25 * u, -.35 * u); rotate(-.05);
+    const w = .62 * u, h = .95 * u;
+    paint(ellPts(0, h / 2, w, .18 * u, 16), { wash: '#A9AEB3', ink: PAL.ink, sw: sw * .9 });
+    paint(rectPts(-w, -h / 2, w * 2, h), { wash: '#C2303A', ink: null });
+    paint(rectPts(-w * .82, -h / 2 + .05 * u, .16 * u, h - .1 * u), { wash: '#E86A6A', washOp: 170, ink: null });            // shine down the left
+    paint([[-w * .78, -.02 * u], [w * .7, -.16 * u], [w * .74, .14 * u], [-w * .74, .26 * u]], { wash: '#FFF4DC', ink: PAL.ink, sw: sw * .4 });   // the "BEANS!" band
+    for (let i = 0; i < 4; i++) inkLine([[(-.6 + i * .32) * w, (.17 - i * .035) * u], [(-.48 + i * .32) * w, (-.02 - i * .035) * u]], sw * .9, '#8C1E26', 'inkfine', 0);   // its letters
+    for (let i = 0; i < 5; i++) paint(ellPts((.25 + .12 * (i % 3)) * w, (.32 + .06 * Math.floor(i / 3)) * u, .07 * u, .05 * u, 6), { wash: '#F09A3A', ink: null });   // the beans
+    inkLine([[-w, -h / 2], [-w, h / 2]], sw * .9, PAL.ink, 'ink', 0); inkLine([[w, -h / 2], [w, h / 2]], sw * .9, PAL.ink, 'ink', 0);
+    paint(ellPts(0, -h / 2, w, .2 * u, 18), { wash: open ? '#7A3B22' : '#D4D8DC', ink: PAL.ink, sw: sw * .9 });
+    if (open) for (let i = 0; i < 6; i++) paint(ellPts((hash(i) - .5) * 1.2 * w, -h / 2 + (hash(i + 4) - .5) * .18 * u, .09 * u, .06 * u, 6), { wash: '#E0843A', ink: null });
+    else { paint(ellPts(-.15 * w, -h / 2 - .02 * u, .55 * w, .1 * u, 14), { wash: '#F2F4F6', washOp: 200, ink: null }); paint(ellPts(.35 * w, -h / 2, .16 * u, .08 * u, 10), { wash: '#8E9297', ink: PAL.ink, sw: sw * .5 }); }   // shine, the ring pull
+    pop();
+  }
   // the lid tearing off on its ring and flipping up, at (x, y) = the can's top
   function lidFlip(x, y, s, age) {
     if (age < 0 || age > .22) return;
     const k = age / .22, rise = 46 * s * Math.sin(k * Math.PI * .85), ang = -1.9 * easeOut(k), sq = Math.abs(Math.cos(k * 4));
     boilSeed('lidflip'); push(); translate(x - 10 * s * k, y - rise); rotate(ang);
-    paint(ellPts(0, 0, 22 * s, 22 * s * (.25 + .75 * sq), 16), { wash: '#C2C6CA', ink: PAL.ink, sw: 1.1 });
+    paint(ellPts(0, 0, 22 * s, 22 * s * (.25 + .75 * sq), 16), { wash: '#E4E8EC', ink: PAL.ink, sw: 1.6 });
     paint(ellPts(9 * s, 0, 6 * s, 4 * s * (.3 + .7 * sq), 8), { wash: '#8E9297', ink: PAL.ink, sw: .7 });
     pop();
     if (age < .12) for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + (i - 2) * .5, r0 = 26 * s, r1 = (40 + 40 * age / .12) * s; inkLine([[x + Math.cos(a) * r0, y + Math.sin(a) * r0], [x + Math.cos(a) * (r0 + r1) / 2, y + Math.sin(a) * (r0 + r1) / 2], [x + Math.cos(a) * r1, y + Math.sin(a) * r1]], 2.2, PAL.ink, 'ink', 0); }
@@ -482,28 +508,35 @@
       const canAt = [lerp(1.0, CAN1[0], up), lerp(-3.65, CAN1[1], up)];
       Object.assign(o, armLerp(reachArm(U, o, 'L', gx, gy), reachArm(U, o, 'L', canAt[0] * U, canAt[1] * U), pocket, 'L'));
       const canK = t < 6.78 ? 0 : backOut(seg(t, 6.78, 6.86)), open = t >= 7.22;
-      o.handL = canK > 0 ? (uu, sw) => { push(); scale(canK); beanCan(uu * CAN_S, sw, { open, rot: -.05 }); pop(); } : null;
+      o.handL = canK > 0 ? (uu, sw) => { push(); scale(canK); heroCan(uu * CAN_S, sw * 1.2, open); pop(); } : null;
       const tab = ease(seg(t, 7.0, 7.1)) * (1 - ease(seg(t, 7.14, 7.34)));   // the far hand to the ring pull and back
-      Object.assign(o, armLerp({ aR: -.95, bendR: .45 }, reachArm(U, o, 'R', (canAt[0] + .45) * U, (canAt[1] - 1.55 + .5 * ease(seg(t, 7.12, 7.16))) * U), tab, 'R'), { farFront: tab > .05 });
+      Object.assign(o, armLerp({ aR: -.95, bendR: .45 }, reachArm(U, o, 'R', (canAt[0] + .28 * CAN_S) * U, (canAt[1] - .97 * CAN_S + .5 * ease(seg(t, 7.12, 7.16))) * U), tab, 'R'), { farFront: tab > .05 });
     }
     chadAt(B);
     if (t >= 6.65) groundAK(SX1);
     if (t >= 7.12) {
       const [hx, hy] = handWorld(B), top = [hx - .25 * CAN_S * U, hy - .82 * CAN_S * U];
-      lidFlip(top[0], top[1], 1, t - 7.12);
-      puff(top[0], top[1] - 6, 22, t - 7.12, { col: '#EAE4D4', key: 'canpop', n: 4, life: .4, noInk: true });
+      lidFlip(top[0], top[1], 1.45, t - 7.12);
+      puff(top[0], top[1] - 8, 30, t - 7.12, { col: '#EAE4D4', key: 'canpop', n: 5, life: .4, noInk: true });
     }
     // ----- the Naked: kiss, then the rock drops and he prays -----
-    const KISS = holdAt([2.35, -1.5], [2.55, -9.45], -Math.PI / 2, -1), PRAY = holdAt([2.35, -1.5], [3.0, -9.2], -Math.PI / 2 + .12, -1);
-    const e = t < 6.42 ? eBlend(REST, KISS, ease(seg(t, 6.0, 6.17))) : eBlend(KISS, PRAY, ease(seg(t, 6.42, 6.62)));
-    const N = emotions(t, [[5.74, 'determined', { emote: null }], [6.08, 'love', { eyes: 'closed', mouth: 'pout', emote: null }], [6.45, 'proud', { eyes: 'closed', mouth: 'smile', emote: null }]], { take: .25 });
+    // the prayer: both palms open and pressed together in front of his chest, fingers up, the eoka clasped between them
+    // by its bend, leaning forward so its barrel stands clear of his face
+    const KISS = holdAt([2.35, -1.5], [2.55, -9.45], -Math.PI / 2, -1), PALM = [2.4, -6.8], PRAY = holdAt([.6, -1.45], PALM, -Math.PI / 2 + .5, -1);
     const pray = ease(seg(t, 6.42, 6.62)), drop = t >= 6.42;
-    const No = nakedPose(U, { ...N, view: 'side', farFront: true, rot: .07 * pray, lookX: N.lookX, lookY: pray > .5 ? .9 : N.lookY, openL: pray > .5 }, e,
-      { at: drop ? [lerp(ROCK_DOWN[0], e.g[0] + .1, pray), lerp(ROCK_DOWN[1], e.g[1] + .15, pray)] : ROCK_DOWN, rock: !drop, rot: -1.2 * pray });
+    const e = t < 6.42 ? eBlend(REST, KISS, ease(seg(t, 6.0, 6.17))) : eBlend(KISS, PRAY, pray);
+    const N = emotions(t, [[5.74, 'determined', { emote: null }], [6.08, 'love', { eyes: 'closed', mouth: 'pout', emote: null }], [6.45, 'proud', { eyes: 'closed', mouth: 'smile', emote: null }]], { take: .25 });
+    const No = nakedPose(U, { ...N, view: 'side', farFront: true, rot: .07 * pray, lookX: N.lookX, lookY: pray > .5 ? .9 : N.lookY, openL: pray > .5, openR: pray > .5 }, e,
+      { at: drop ? [lerp(ROCK_DOWN[0], PALM[0] + .12, pray), lerp(ROCK_DOWN[1], PALM[1] + .04, pray)] : ROCK_DOWN, rock: !drop, rot: -1.2 * pray });
+    if (drop) {   // the eoka hand slides from the grip to the palm position; the eoka stays where e puts it
+      const hR = [lerp(e.g[0], PALM[0], pray), lerp(e.g[1], PALM[1], pray)];
+      Object.assign(No, reachArm(U, No, 'R', hR[0] * U, hR[1] * U));
+      No.handR = (uu, sw) => { push(); translate((e.g[0] - hR[0]) * uu, (e.g[1] - hR[1]) * uu); rotate(e.aim); scale(1, eYs(e)); eokaProp(uu, sw); pop(); };
+    }
     // the rock falls from his hand to the grass by his toes (6.42–6.56) and lies there
     if (drop) { const from = bodyPt(NX, G, U, { view: 'side' }, ...handLocal(U, nakedPose(U, { view: 'side' }, REST, { at: ROCK_DOWN }), 'L')), to = [NX + 1.6 * U, G - .9 * U], k = seg(t, 6.42, 6.56); rockAt(lerp(from[0], to[0], k), lerp(from[1], to[1], k * k), .3 * k, 'drop'); }
     survivor(NX, G, U, No);
-    if (t > 6.2) { const [kx, ky] = eokaPt(NX, G, U, No, No._e, [2.35, -1.5]); emote('heart', kx + 4, ky - 30 - 70 * seg(t, 6.2, 6.8), U * .6, seg(t, 6.2, 6.28) * (1 - seg(t, 6.6, 6.8)), t - 6.2); }
+    if (t > 6.2) { const [kx, ky] = eokaBodyPt(NX, G, U, No, e, [2.35, -1.5]); emote('heart', kx + 4, ky - 30 - 70 * seg(t, 6.2, 6.8), U * .6, seg(t, 6.2, 6.28) * (1 - seg(t, 6.6, 6.8)), t - 6.2); }
     // the halo
     const hk = backOut(seg(t, 6.6, 6.8));
     if (hk > .02) {
@@ -631,7 +664,7 @@
   const FAST = [8.5, 8.75, 9, 9.25, 9.5, 9.75], SLOW = [10, 10.5, 11, 11.5], FEEBLE = [12, 13.1];   // the wall transition covers up to 8.27
   function s2(t, lt) {
     const L = lapse(t);
-    WIDE();
+    ES = 1.3; camBegin(662, 1055, 1.02);   // WIDE, pushed in a little: Naked to the lying Chad's head fills the safe box
     meadow(t, { tod: L.tod, sun: L.sun, sky: L.sky, moon: L.moon, ct: L.ct });
     sunShadow(L, BX2, 1296, 165, 110, 'barrel');
     // the Chad, his can and the chicken
@@ -707,7 +740,7 @@
 
   // 3A (N): he looks at the eoka, heartbroken, sighs (16.0) and tosses it over his shoulder without looking: the arm
   // swings up past his face (16.86), lets go above and behind his head (17.0), and follows through before it falls.
-  const LOOK3 = { g: [2.45, -5.6], aim: .12, ys: 1 }, DIP = { g: [2.7, -5.2], aim: .3, ys: 1 }, BACK = { g: [-1.0, -12.6], aim: -2.6, ys: 1 }, SLUMP = { g: [1.5, -4.5], aim: 1.15, ys: 1 };
+  const LOOK3 = { g: [2.45, -5.6], aim: .12, ys: 1 }, DIP = { g: [2.7, -5.2], aim: .3, ys: 1 }, BACK = { g: [-.6, -11.7], aim: -2.6, ys: 1 }, SLUMP = { g: [1.5, -4.5], aim: 1.15, ys: 1 };
   function pose3a(t) {
     const N = emotions(t, [[16, 'sad', { eyes: 'teary', mouth: 'frown', emote: null, gloom: 0 }], [16.62, 'sad', { eyes: 'closed', mouth: 'frown', emote: null, gloom: 0 }]], { take: .2 });
     const sigh = t < 16.6 ? Math.sin(seg(t, 16.0, 16.6) * Math.PI) : 0;
@@ -770,7 +803,7 @@
     // the Naked: slumped, eyes shut; the bang makes him jump; then he turns to look back down at it
     const jp = jump(t, 17.62, 17.86, 1.8), tk = take(t, 17.62, 1.1), turned = t > 17.92, view3b = t < 17.84 ? 'side' : t < 17.88 ? 'q' : t < 17.92 ? 'qf' : 'front';   // a drawn turn
     const N = t < 17.62 ? feel('sad', t, { eyes: 'closed', mouth: 'frown', emote: null, gloom: 0 }) : { eyes: 'wide', mouth: t < 17.92 ? 'O' : 'o' };
-    const No = nakedPose(U, { ...N, view: view3b, dy: jp.dy, sq: jp.sq + tk.sq, lookX: turned ? -.7 : .3, lookY: turned ? .9 : 0, rot: 0 }, null, { at: turned ? [-1.6, -5.2] : ROCK_DOWN });
+    const No = nakedPose(U, { ...N, view: view3b, dy: jp.dy, sq: Math.max(-.1, jp.sq + tk.sq), lookX: turned ? -.7 : .3, lookY: turned ? .9 : 0, rot: 0 }, null, { at: turned ? [-1.6, -5.2] : ROCK_DOWN });
     Object.assign(No, turned ? { aR: -.6, bendR: .5 } : t < 17.62 ? { aR: -1.32, bendR: .25 } : { aR: .9, bendR: .6 });
     survivor(NX, G, U, No);
     ping(px, py, 1, t - 17.66, 'b', -1.3);
@@ -825,20 +858,26 @@
     const land = ease(seg(t, 19.66, 19.86)), x = lerp(NX, SEATX, land), air = t > 19.66 && t < 19.86 ? Math.sin(seg(t, 19.66, 19.86) * Math.PI) : 0;
     const N = emotions(t, [[19.5, 'scared', { emote: 'sweat' }], [20.08, 'scared', { eyes: 'squeeze', mouth: 'wobble', emote: null }]], { take: .4 });
     const view = t < 19.66 ? 'front' : t < 19.69 ? 'qf' : t < 19.72 ? 'q' : 'side';
-    const o = { ...N, view, sit: land, legsOut: true, dy: 2.3 * land - .9 * air, rot: -.05 * air, farFront: t >= 19.86, dx: t < 19.66 ? .12 * Math.sin(t * 90) : 0, lookX: t < 20.08 ? .8 : -.6, emoteDx: -1 };
+    // the dive: from the hands-up he throws himself back and down at the eoka, leaning into it, eyes on it, his eoka
+    // hand flung out open past it (19.64–19.8), then it closes on the grip (19.9) and he straightens up
+    const lunge = ease(seg(t, 19.64, 19.78)) * (1 - ease(seg(t, 19.82, 19.9))), eyesOn = t > 19.66 && t < 19.98;
+    const o = { ...N, view, sit: land, legsOut: true, dy: 2.3 * land - .9 * air, rot: -.05 * air - .2 * lunge, farFront: t >= 19.86, dx: t < 19.66 ? .12 * Math.sin(t * 90) : 0, lookX: eyesOn ? -.85 : t < 20.08 ? .8 : -.6, lookY: eyesOn ? .7 : N.lookY, emoteDx: -1, openR: t > 19.64 && t < 19.88 };
     const e = t >= 19.9 ? eBlend({ g: GRAB_G, aim: EOKA_REST[2], ys: 1 }, AIMS, ease(seg(t, 19.95, 20.25))) : null;
     const hands = ease(seg(t, 19.5, 19.56)) * (1 - ease(seg(t, 19.64, 19.74)));   // hands up!
     const r = t >= 20.2 ? { strikes: [20.36], t, sp: .9, at: REST_SIT, atK: 1 - ease(seg(t, 20.2, 20.28)) } : hands > .02 ? { at: [lerp(ROCK_DOWN[0], -1.1, hands), lerp(ROCK_DOWN[1], -12.2, hands)] } : { at: [lerp(ROCK_DOWN[0], REST_SIT[0], land), lerp(ROCK_DOWN[1], REST_SIT[1], land)] };
     const No = nakedPose(U, o, e, r);
-    if (!e) Object.assign(No, hands > .02 && t < 19.7 ? { aR: lerp(-1.32, 1.25, hands), bendR: -.5 * hands } : armLerp({ aR: .2, bendR: .3 }, reachArm(U, No, 'R', GRAB_G[0] * U, GRAB_G[1] * U), ease(seg(t, 19.74, 19.9)), 'R'));
+    if (!e) {
+      const up = { aR: lerp(-1.32, 1.25, Math.max(hands, t > 19.6 ? 1 : 0)), bendR: -.5 }, [gx, gy] = toBody(x, G, U, No, EOKA_REST[0], EOKA_REST[1]), past = reachArm(U, No, 'R', gx - .7 * U, gy + .1 * U), grab = reachArm(U, No, 'R', gx, gy);   // the grip where it stands, in his leaning frame
+      Object.assign(No, t < 19.5 ? { aR: lerp(-1.32, 1.25, hands), bendR: -.5 * hands } : t < 19.8 ? armLerp(up, past, ease(seg(t, 19.64, 19.78)), 'R') : armLerp(past, grab, ease(seg(t, 19.8, 19.9)), 'R'));
+    }
     const kk = kick(t, 20.44, 9);   // the recoil kicks the eoka hand up
     if (e && kk > 0) { const ee = { ...e, aim: e.aim - .55 * kk, g: [e.g[0] - .3 * kk, e.g[1] - .5 * kk] }; Object.assign(No, reachArm(U, No, 'R', ee.g[0] * U, ee.g[1] * U)); No.handR = (uu, sw) => { push(); rotate(ee.aim); eokaProp(uu, sw); pop(); }; No._e = ee; }
     return { x, No };
   }
   const KO_AK = [SX - 3.4 * U, G + 16 - 1.35 * U];   // where his AK lands: back in the grass in front of him
-  function koChad(t, extra = {}) {
+  function koChad(t, extra = {}, sx = SX) {
     const fall = backOut(seg(t, 20.5, 20.72)), wob = spring(t, 20.72, 7, 22) + 1.4 * spring(t, 27.6, 9, 26);
-    const B = chadDown(Math.min(1.08, fall), { boilKey: CH, seed: 2, eyes: t < 20.62 ? 'wide' : 'x', ...extra }, true);
+    const B = chadDown(Math.min(1.08, fall), { boilKey: CH, seed: 2, eyes: t < 20.62 ? 'wide' : 'x', ...extra }, true, sx);
     Object.assign(B.o, { aL: -1.05 + .35 * wob, bendL: .35, aR: -.75 - .3 * wob, bendR: .45 });   // limp, twitching
     return B;
   }
@@ -958,13 +997,46 @@
       boilSeed('tear' + key + i); paint(ellPts(p[0], p[1], 5 * (1 - f * .5), 7 * (1 - f * .5), 8), { wash: '#A8D8F4', washOp: 230 * (1 - f), ink: null });
     }
   }
+  // The hurt foot, held up high in front of his chest (body frame, u): the thigh out from the hip with the knee up and
+  // turned out toward us, the shin up to the ankle, and the foot turned sole-out so the sole and its five toes face the
+  // camera. Drawn in the survivor's `under` hook (over the torso and briefs, under his head and both arms), while the
+  // rig's own legs stand together as the one he hops on.
+  const HURT = { hip: [.15, -4.55], knee: [2.2, -5.2], ankle: [3.05, -6.25], sole: [3.5, -7.4], tilt: .4, fs: 1.4, toes: [4.05, -8.75] };
+  const hurtLeg = (uu, sw) => {
+    const P = p => [p[0] * uu, p[1] * uu], skin = mixCol('#F3C9A8', '#D99F7E', .15);
+    boilSeed('hurtleg');
+    paint(limb(P(HURT.hip), P(HURT.knee), P(HURT.ankle), 1.2 * uu, .95 * uu), { wash: skin, ink: PAL.ink, sw: sw * .8, curv: .15 });
+    // the boxer leg over the top of the thigh, with its darker hem
+    const m = [lerp(HURT.hip[0], HURT.knee[0], .45), lerp(HURT.hip[1], HURT.knee[1], .45)], h0 = [HURT.hip[0] - .25, HURT.hip[1] + .05];
+    paint(svQuad(P(h0), P(m), 1.45 * uu, 1.36 * uu), { wash: BRIEFS.col, ink: PAL.ink, sw: sw * .7 });
+    const d = [m[0] - h0[0], m[1] - h0[1]], l = Math.hypot(...d);
+    paint(svQuad(P([m[0] - d[0] / l * .16, m[1] - d[1] / l * .16]), P(m), 1.38 * uu), { wash: BRIEFS.hem, ink: null });
+    // the foot, sole out: heel at the ankle, toes up
+    const c = Math.cos(HURT.tilt), sn = Math.sin(HURT.tilt), fs = HURT.fs * uu, F = pts => pts.map(([a, b]) => [HURT.sole[0] * uu + (a * c - b * sn) * fs, HURT.sole[1] * uu + (a * sn + b * c) * fs]);
+    const SOLE = [[-.36, .78], [-.18, .93], [.2, .93], [.38, .76], [.4, .25], [.55, -.3], [.52, -.62], [.34, -.78], [-.3, -.8], [-.56, -.5], [-.52, -.1], [-.36, .3]];
+    paint(F(SOLE), { wash: '#F8D2BA', ink: PAL.ink, sw: sw * .8, curv: .45 });
+    paint(F([[-.2, .7], [.2, .72], [.3, .3], [.1, .1], [-.2, .3]]), { wash: '#E9AE92', washOp: 150, ink: null, curv: .5 });     // the heel pad
+    paint(F([[-.42, -.6], [.42, -.62], [.4, -.3], [-.4, -.28]]), { wash: '#E9AE92', washOp: 130, ink: null, curv: .5 });        // the ball of the foot
+    for (const [tx, ty, r] of [[-.34, -.98, .2], [-.06, -1.02, .14], [.14, -.99, .13], [.31, -.93, .12], [.45, -.83, .1]]) { const [px, py] = F([[tx, ty]])[0]; paint(ellPts(px, py, r * fs, r * 1.1 * fs, 10), { wash: '#F8D2BA', ink: PAL.ink, sw: sw * .7 }); }
+  };
+  // smoke curling up off his toes and away from his face (dir = the way he faces)
+  function toeSmoke(x, y, s, age, dir, key, life = .9) {
+    if (age < 0 || age > life) return;
+    const k = age / life;
+    for (let i = 0; i < 3; i++) {
+      const a = clamp(k * 1.25 - i * .1); if (a <= 0 || a >= 1) continue;
+      boilSeed('toesmoke' + key + i);
+      const px = x + dir * ((14 + 24 * i) * s * easeOut(a) + 8 * s * Math.sin(a * 5 + i)), py = y - (10 + 46 * i) * s * a - 26 * s * a, r = (8 + 6 * i) * s * (.5 + .8 * easeOut(a));
+      paint(ellPts(px, py, r, r * .85, 12), { wash: mixCol('#E8E4DC', '#A8A4AC', a), washOp: 220 * (1 - a), ink: a < .35 ? PAL.ink : null, sw: .7 * s });
+    }
+  }
   function hopper(t) {
     const th = (t - 26) * TAU * .5 - .5, x = 360 + 85 * Math.sin(th), gy = G + 14 * Math.cos(th), dir = Math.cos(th) >= 0 ? 1 : -1;
     const ph = frac((t - 26) / .5), dy = -2.1 * Math.sin(ph * Math.PI), land = Math.exp(-ph * 9) * (t > 26.05 ? 1 : 0);
-    const o = { eyes: 'squeeze', mouth: 'wail', view: 'side', flip: dir < 0, dy, sq: .14 * land - .05 * Math.sin(ph * Math.PI), clutchL: 1, farFront: true, rawArms: true, rot: -.05 * dir, sx: 1 + .05 * Math.cos(th), sy: 1 + .05 * Math.cos(th), tint: 'flush', tintK: .3 };
+    const o = { eyes: 'squeeze', mouth: 'wail', view: 'side', flip: dir < 0, dy, sq: .14 * land - .05 * Math.sin(ph * Math.PI), farFront: true, rawArms: true, rot: -.05 * dir, sx: 1 + .05 * Math.cos(th), sy: 1 + .05 * Math.cos(th), tint: 'flush', tintK: .3, under: hurtLeg };
     const No = nakedPose(U, o, null, { rock: false });
-    const [ax, ay] = footLocal(U, No, 0), gl = reachArm(U, No, 'L', 1.9 * U, -4.9 * U), gr = reachArm(U, No, 'R', ax - .7 * U, ay - .55 * U);
-    Object.assign(No, gl, gr);
+    // both hands round the ankle and shin, under the sole
+    Object.assign(No, reachArm(U, No, 'R', 2.55 * U, -5.75 * U), reachArm(U, No, 'L', 3.15 * U, -6.2 * U));
     return { x, gy, No, ph, dir };
   }
   function s4d(t, lt) {
@@ -975,7 +1047,7 @@
     restRock();
     boilSeed('koak'); push(); translate(KO_AK[0], KO_AK[1]); rotate(AKG_ROT); scale(-1, 1); akProp(U, 2.25, 0); pop();
     // the KO'd Chad, legs in the air
-    const B = koChad(t);
+    const B = koChad(t, {}, SX - 30);   // 30 px left of where 3D left him, so the bonk stays clear of the Shorts UI
     chadAt(B);
     const [hx, hy] = ptOf(B, 0, -8.8);
     koStars(B, t < 27.6 ? t - 20.72 : 6.88 + (t - 27.6) * 1.8, 1 + .25 * spring(t, 27.6, 6, 18));
@@ -989,8 +1061,8 @@
     const Hp = hopper(t);
     puff(Hp.x, Hp.gy - 4, 22, Hp.ph * .5, { col: '#C9B89A', key: 'hopdust' + Math.floor((t - 26) / .5), n: 4, life: .3, rise: .2, noInk: true });
     survivor(Hp.x, Hp.gy, U, Hp.No);
-    const [fx, fy] = survivorFoot(Hp.x, Hp.gy, U, Hp.No, 0);
-    for (let i = 0; i < 3; i++) gunSmoke(fx + Hp.dir * .55 * U, fy - .7 * U, .8, (t - 26 + i * .3) % .9, 'toe' + i + Math.floor((t - 26 + i * .3) / .9), .9);
+    const [fx, fy] = bodyPt(Hp.x, Hp.gy, U, Hp.No, HURT.toes[0] * U, HURT.toes[1] * U);
+    for (let i = 0; i < 3; i++) toeSmoke(fx, fy, .8, (t - 26 + i * .3) % .9, Hp.dir, 'toe' + i + Math.floor((t - 26 + i * .3) / .9));
     const [ex, ey] = bodyPt(Hp.x, Hp.gy, U, Hp.No, 1.7 * U, -10.9 * U);
     tears(ex, ey, Hp.dir, t, 'h');
     camEnd();
