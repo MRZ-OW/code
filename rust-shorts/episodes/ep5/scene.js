@@ -186,7 +186,7 @@
     return (u, sw, V, head) => {
       if (k <= .02) return;
       const m = head.pt(0, .66, .98); if (m[2] < .1) return;
-      const f = clamp(Math.cos(head.th * .75), .55, 1), w = .52 * u * f, h = (.35 + .75 * k) * u;
+      const f = clamp(Math.cos(head.th * .75), .55, 1), w = .6 * u * f, h = (.4 + 1.0 * k) * u;
       boilSeed('e5jaw');
       paint(ellPts(m[0], m[1] + h * .42, w, h * .55, 16), { wash: '#4A1F2A', ink: PAL.ink, sw: sw * .7 });
       paint(ellPts(m[0], m[1] + h * .75, w * .6, h * .18, 12), { wash: PAL.rose, ink: null });   // the tongue
@@ -466,7 +466,7 @@
   }
   // the AK's pickup sparkle, a 'spark' at a world point
   // The patrol heli's opening hover (1A–1B), echoed at the end (3F): above and right of him, looming.
-  const HOVER = (t, o = {}) => heliAt({ x: 615 + 8 * Math.sin(t * 1.3), y: 425 + 7 * Math.sin(t * 2.1), s: 1.36, hd: 1.12, elev: .5, pitch: -.1, bank: .04 * Math.sin(t * 1.7), key: 'hover', ...o });
+  const HOVER = (t, o = {}) => heliAt({ x: 650 + 8 * Math.sin(t * 1.3), y: 395 + 7 * Math.sin(t * 2.1), s: 1.32, hd: 1.12, elev: .5, pitch: -.1, bank: .04 * Math.sin(t * 1.7), key: 'hover', ...o });
   // The disdainful exit, from t0: the light clicks off, the nose tips up ("hmph"), it banks round to the right and is
   // gone off the right edge in under a second (fast < 1 squeezes it).
   function leaving(h, t, t0, fast = 1) {
@@ -531,6 +531,7 @@
     // drop (5.3), a glance down at the clothes (5.48), the lightbulb and a raised finger (5.55)
     const N = emotions(t, [[3.5, 'scared', { eyes: ['closed', 'normal'], mouth: 'wobble', emote: null }], [3.75, 'confused', { eyes: 'wide', mouth: 'o' }], [4.3, 'scared', { emote: null, mouth: 'wobble' }], [5.3, 'surprised', { emote: null, eyes: 'wide', mouth: 'O' }], [5.55, 'idea', { eyes: 'shine', mouth: 'grin' }]], { take: .45 });
     if (t > 5.2) { N.squint = 0; N.sq = clamp(N.sq || 0, -.03, .06); N.dy = Math.max(-.35, N.dy || 0); }
+    if (t >= 5.55) N.emoteK = ease(seg(t, 5.55, 5.63));   // the bulb pops at once: it has to read before the flyover (5.79)
     const look = t < 3.75 ? { lookX: -.4, lookY: -.3 } : t < 4.3 ? { lookX: -.85, lookY: -.6 } : t < 5.3 ? { lookX: lerp(-.85, .9, seg(t, 4.3, 5.1)), lookY: -.45 } : t < 5.48 ? { lookX: .9, lookY: -.15 } : t < 5.55 ? { lookX: .75, lookY: .9 } : { lookX: .5, lookY: -.3 };
     const up = ease(seg(t, 5.55, 5.7));
     const No = { ...N, ...look, boilKey: NK, seed: 1, view: 'q', flip: true, crouch: 1 - .45 * up, sq: (N.sq || 0) + .03 * (1 - up), dx: t < 5.3 ? tremble(t, .02) : 0, rot: 0, rawArms: true, prop: 'none', emoteDx: -.5, emoteDy: .9,
