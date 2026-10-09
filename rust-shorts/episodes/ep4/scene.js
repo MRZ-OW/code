@@ -171,7 +171,7 @@
 
   // ---------- the bush ----------
   function bushX(o = {}) {
-    const { x, y, w, h } = BUSH, r = o.rustle || 0, sw = sway(T, .5, 2) * 4 + r * 10 * Math.sin(T * 61);
+    const { y, w, h } = BUSH, x = BUSH.x + (o.dx || 0), r = o.rustle || 0, sw = sway(T, .5, 2) * 4 + r * 10 * Math.sin(T * 61);
     boilSeed('bushx');
     const P = [];
     for (let i = 0; i <= 30; i++) {   // a dome of round leafy lobes
@@ -378,20 +378,7 @@
   function worldHeadPt(x, y, o, lon, lat, k = 1) { const p = headPoint(U, o, lon, lat, k); return bodyPt(x, y, o, p[0], p[1]); }
   // How the Naked carries his rock: clutched at the chest under the beard (never at the mouth or over the briefs), or
   // cocked back over his head (charging), so his face stays clear. FAR_CLUTCH: the far hand on the rock too.
-  // The near arm laid across his chest is skin on skin, and the rig gives it only soft brown edges there: ink both sides
-  // of the upper arm and forearm (a draw hook, same maths as survivor()'s arm; stops short of the shoulder and the fist).
-  const armInk = o => (u, sw, V) => {
-    if (V !== SV.q) return;
-    const drop = clamp(o.crouch || 0) * 1.2 * u + clamp(o.sit || 0) * 2.05 * u, a = o.aL, b = o.bendL ?? .22, ak = o.armKL ?? 1, a2 = a - b;
-    const sh = [-1.1 * u, -7.75 * u + drop], d1 = [Math.cos(a), -Math.sin(a)], d2 = [Math.cos(a2), -Math.sin(a2)];   // 3/4 is a side view: +x forward for both arms
-    const el = [sh[0] + d1[0] * 1.85 * u * ak, sh[1] + d1[1] * 1.85 * u * ak], hd = [el[0] + d2[0] * 1.75 * u * ak, el[1] + d2[1] * 1.75 * u * ak];
-    if (hd[0] < -.2 * u) return;   // only while the hand is forward, across the body
-    boilSeed('armink' + (o.boilKey || ''));
-    for (const P of limbSides(sh, el, hd, .95 * u, .78 * u)) {
-      const Q = densify(P, 8).filter(p => Math.hypot(p[0] - sh[0], p[1] - sh[1]) > .5 * u && Math.hypot(p[0] - hd[0], p[1] - hd[1]) > .6 * u);
-      if (Q.length > 1) inkLine(Q, sw * .8, PAL.ink, 'ink', 0);
-    }
-  };
+  // (The rig inks every arm as one closed silhouette, so a chest-crossing arm needs no extra ink here.)
   const CHEST = [-6.9, -.95], RAISED = { aL: -4.45, bendL: -.3, armKL: 1.2 };
   const clutch = (o, k = 1) => { const [hx, hy] = handLocal(U, o, 'L'), r = reachArm(U, o, 'R', hx - .25 * U, hy + .35 * U); return { aR: lerp(o.aR ?? -1.2, r.aR, k), bendR: lerp(o.bendR ?? .3, r.bendR, k), armKR: lerp(1, r.armKR, k) }; };
 
@@ -716,12 +703,13 @@
     backdrop(c);
     camBegin(c.cx, c.cy, c.z);
     floor();
-    bushX();
+    bushX({ dx: 100 });   // the two-shots (from here on): its dome passes behind his waist, not tangent to his head and shoulder
     const C = { ...chad2B(10.5) }; C.x += 18;   // a closer framing cheat: his mask clear of the left edge
     geared(C.x, CY, U, { ...C.o, face: chadFace(1, 0) });
     const No = { ...face(t, [[10.5, 'determined', { eyes: 'determined', mouth: 'flat' }]]), boilKey: NK, seed: 1, prop: 'none', handOver: true, handL: rockHand, view: 'q', flip: true, rawArms: true,
       aL: CHEST[0] + .04 * Math.sin(t * 9), bendL: CHEST[1] - .1, aR: -1.2, bendR: .3, lookX: .9, lookY: .05, squint: .28 * ease(seg(t, 10.6, 11.0)) };
-    No.face = nakedFace({ glints: 1, look: No }); No.draw = armInk(No);
+    Object.assign(No, clutch(No));   // the far hand on the rock too (hanging, its fist floated by the AK's barrel)
+    No.face = nakedFace({ glints: 1, look: No });
     spawnling(NX2, G, U, No);
     const mp = maskPt(C), sx = (mp[0] - c.cx) * c.z + W / 2, sy = (mp[1] - c.cy) * c.z + H / 2;
     camEnd();
@@ -772,6 +760,11 @@
     const look = t < 12.6 ? [.9, 0] : t < 13.0 ? [.45, -1] : t < 13.6 ? [.9, -.3] : [.2, -1];
     const out = seg(t, 11.88, CLANG) * (1 - seg(t, CLANG + HOLD, 12.2));
     const o = { ...F, boilKey: NK, seed: 1, prop: 'none', handOver: true, handL: out > 0 ? rockOut(out) : rockHand, ...base, aL, bendL, armKL: armK, dx, rot, aR: -1.2, bendR: .3, lookX: look[0], lookY: look[1], crouch: t > 13.1 ? .12 * ease(seg(t, 13.1, 13.5)) : 0, emoteDx: 4.8, emoteDy: .3 };
+    if (t < 12.45) {   // the far hand: on the rock at his chest, then out in front as a guard through the wind-up and swing,
+      // back to his side after the recoil (hanging, its lone fist floated by the AK's barrel)
+      const cl = clutch(o), gd = reachArm(U, o, 'R', 2.3 * U, -6.5 * U), g = ease(seg(t, 11.5, 11.75)), rel = ease(seg(t, 12.15, 12.45));
+      for (const [k, rest] of [['aR', -1.2], ['bendR', .3], ['armKR', 1]]) o[k] = lerp(lerp(cl[k], gd[k], g), rest, rel);
+    }
     if (hug > 0) Object.assign(o, clutch(o, hug));
     return { x: NX2, o };
   }
@@ -781,7 +774,7 @@
     backdrop(c);
     camBegin(c.cx, c.cy, c.z);
     floor();
-    bushX();
+    bushX({ dx: 100 });
     bigPine(c);
     const C = chad2D(t), N = naked2D(t), dent = t >= CLANG ? Math.min(1, .6 + (t - CLANG) * 8) : 0;
     const [mx, my] = maskPt(C);
@@ -790,7 +783,7 @@
     const onHead = t >= XHEADLAND, cross = t > XHEADLAND;
     const No = { ...N.o };
     if (cross) { No.eyes = 'cross'; No.squint = 0; }
-    No.face = nakedFace({ xOn: onHead ? 1 : 0 }); No.draw = armInk(No);
+    No.face = nakedFace({ xOn: onHead ? 1 : 0 });
     swoosh(t, 11.88, CLANG, tt => { const n = naked2D(tt); return alongArm(n.x, G, n.o, 1.3); }, 'h4');   // behind his arm, so the rock stays clear
     // the contact: a pale burst on the mask behind the rock (the rock's face sits on it while the hit holds)
     if (t >= CLANG && t < CLANG + .11) {
@@ -849,7 +842,7 @@
     backdrop(c);
     camBegin(c.cx, c.cy, c.z);
     floor();
-    bushX();
+    bushX({ dx: 100 });
     bigPine(c);
     // the Chad: the sling (14.0–14.5) as in Ep. 1, a reach behind his hip, the rock (14.72, glint 14.8), raised high
     // over his head (15.33) and held there
@@ -879,7 +872,7 @@
       dx: N3() + .03 * Math.sin(t * 47), lookX: t < 14.3 ? .2 : .6, lookY: t < 14.3 ? -1 : lerp(-.2, -.8, ease(seg(t, 14.9, 15.4))), dy: .03 * Math.sin(t * 40) };
     Object.assign(No, clutch(No));
     if (t < 14.3) { No.eyes = 'cross'; No.squint = 0; No.mouth = 'wobble'; }
-    No.face = nakedFace({ xOn: 1, grin: t >= 14.3 }); No.draw = armInk(No);
+    No.face = nakedFace({ xOn: 1, grin: t >= 14.3 });
     spawnling(NX2, G, U, No);
     camEnd();
   }
@@ -895,7 +888,7 @@
     backdrop(c);
     camBegin(c.cx, c.cy, c.z);
     floor();
-    bushX();
+    bushX({ dx: 100 });
     const hit = t >= BONK, sq = hit ? .13 + .03 * seg(t, BONK, 15.72) : 0;
     No.sq = sq; No.dy = hit ? .1 : 0;
     No.face = nakedFace({ xOn: 1, grin: true, xS: hit ? [1.35, .5] : null });
@@ -937,7 +930,7 @@
     backdrop(c);
     camBegin(c.cx, c.cy, c.z);
     floor();
-    bushX();
+    bushX({ dx: 100 });
     bigPine(c);
     xOnBark(XA[0], XA[1], { key: 'x1', sx: 1 + .05 * Math.sin(t * TAU * 2), sy: 1 - .05 * Math.sin(t * TAU * 2), drip: 1 });
     const F = face(t, [[17, 'dizzy', { emote: null, eyes: 'blank' }], [17.75, 'neutral', { emote: null }], [18.0, 'suspicious', { eyes: 'narrow', mouth: 'flat' }], [18.55, 'determined', { eyes: 'determined', mouth: 'flat' }]]);
