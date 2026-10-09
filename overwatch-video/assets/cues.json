@@ -23,14 +23,14 @@
     [12.5, "whoosh"], [13.0, "ding"], [13.0, "beam", { "dur": 0.5 }],
     [13.5, "bloop", { "pitch": 84 }], [13.75, "grr"],
     [15.0, "bell"],
-    [16.0, "bell"], [17.0, "bell"], [17.5, "rustle", { "dur": 2.0 }], [18.0, "shing"],
+    [16.0, "bell"], [17.0, "bell"], [17.5, "rustle", { "dur": 2.0 }], [18.25, "shing"],
     [19.0, "sting"], [20.0, "pop"], [20.25, "pop"], [20.5, "pop"], [20.5, "whine", { "dur": 1.0 }],
     [21.0, "whoosh"], [21.5, "gunshot"], [22.0, "gunshot"], [22.5, "gunshot"], [23.0, "smoke"],
     [26.5, "whoosh"], [27.5, "fwoosh"], [27.5, "choirhit"], [28.0, "shimmer", { "dur": 1.8 }], [29.0, "pop"], [29.2, "pop"], [29.4, "pop"],
     [30.0, "boing"], [30.3, "tick"], [31.6, "whoosh"],
     [32.0, "charge"], [32.6, "boom"], [32.5, "whoosh"], [33.0, "slash"], [33.1, "boom"], [34.0, "twinkle"],
     [34.0, "rumble", { "dur": 2.0 }], [36.0, "fireworks"], [36.0, "crash"], [36.4, "fireworks"], [36.8, "fireworks"], [37.5, "swoosh"],
-    [38.0, "boom"], [39.0, "slam"], [41.0, "cheer", { "dur": 1.5 }], [41.0, "pop"], [41.2, "pop"], [43.5, "swoosh"],
+    [38.0, "boom"], [39.0, "slam"], [41.0, "cheer", { "dur": 1.5 }], [41.0, "pop"], [41.2, "pop"], [43.7, "swoosh"],
     [44.5, "heartpop"], [45.0, "heartpop"], [45.5, "heartpop"], [46.5, "bloop", { "pitch": 84 }],
     [47.0, "scratch"], [47.5, "bonk"], [48.0, "crash"]
   ]

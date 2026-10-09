@@ -51,7 +51,7 @@ node tools/music.mjs                               # synthesize assets/soundtrac
 Xvfb :99 -screen 0 1920x1080x24 &                  # only for --xvfb (no GPU)
 node render.mjs --xvfb --sheet=7,9.8,13.2,21.6,27.8,39.3 --cols=3 --out=out/check/sheet.jpg   # look at it
 node render.mjs --xvfb --frames --workers=1        # all frames → out/frames (resumable)
-node render.mjs --encode --audio=assets/soundtrack.wav --out=support_main.mp4
+node render.mjs --encode --crf=23 --audio=assets/soundtrack.wav --out=support_main.mp4
 ```
 
 Add `--chrome=<path>` if Chrome isn't found. To scrub the film, open `studio.html` in Chrome, or `studio.html?loop=cast` for the model sheet.
