@@ -445,7 +445,6 @@ function sootPatches(cx, cy, w, h, k, key, u) {
     paint(P, { wash: '#4A4850', washOp: 110 * k, ink: null, curv: .5 });
     paint(ellPts(x + (hash(i + 9) - .5) * r * .6, y + (hash(i + 2) - .5) * r * .4, r * .5, r * .3, 9, r * .12, rot), { wash: '#34333A', washOp: 70 * k, ink: null });
   });
-  for (let i = 0; i < 2; i++) { const x = cx + (hash(i + 21) - .5) * w, y = cy + (hash(i + 31) - .5) * h; inkLine([[x - .3 * u, y], [x, y + .15 * u], [x + .25 * u, y - .1 * u]], .5, '#B7B4BC', 'inkfine', 0); }   // ash cracks
 }
 // Where a survivor's hand is, in its upright body frame (before flip, scale and rotation) and in the world.
 function handLocal(u, o, which) {
