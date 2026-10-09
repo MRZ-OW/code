@@ -295,7 +295,7 @@
   function s1a(t, lt) {
     camBegin(WX, WY, WZ);
     set(t, { lock: 'locked' });
-    const r = Math.sin(t * 16), O = { view: 'q', eyes: 'sly', lookX: .9, mouth: 'grin', dy: -.06 * Math.abs(r), sq: .02 * Math.abs(r) };
+    const r = Math.sin(t * 16), O = { view: 'q', eyes: 'sly', lookX: .9, mouth: 'grin' };   // only the hands rub (a body bounce at the rubbing rate read as jitter)
     Object.assign(O, reachArm(U, O, 'L', (2.05 + .1 * r) * U, (-6.75 - .22 * r) * U), reachArm(U, O, 'R', (2.3 - .1 * r) * U, (-6.95 + .22 * r) * U));
     O.under = (u, sw) => { push(); translate(-1.25 * u, -6.0 * u); rotate(-.25); rockProp(u * .8, sw); pop(); };
     naked(NA, G, O);
@@ -403,7 +403,7 @@
     const N = charred(t, { lookX: .7 });
     seatShadow(NX); naked(NX, G, N); rockAt(...RK);
     smoke(NX - 6, tipsY(G, N), 1.1, t - 5.62, 'z2');
-    const O = { view: 'q', flip: true, walk: k < 1 ? (t - 6) * 1.0 : 0, aL: -1.3, aR: -1.3 + .08 * Math.sin((t - 6) * TAU), dy: k < 1 ? -.15 * Math.abs(Math.sin((t - 6) * TAU)) : 0 };
+    const O = { view: 'q', flip: true, walk: k < 1 ? (t - 6) * 1.0 : 0, aL: -1.3, aR: -1.3 + .08 * Math.sin((t - 6) * TAU), dy: k < 1 ? -.15 * Math.pow(Math.sin((t - 6) * TAU), 2) : 0 };
     const rk = ease(seg(t, 7.55, 7.8));
     if (rk > 0) { const R = reachArm(U, O, 'L', ...toBody(cx, G, U, O, LOCK[0] + 30, LOCK[1] - 2)); O.aL = lerp(-1.3, R.aL, rk); O.bendL = lerp(.2, R.bendL, rk); O.armKL = lerp(1, R.armKL, rk); O.finger = true; }
     chad(cx, G, O);
@@ -454,6 +454,16 @@
   // eyes peer out of the dark gap, his arm reaches out to the lock and re-keys it with four taps, and withdraws; the
   // door shuts (15.4). He notices nothing.
   const X3 = NX + 214, Y3 = 1049, Z3 = 1.12;
+  // A pat of soot coming off: a few small, OPAQUE ash-grey clouds with a soft grey outline that fly out, lift and
+  // shrink away (a translucent pale fade over his skin read as lilac rings or stains under the dusk grade).
+  function ashPuff(x, y, r, age, key, life = .32) {
+    if (age < 0 || age > life) return;
+    const k = age / life, R = r * (.45 + .75 * easeOut(k)) * (1 - Math.pow(k, 3)), cx = x + .4 * r * k, cy = y - 1.1 * r * k;
+    if (R < 3) return;
+    boilSeed('ash' + key);
+    const P = []; for (let i = 0; i < 36; i++) { const a = i / 36 * TAU, b = .84 + .16 * Math.abs(Math.sin(a * 2.5 + hash(key.length))); P.push([cx + Math.cos(a) * R * b, cy + Math.sin(a) * R * b * .8]); }
+    paint(P, { wash: '#B3ABA2', ink: '#8A837B', sw: .6 });   // one scalloped ash cloud, one outline
+  }
   function s3a(t, lt) {
     camBegin(X3, Y3, Z3);
     const crack = ease(seg(t, 13.6, 13.8)) * (1 - ease(seg(t, 15.2, 15.4))), open = .15 * crack;
@@ -471,7 +481,7 @@
     const O = { view: 'front', soot, frizz, crouch: 1 - up, aL: -1.15, bendL: .35, aR: -1.15, bendR: .35, eyes: 'closed', mouth: 'smile' };
     if (t < 13.75) { Object.assign(O, reachArm(U, O, 'L', ...toBody(NX, G, U, O, RK[0] + 12, RK[1] - 16))); if (t >= 13.62) O.hold = { L: 'rock' }; }
     else if (t < 14.55) O.hold = { L: 'rock' };
-    const rockUnder = (u, sw) => { push(); translate(-2.55 * u, -6.15 * u); rotate(.4); scale(-1, 1); rockProp(u * .8, sw); pop(); };   // tucked under his left arm, poking out at his side (not hidden behind his folded arms)
+    const tuck = ease(seg(t, 14.55, 14.68)), rockUnder = (u, sw) => { push(); translate(lerp(-2.1, -2.3, tuck) * u, lerp(-4.8, -5.75, tuck) * u); rotate(.4); scale(-1, 1); rockProp(u * .8, sw); pop(); };   // tucked under his left arm, poking out at his side (not hidden behind his folded arms)
     if (t < 13.62) rockAt(...RK);
     const pats = [13.8, 13.97, 14.14, 14.31, 14.48], spots = [[.8, -7.0], [.2, -5.95], [1.25, -6.15], [-.55, -7.1], [.6, -6.5]];   // all on his chest and belly (a pale puff over the purple briefs reads as a stain), within an easy reach of his right hand
     let pi = -1; for (let i = 0; i < pats.length; i++) if (t >= pats[i] - .085) pi = i;
@@ -486,15 +496,18 @@
       // the smug pose: arms folded (14.55–14.66), forearms stacked level across the chest (the right over the left), the
       // rock under his left arm; then (14.85–15.0) the hands meet in the middle, fingers interlaced, elbows out, and
       // squeeze down on each crack
-      const fold = ease(seg(t, 14.55, 14.66)), meet = ease(seg(t, 14.85, 15.0)), hy = (-6.35 + .3 * cr) * U;
-      const FL = reachArm(U, O, 'L', lerp(.35, -.3, meet) * U, lerp(-5.9 * U, hy, meet)), FR = reachArm(U, O, 'R', lerp(-.35, .3, meet) * U, lerp(-6.35 * U, hy, meet));   // elbows down at his sides, forearms level
-      for (const k of ['aL', 'bendL', 'armKL']) O[k] = lerp(O[k] ?? (k === 'armKL' ? 1 : 0), FL[k], fold);
-      for (const k of ['aR', 'bendR', 'armKR']) O[k] = lerp(O[k] ?? (k === 'armKR' ? 1 : 0), FR[k], fold);
+      const fold = ease(seg(t, 14.55, 14.68)), meet = ease(seg(t, 14.85, 15.0)), hy = (-6.35 + .3 * cr) * U;
+      // the HANDS travel from where they were (the left by his side with the rock, the right off the last pat) to the
+      // fold, and the arms follow them by IK every frame (lerping the joint angles swung the right arm out wide and
+      // flailed the elbows on the way); elbows down at his sides, forearms level
+      const toL = [lerp(.35, -.3, meet) * U, lerp(-5.9 * U, hy, meet)], toR = [lerp(-.35, .3, meet) * U, lerp(-6.35 * U, hy, meet)];
+      Object.assign(O, reachArm(U, O, 'L', lerp(-1.9 * U, toL[0], fold), lerp(-5.2 * U, toL[1], fold)), reachArm(U, O, 'R', lerp(.95 * U, toR[0], fold), lerp(-7.1 * U, toR[1], fold)));
+      if (fold < .5) O.openR = true;
       if (meet > 0) O.sq = .04 * cr;
       if (meet > .9) O.draw = (u, sw) => { boilSeed('interlace'); for (let f = 0; f < 4; f++) inkLine([[(-.42 + f * .28) * u, hy - .3 * u], [(-.3 + f * .28) * u, hy + .28 * u]], sw * .45, mixCol(SKIN.dk, PAL.ink, .5), 'inkfine', 0); if (cr > .2) for (const a of [-2.6, -1.6, -.5]) inkLine([[Math.cos(a) * .9 * u, hy + Math.sin(a) * .9 * u], [Math.cos(a) * 1.45 * u, hy + Math.sin(a) * 1.45 * u]], sw * .8, '#FFF6DA', 'ink', 0); };
     }
     naked(NX, G, O);
-    for (let i = 0; i < pats.length; i++) { const [sx, sy] = spots[i]; puff(NX + sx * U, G + sy * U, 22, t - pats[i], { col: '#E9E2D6', noInk: true, life: .28, key: 'soot' + i, rise: 1.4, n: 4 }); }   // quick, pale puffs that lift off and are gone (a slow translucent fade over his skin read as purple rings under the dusk grade)
+    for (let i = 0; i < pats.length; i++) { const [sx, sy] = spots[i]; ashPuff(NX + (sx + .5) * U, G + sy * U, 26, t - pats[i], 'soot' + i); }
     if (t < 14.2) smoke(NX, tipsY(G, O), 1.0, t - 5.62, 'z2', { op: 170 * (1 - seg(t, 13.6, 14.2)) });
     dusk();
     camEnd();

@@ -159,8 +159,9 @@
     // the can comes up in front of his chest, under the beard (elbow down, his hand round it), not folded up at his
     // mouth with the elbow cocked and the hand hidden behind the can; the far hand rests on his knee (it hung as a lone
     // white ball by the fire)
-    const eatAt = reachArm(U, No, 'L', 2.0 * U, -6.1 * U), knee = reachArm(U, No, 'R', 1.95 * U, -2.95 * U);
-    Object.assign(No, { aL: lerp(No.aL, eatAt.aL, toMouth), bendL: lerp(No.bendL, eatAt.bendL, toMouth), armKL: lerp(1, eatAt.armKL, toMouth), ...knee });
+    // (seated, his shoulder is at -5.7u: a target above it cocked the upper arm out level across his chest)
+    const eatAt = reachArm(U, No, 'L', 1.65 * U, -4.75 * U), knee = reachArm(U, No, 'R', 2.05 * U, -2.75 * U);
+    Object.assign(No, { aL: lerp(No.aL, eatAt.aL, toMouth), bendL: lerp(No.bendL, eatAt.bendL, toMouth), armKL: lerp(1, eatAt.armKL, toMouth), ...knee, openR: true });   // an open palm on his knee
     spawnling(330, 1400, U, No);
     if (t >= 6.62 && t < 6.95) {   // the can in flight, over the fire
       const a = survivorHand(750, 1400, U, { ...Co, aL: .7, bendL: .2 }, 'L'), b = survivorHand(330, 1400, U, { ...No, aL: .1, bendL: .2 }, 'L');
@@ -184,7 +185,7 @@
     stump(330, 1400, 70, SEAT, 1.05); stump(700, 1400, 70, SEAT, 1.05);
     const lift = ease(seg(t, 8.0, 8.3)), rk = [330 + 3.0 * U, 1400 - 7.6 * U];   // where the rock is held up (world)
     // the Naked: rock held up in both hands like a treasure; starstruck at the AK
-    const star = t > 9.45, N = star ? feel('starstruck', t, { aL: 0, aR: 0, dy: -.2 * Math.abs(Math.sin(t * 9)) }) : feel('hopeful', t, { blush: .5 });
+    const star = t > 9.45, N = star ? feel('starstruck', t, { aL: 0, aR: 0 }) : feel('hopeful', t, { blush: .5 });
     const No = { ...N, boilKey: NK, seed: 1, view: 'q', sit: 1, prop: 'none', rawArms: true };
     const toB = (wx, wy) => toBody(330, 1400, U, No, wx, wy);
     Object.assign(No, reachArm(U, No, 'L', ...toB(lerp(330 + 1.2 * U, rk[0], lift), lerp(1400 - 4.6 * U, rk[1], lift))), reachArm(U, No, 'R', ...toB(lerp(330 + 1.2 * U, rk[0] + .9 * U, lift), lerp(1400 - 4.6 * U, rk[1] + .3 * U, lift))));

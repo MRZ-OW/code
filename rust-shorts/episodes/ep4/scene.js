@@ -422,7 +422,7 @@
     if (t < 2.9) {
       // tiptoes behind the trunk, then leans out from its left edge to look for it
       const k = ease(seg(t, 2.0, 2.35)), x = lerp(x1, 404, k), lean = ease(seg(t, 2.35, 2.5)) * (1 - ease(seg(t, 2.84, 2.9)));
-      return { x, behind: true, o: { ...S, view: 'q', flip: true, rawArms: true, crouch: .3 * (1 - .4 * lean), walk: (x1 - x) / (3 * U), dy: -.25 * Math.abs(Math.sin(k * Math.PI * 3)), rot: -.4 * lean,
+      return { x, behind: true, o: { ...S, view: 'q', flip: true, rawArms: true, crouch: .3 * (1 - .4 * lean), walk: (x1 - x) / (3 * U), dy: -.25 * Math.pow(Math.sin(k * Math.PI * 3), 2), rot: -.4 * lean,
         aL: CHEST[0], bendL: CHEST[1], aR: -.9 + .5 * lean, bendR: 1.0, lookX: .9, lookY: .1 } };
     }
     // he senses it behind him: dashes back round the trunk (2.9–3.04, smeared), skids round, and chops overhead at the X
@@ -529,7 +529,7 @@
     const k = ease(seg(t, 4.48, 4.62));   // blend out of the stare pose onto the loop
     if (k < 1) { const s0 = nakedS1(4.47); r.p = [lerp(s0.x + (s0.o.dx || 0) * U, r.p[0], k), lerp(G, r.p[1], k)]; }
     return { x: r.p[0], y: r.p[1], front: r.front, s: r.s, o: { ...face(t, N1), boilKey: NK, seed: 1, prop: 'none', handOver: true, handL: rockHand, view: r.turn ? 'q' : 'side', flip: r.flip, rawArms: true,
-      walk: ph, dy: -.55 * Math.abs(Math.sin(ph * Math.PI)), rot: (r.flip ? -1 : 1) * (.18 + .05 * Math.sin(ph * TAU)), ...RAISED, aL: RAISED.aL + .12 * Math.sin(ph * TAU) * k,
+      walk: ph, dy: -.55 * Math.pow(Math.sin(ph * Math.PI), 2), rot: (r.flip ? -1 : 1) * (.18 + .05 * Math.sin(ph * TAU)), ...RAISED, aL: RAISED.aL + .12 * Math.sin(ph * TAU) * k,
       aR: -.5 + .9 * Math.sin(ph * TAU + Math.PI), bendR: 1.1, mouth: Math.max(0, ...YELPS.map(ty => t > ty - .02 && t < ty + .25 ? 1 : 0)) ? 'O' : 'open', eyes: 'angry', lookX: .8 } };
   }
 
@@ -652,7 +652,7 @@
       const F = face(t, [[7.5, 'angry', { mouth: 'open', emote: null }], [8.22, 'surprised', { emote: null }], [8.4, 'confused', { emote: null }]]);
       const look = t > 8.4 ? (t < 8.76 ? -.75 : .9) : .8, ph = (x + 300) / (3.4 * U);
       spawnling(x, G, U, { ...F, boilKey: NK, seed: 1, prop: 'none', handOver: true, handL: rockHand, face: nakedFace(), view: run ? 'side' : 'q', rawArms: true, walk: run ? ph : undefined,
-        dy: run ? -.5 * Math.abs(Math.sin(ph * Math.PI)) : 0, rot: run ? .16 : kf(t, [[8.15, -.12], [8.3, 0]]),
+        dy: run ? -.5 * Math.pow(Math.sin(ph * Math.PI), 2) : 0, rot: run ? .16 : kf(t, [[8.15, -.12], [8.3, 0]]),
         aL: run ? RAISED.aL + .12 * Math.sin(ph * TAU) : lerp(RAISED.aL, CHEST[0] + TAU, stop), bendL: run ? RAISED.bendL : lerp(RAISED.bendL, CHEST[1], stop), armKL: run ? RAISED.armKL : lerp(RAISED.armKL, 1, stop),
         aR: run ? -.5 + .9 * Math.sin(ph * TAU + Math.PI) : -1.2, bendR: run ? 1.1 : .3, lookX: look });
       dust(x + 40, G + 8, 52, t - 8.1, 'skid2a', { n: 6 }); dust(x - 30, G + 10, 40, t - 8.16, 'skid2b', { n: 5 });
