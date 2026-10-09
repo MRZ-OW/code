@@ -1,0 +1,19 @@
+{
+  "name": "overwatch-clawd-short",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Support Main: a hand-painted Clawd x Overwatch cartoon short, painted in p5.brush (built on ClaudeAnimationBase)",
+  "scripts": {
+    "postinstall": "node tools/patch-brush.mjs",
+    "music": "node tools/music.mjs",
+    "sheet": "node render.mjs --sheet=7,9.8,13.2,21.6,27.8,39.3 --cols=3 --out=out/check/sheet.jpg",
+    "frames": "node render.mjs --frames --workers=1",
+    "encode": "node render.mjs --encode --audio=assets/soundtrack.wav --out=support_main.mp4"
+  },
+  "dependencies": {
+    "p5": "^2.3.3",
+    "p5.brush": "^2.2.3",
+    "puppeteer-core": "^25.11.0"
+  }
+}
