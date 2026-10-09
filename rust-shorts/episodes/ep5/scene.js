@@ -437,11 +437,21 @@
     if (age < 0 || age > life) return;
     for (let i = 0; i < n; i++) {
       const st = i * .05, a2 = age - st; if (a2 < 0) continue;
-      const kk = clamp(a2 / (life - st)), ang = -Math.PI / 2 + (hash(i + 11) - .5) * 2.4, d = r * (.25 + 1.0 * easeOut(kk));
-      const px = x + Math.cos(ang) * d + r * .5 * kk * (hash(i + 3) - .5), py = y + Math.sin(ang) * d * .6 - a2 * r * .8, pr = r * (.35 + .5 * easeOut(kk)) * (.6 + .6 * hash(i)), op = 215 * (1 - kk * kk) * (1 - .3 * kk);
+      const kk = clamp(a2 / (life - st)), ang = -Math.PI / 2 + (hash(i + 11) - .5) * 2.4, d = r * (.25 + 1.0 * easeOut(kk));   // (puffs overlap and thin, never a row of balls)
+      const px = x + Math.cos(ang) * d + r * .5 * kk * (hash(i + 3) - .5), py = y + Math.sin(ang) * d * .6 - a2 * r * .8, pr = r * (.35 + .5 * easeOut(kk)) * (.6 + .6 * hash(i)), op = 175 * (1 - kk * kk) * (1 - .3 * kk);
       boilSeed(key + i);
-      paint(ellPts(px, py, pr, pr * .86, 16, pr * .04), { wash: mixCol('#4E4A54', '#8E8A94', kk), washOp: op, ink: null });
+      paint(ellPts(px, py, pr, pr * .86, 16, pr * .04), { wash: mixCol('#5E5A64', '#A29EA8', kk), washOp: op, ink: null });
       paint(ellPts(px - pr * .15, py - pr * .3, pr * .6, pr * .42, 12), { wash: mixCol('#8E8A94', '#C4C0C8', kk), washOp: op * .8, ink: null });
+    }
+  }
+  // A low dust puff kicked up along the ground (no outlines, so it never reads as bubbles): flat lumps that spread
+  // sideways, lift a little and thin out over life s.
+  function dust(x, y, r, age, key, life = .4, col = '#E2D8BC') {
+    if (age < 0 || age > life) return;
+    const kk = age / life;
+    for (let i = 0; i < 5; i++) {
+      const px = x + (i - 2) * r * .42 * (.7 + .8 * easeOut(kk)), py = y - r * (.12 + .25 * kk) * (.6 + .6 * hash(i + 7)), pr = r * (.3 + .3 * easeOut(kk)) * (.7 + .5 * hash(i + 2));
+      boilSeed(key + i); paint(ellPts(px, py, pr, pr * .55, 12), { wash: col, washOp: 190 * (1 - kk * kk), ink: null });
     }
   }
   // A blast in the painted style (world or screen): a white-yellow starburst, a layered fireball (a dark rim, red,
@@ -648,7 +658,7 @@
     tufts(t, NX - 150, NX + 230, G + 30, 5, 1.15);
     light(cx2, cy2, 230, lockedOn);
     drawHeli(h);
-    lockOn(cx2, cy2 - 24, 300, 800, t < 10.0 ? seg(t, 9.0, 9.4) : 0, t);   // head (hat and all) to toes
+    lockOn(cx2 - 10, cy2 - 91, 420, 950, t < 10.0 ? seg(t, 9.0, 9.4) : 0, t);   // hat to toes, inset from the heli
     // the panic: a dust cloud, his clothes flying out of it (hat 9.4, hoodie 9.65, pants 9.9), thinning out over him
     scr(() => {
       const [bx, by] = sc(NX, G - 6.3 * U), ck = seg(t, 9.4, 9.46), cop = 1 - seg(t, 9.86, 10.08);
@@ -705,7 +715,7 @@
       const k = seg(t, 12.95, 13.08), x = lerp(540, SIT, ease(k));
       spawnling(x, G, U, { ...feel('happy', t), emote: null, boilKey: NK, seed: 1, view: 'q', flip: true, sit: ease(seg(t, 12.97, 13.06)), legsOut: true, dy: 2.3 * ease(seg(t, 13.0, 13.08)) - 1.2 * Math.sin(Math.PI * k), rawArms: true, prop: 'none', aL: .7, bendL: .3, aR: .6, bendR: .3 });
     } else sunbathe(SIT, G, U, t, { lean: .14 + .02 * Math.sin(t * 4), face: { ...faceOnly(feel('cool', t)), eyes: 'normal', mouth: 'smile', lookX: .3, lookY: -.6 } });
-    puff(SIT - 30, G - 1.6 * U, 120, t - 13.04, { col: '#E8E0C8', key: 'flop', n: 6, life: .4, rise: .3 });
+    dust(SIT - 20, G - .2 * U, 95, t - 13.04, 'flop', .38);
     drawHeli(h);
     scr(() => {
       const [gx, gy] = heliPt(h.x, h.y, h.s, h, 'gun'), [a1, b1] = sc(P1X, PY), [a2, b2] = sc(P2X, PY);
@@ -822,7 +832,7 @@
       boilSeed('e5akground'); push(); translate(p[0], p[1]); scale(lerp(1, -1, ease(fall)), 1); rotate(lerp(-.82, .1, fall)); akProp(U * .8, 2.2, 0); pop();
     }
     if (fall >= 1) akGround(AKDROP[0], AKDROP[1] - 10, .1 + .03 * spring(t, 19.32, 8, 30));
-    if (t >= 19.32) puff(AKDROP[0], AKDROP[1], 40, t - 19.32, { col: '#D9CDB4', key: 'akthud', n: 5, life: .45 });
+    dust(AKDROP[0], AKDROP[1] - 4, 50, t - 19.32, 'akthud', .4);
     const N = emotions(t, [[19.0, 'scared', { emote: null }], [19.45, 'hopeful', { eyes: 'look', mouth: 'o', lookX: -.5, lookY: -.95, emote: 'music', blush: .3 }], [20.35, 'nervous', { mouth: 'o', emote: null, lookX: .95, lookY: -.75 }], [20.85, 'scared', { mouth: 'wobble', emote: null, lookX: .95, lookY: -.75 }]], { take: .45 });
     const No = { ...N, boilKey: NK, seed: 1, view: 'front', rawArms: true, prop: 'none', emoteDx: -.6, emoteDy: .5 };
     // the arms: from the hug, out to the sides and up (never across his face), held up, then down to point at his briefs
@@ -904,7 +914,7 @@
       boilSeed('soles');
       for (const s of [-1, 1]) { const fx = NX3 + s * .75 * U, fy = G - .25 * U, k = clamp((fall - .55) / .45); paint(ellPts(fx, fy - .45 * U * k, .42 * U, .62 * U * k, 14), { wash: '#C9B9AE', ink: PAL.ink, sw: 1.2 }); paint(ellPts(fx, fy - .75 * U * k, .24 * U, .2 * U * k, 10), { wash: '#B3A398', ink: null }); }
     }
-    if (down) { puff(NX3, G - 2.6 * U, 70, t - 23.6, { col: '#D9CDB4', key: 'faceplant', n: 6, life: .5, rise: .4 }); puff(NX3 + .5 * U, G - 2.8 * U, 40, t - 23.62, { col: '#3E3A38', key: 'ash', n: 4, life: .5 }); }
+    if (down) { dust(NX3, G - 2.3 * U, 85, t - 23.6, 'faceplant', .45); dust(NX3 + .3 * U, G - 2.6 * U, 45, t - 23.62, 'ash', .45, '#5A5452'); }   // at his head's end, on the ground
     smolder(AKDROP[0] + 20, AKDROP[1] - 40, .9, t - 21.4, { key: 'akwisp' });
     if (!down) smolder(NX3 + 6, G - 12.8 * U * lerp(1, .17, fall), 1.2, t - 21.5, { key: 'him' });
     softSmoke(NX3 - 40, G - 5 * U, 170, t - 21.62, 'clear3f', 8, .9);   // the blast's smoke, thinning off him as the shot opens

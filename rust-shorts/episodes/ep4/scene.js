@@ -338,8 +338,8 @@
     for (const s of [-1, 1]) {
       const p = head.pt(s * .4, -.02, .84); if (p[2] <= .08) continue;
       const f = fore(head, s * .4), P = [];
-      for (let i = 0; i < 18; i++) { const a = i * .72 + t * 7 * s, r = i * .019 * u; P.push([p[0] + Math.cos(a) * r * f, p[1] + Math.sin(a) * r * .95]); }
-      inkLine(P, sw * .9, PAL.ink, 'inkfine', .6);
+      for (let i = 2; i < 16; i++) { const a = i * .78 + t * 7 * s, r = i * .021 * u; P.push([p[0] + Math.cos(a) * r * f, p[1] + Math.sin(a) * r * .95]); }
+      inkLine(P, sw * .35, PAL.ink, 'inkfine', .3);
     }
   }
   // a wide-eyed stare (over blank eyes): pupils pushed toward d = [forward, down] (−1..1), so the aim reads
