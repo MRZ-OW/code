@@ -667,7 +667,7 @@
   // ---------- S3: gave up (16–21) and S4: true faith (21–28), the next morning ----------
   const morning = t => meadow(t, { tod: .25, sun: MSUN, sky: MORNING, ct: 216 + (t - 16) });
   // After his dive he sits at SEATX, by the eoka. SCAM / HCAM: the N framings for that (HCAM keeps his feet above the captions).
-  const SEATX = 262, SCAM = () => { ES = 1; camBegin(SEATX + 55, 1160, 1.78); }, HCAM = () => { ES = 1; camBegin(SEATX + 80, 1195, 1.8); };
+  const SEATX = 262, SCAM = () => { ES = 1; camBegin(SEATX + 55, 1160, 1.78); }, HCAM = () => { ES = 1; camBegin(SEATX + 80, 1232, 1.8); };
   const SEAT = { sit: 1, legsOut: true, dy: 2.3 };
   const akHook = g => (uu, sw) => { push(); rotate(g); akProp(uu, sw, 0); pop(); };
   // the eoka on its own: grip at (x, y)
@@ -833,7 +833,10 @@
     Object.assign(B.o, { aL: -1.05 + .35 * wob, bendL: .35, aR: -.75 - .3 * wob, bendR: .45 });   // limp, twitching
     return B;
   }
-  const koStars = (B, t, s = 1) => { const [hx, hy] = ptOf(B, 0, -8.8); emote('stars', hx - 6, hy - 30, U * .52 * s, 1, t); };
+  const koStars = (B, age, s = 1) => {   // KO stars circling over his head: full size from the thud
+    const [hx, hy] = ptOf(B, 0, -8.8);
+    for (let i = 0; i < 3; i++) { const a = age * 5 + i * TAU / 3, d = .8 + .2 * Math.sin(a); boilSeed('kostar' + i); paint(starPts(hx - 8 + Math.cos(a) * 60 * s, hy - 42 + Math.sin(a) * 16 * s, 17 * s * d, .45, 5, age * 3), { wash: '#F2C14E', ink: PAL.ink, sw: 1.4 }); }
+  };
   function s3d(t, lt) {
     WIDE();
     morning(t);
