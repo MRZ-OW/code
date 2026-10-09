@@ -145,14 +145,22 @@
     stump(330, 1400, 70, SEAT, .95); stump(750, 1400, 70, SEAT, .95);
     const tossK = seg(t, 6.62, 6.95);
     const C = feel('happy', t), cArm = t < 6.55 ? { aL: -.55, bendL: .9 } : t < 6.7 ? { aL: lerp(-.55, .7, seg(t, 6.55, 6.7)), bendL: .2 } : { aL: lerp(.7, -1.1, seg(t, 6.7, 7.1)), bendL: .3 };
-    const Co = { ...C, rawArms: true, ...cArm, aR: -1.32, bendR: .22, boilKey: CH, seed: 2, view: 'q', flip: true, sit: 1, noGun: true, eyes: 'happy', handL: t < 6.62 ? (u, sw) => beanCan(u * .9, sw, { open: t >= 6.4, rot: .1 }) : null };
+    const Co = { ...C, rawArms: true, ...cArm, aR: -1.32, bendR: .22, boilKey: CH, seed: 2, view: 'q', flip: true, sit: 1, noGun: true, eyes: 'happy', lap: lapAK, handL: t < 6.62 ? (u, sw) => beanCan(u * .9, sw, { open: t >= 6.4, rot: .1 }) : null };
+    if (t >= 6.7) {   // after the toss his hand comes down onto the rifle's grip (the fist over it), not through the gun
+      const g = reachArm(U, Co, 'L', ...toBody(750, 1400, U, Co, ...LAP_GRIP(750, 1400))), k = ease(seg(t, 6.75, 7.15));
+      Object.assign(Co, { aL: lerp(.7, g.aL, k), bendL: lerp(.2, g.bendL, k), armKL: lerp(1, g.armKL, k) });
+    }
     geared(750, 1400, U, Co);
-    lapAK(750, 1400, 0);
     if (t >= 6.4 && t < 6.9) puff(...survivorHand(750, 1400, U, Co, 'L').map((v, i) => v - (i ? 30 : 0)), 22, t - 6.4, { col: '#E8E2D2', key: 'canpop', n: 4, life: .45 });
     const eat = t > 7.15, N = eat ? feel('happy', t, { eyes: 'happy', mouth: (Math.floor(t * 6) % 2) ? 'cat' : 'o' }) : feel('hopeful', t);
     const catchUp = ease(seg(t, 6.75, 6.95)), toMouth = ease(seg(t, 7.1, 7.4));
-    const No = { ...N, rawArms: true, aL: lerp(lerp(-1.1, .1, catchUp), .55, toMouth), bendL: lerp(lerp(.4, .2, catchUp), 1.6, toMouth), aR: -1.2, bendR: .3, boilKey: NK, seed: 1, view: 'q', sit: 1, prop: 'none',
-      handL: t >= 6.95 ? (u, sw) => beanCan(u * .9, sw, { open: true, spoon: eat, rot: -.2 - .3 * toMouth }) : null };
+    const No = { ...N, rawArms: true, aL: lerp(-1.1, .1, catchUp), bendL: lerp(.4, .2, catchUp), aR: -1.2, bendR: .3, boilKey: NK, seed: 1, view: 'q', sit: 1, prop: 'none', handOver: true,
+      handL: t >= 6.95 ? (u, sw) => { push(); translate(.3 * u * toMouth, -.15 * u * toMouth); beanCan(u * .9, sw, { open: true, spoon: eat, rot: -.2 * (1 - toMouth) }); pop(); } : null };   // held by its side, so the can shows past his fist
+    // the can comes up in front of his chest, under the beard (elbow down, his hand round it), not folded up at his
+    // mouth with the elbow cocked and the hand hidden behind the can; the far hand rests on his knee (it hung as a lone
+    // white ball by the fire)
+    const eatAt = reachArm(U, No, 'L', 2.0 * U, -6.1 * U), knee = reachArm(U, No, 'R', 1.95 * U, -2.95 * U);
+    Object.assign(No, { aL: lerp(No.aL, eatAt.aL, toMouth), bendL: lerp(No.bendL, eatAt.bendL, toMouth), armKL: lerp(1, eatAt.armKL, toMouth), ...knee });
     spawnling(330, 1400, U, No);
     if (t >= 6.62 && t < 6.95) {   // the can in flight, over the fire
       const a = survivorHand(750, 1400, U, { ...Co, aL: .7, bendL: .2 }, 'L'), b = survivorHand(330, 1400, U, { ...No, aL: .1, bendL: .2 }, 'L');
@@ -164,7 +172,10 @@
     camEnd();
   }
   // his AK across the Chad's lap (sitting, facing left): the stock under his near arm, the barrel out to the right
-  function lapAK(cx, gy) { boilSeed('lapak'); push(); translate(cx + .25 * U, gy - SEAT - .7 * U); rotate(-.04); akProp(U * .9, 2.3, 0); pop(); }
+  // (a lap hook: drawn in his flipped body frame over his kilt and under his arms, so the gun lies on his lap and his
+  // hands sit on it; drawn after him it ran through his hands, kilt and body). LAP_GRIP: its grip in the world.
+  function lapAK(u, sw) { push(); scale(-1, 1); translate(.25 * u, -(SEAT / U + .7) * u); rotate(-.04); akProp(u * .9, 2.3, 0); pop(); }
+  const LAP_GRIP = (cx, gy) => [cx + .25 * U - .33 * .9 * U, gy - SEAT - .7 * U + .55 * .9 * U];
   // 2B: show and tell. He presents his rock in both hands; the Chad pats it, gently (a small heart); the Chad lifts his
   // AK off his lap and holds it up level, side-on, with a sparkle; stars in the naked's eyes
   function s2b(t, lt) {
@@ -180,13 +191,13 @@
     No.handL = (u, sw) => { push(); translate(.3 * u, -.3 * u); rotate(-.15); rockProp(u * 1.05, sw); pop(); };
     // the Chad: two pats on top of the rock (8.55–9.05), then the AK from his lap, up level and side-on (9.15–9.45)
     const Cb = { ...feel('happy', t), eyes: 'happy', boilKey: CH, seed: 2, view: 'q', flip: true, sit: 1, rawArms: true, aR: -1.32, bendR: .22 };
-    const rockTop = [rk[0] + 1.4 * U, rk[1] - 1.5 * U], pat = t > 8.55 && t < 9.05 ? Math.max(0, Math.sin((t - 8.55) * TAU * 2)) : 0;
+    const rockTop = [rk[0] + 1.8 * U, rk[1] - 1.1 * U],   // the pat lands on the rock's near shoulder: his arm reaches it without stretching across his mask
+      pat = t > 8.55 && t < 9.05 ? Math.max(0, Math.sin((t - 8.55) * TAU * 2)) : 0;
     if (t < 9.1) {
       const reach = ease(seg(t, 8.3, 8.55)) * (1 - ease(seg(t, 9.0, 9.1)));
       const tgt = [lerp(700 - 1.2 * U, rockTop[0], reach), lerp(1400 - 4.4 * U, rockTop[1] - 40 * pat, reach)];
       Object.assign(Cb, reachArm(U, Cb, 'L', ...toBody(700, 1400, U, Cb, tgt[0], tgt[1])));
-      geared(700, 1400, U, { ...Cb, noGun: true });
-      lapAK(700, 1400);
+      geared(700, 1400, U, { ...Cb, noGun: true, lap: lapAK });
     } else {
       const up = ease(seg(t, 9.15, 9.45));
       Object.assign(Cb, reachArm(U, Cb, 'L', ...toBody(700, 1400, U, Cb, lerp(700 + .25 * U, 700 - .6 * U, up), lerp(1400 - SEAT - .7 * U, 1400 - 5.8 * U, up))));
@@ -239,9 +250,12 @@
   // ---------- the night camp, seen from the front (2D, 3A–3C, 4A) ----------
   // Inland, behind the dunes. The Chad dozed off sitting at the left end of the log, hugging the empty can. His AK lies
   // along the log top, barrel toward him, stock toward the right end where the Naked sat.
-  const LOGX = 520, LOGY = 1420, LOGD = 112, CX = 220, CU = 48;
+  const LOGX = 520, LOGY = 1420, LOGD = 112, CX = 205, CU = 48;
   const chadHead = () => [CX + .25 * CU, LOGY - (10.85 - 2.05) * CU];
-  const AKO = [510, LOGY - LOGD - 8], GRIP = [522, LOGY - LOGD - 4];   // the gun's origin on the log, and its grip
+  // The gun's origin on the log, and its grip. A little smaller than in his hands (it's further back, on the log) and
+  // placed so its muzzle stops short of the sleeping Chad and its stock short of the Naked's knees (it ran through the
+  // Chad's hands and kilt, and its stock clipped the Naked).
+  const AKO = [532, LOGY - LOGD - 8], GRIP = [544, LOGY - LOGD - 4], AKU = CU * .85;
   function nightCamp(t, tod = 2, o = {}) {
     const dawn = tod < 1.5;
     rustSky(t, { tod, horizon: 1080, sun: dawn ? [900, 1060] : [860, 240], clouds: dawn });
@@ -255,18 +269,20 @@
     for (const [px, ps] of [[40, 1.1], [930, 1.25], [1040, .9]]) pineTree(px, 1090, ps, { tod });
     grassTufts(-100, 1180, 1440, t, 14, dawn ? '#6E7A50' : '#2A3A44');
   }
-  const logAK = () => { boilSeed('logak'); push(); translate(AKO[0], AKO[1]); scale(-1, 1); akProp(CU * .95, 2.3, 0); pop(); };
+  const logAK = () => { boilSeed('logak'); push(); translate(AKO[0], AKO[1]); scale(-1, 1); akProp(AKU, 2.3, 0); pop(); };
   const camLog = (tod = 2) => log(LOGX, LOGY, 700, LOGD, tod);
   function sleeper(t, o = {}) {
     const br = Math.sin((t - 12) * 2.6) * .5 + .5;   // breathing
     const C = { ...feel('sleepy', t, { emote: null }), ...CHAD_GEAR, eyes: 'happy', boilKey: CH, seed: 2, view: 'front', sit: 1, rot: .1, rawArms: true, sy: 1 + .015 * br, ...o };
     Object.assign(C, reachArm(CU, C, 'L', .15 * CU, -5.7 * CU + 2.05 * CU), reachArm(CU, C, 'R', -.35 * CU, -6.1 * CU + 2.05 * CU));
-    C.handL = (u, sw) => beanCan(u * .9, sw, { open: true, rot: -.3 });
+    C.handR = (u, sw) => beanCan(u * .9, sw, { open: true, rot: .25 });   // in the hand laid over the other, so the hugged can shows (in the under hand it clipped under the other forearm)
     if (o.flower) C.draw = (u, sw) => earFlower(u, 2.25, -11.35 + 2.05, .8, .5, 'gift');   // tucked behind his ear
     survivor(CX, LOGY, CU, C);
     return C;
   }
-  const snore = (t, s = 1) => { const [hx, hy] = chadHead(); emote('zzz', hx - 70, hy - 150, 34 * s, 1, t); sleepBubble(hx + 22, hy + 96, 1.5 * s, (t - 12) * .9); };   // from under the mask's flat bottom edge
+  // the wide shots' snore: just the Zzz (a sleep bubble under the mask's flat bottom edge read as a white ball stuck on
+  // his chest at this size; the close-up, 3B, keeps its big bubble)
+  const snore = (t, s = 1) => { const [hx, hy] = chadHead(); emote('zzz', hx - 70, hy - 150, 34 * s, 1, t); };
   const gunGlint = (t, t0) => { const g = t > t0 ? Math.max(0, Math.sin((t - t0) * 5)) : 0; if (g > .05) { const gx = AKO[0] - 20, gy = AKO[1] - 14; glow(gx, gy, 70, '#FFF2C4', g); boilSeed('akglint'); paint(starPts(gx, gy, 20 * g, .28, 4), { wash: '#FFFBEA', ink: null }); } };
   // 2D: he looks at the sleeping Chad, then at the AK on the log (a glint), and his eyes go sly. Push in.
   function s2d(t, lt) {
@@ -279,7 +295,7 @@
     logAK();
     const look = t < 12.9 ? { lookX: .9, lookY: .1 } : { lookX: .7, lookY: .9 };
     const N = emotions(t, [[12, 'neutral'], [13.35, 'mischief', { eyes: 'sly', mouth: 'smirk' }]]);
-    spawnling(790, LOGY, 48, { ...N, ...look, boilKey: NK, seed: 1, view: 'q', flip: true, sit: 1, prop: 'none', rawArms: true, aL: -1.15, bendL: .3, aR: -1.32, bendR: .3 });
+    spawnling(805, LOGY, 48, { ...N, ...look, boilKey: NK, seed: 1, view: 'q', flip: true, sit: 1, prop: 'none', rawArms: true, aL: -1.15, bendL: .3, aR: -1.32, bendR: .3 });
     gunGlint(t, 12.95);
     grade('#1A2348', 50);
     camEnd();
@@ -293,7 +309,9 @@
     const k = ease(seg(t, 14, 15.1)), nx = lerp(770, 640, k);
     const N = { ...feel('nervous', t, { emote: null }), eyes: 'look', lookX: .7, lookY: .8, boilKey: NK, seed: 1, view: 'q', flip: true, crouch: .35, walk: k < 1 ? (t - 14) * 1.4 : undefined, rot: -.12 * k, prop: 'none', rawArms: true, aL: -1.2, bendL: .4, farFront: true, openR: true };
     const hover = 128 - 18 * ease(seg(t, 15.1, 15.6)), tremble = t > 15.1 ? 5 * Math.sin(t * 40) : 0;   // fingertips stay ~40 px above the receiver
-    Object.assign(N, reachArm(48, N, 'R', ...toBody(nx, LOGY - 30, 48, N, GRIP[0] + 10 + tremble, GRIP[1] - hover)));
+    // the hand comes out toward the grip as he arrives (reaching for it the whole walk, the arm stretched into a long tube)
+    const R = reachArm(48, N, 'R', ...toBody(nx, LOGY - 30, 48, N, GRIP[0] + 10 + tremble, GRIP[1] - hover)), rk = ease(seg(t, 14.55, 15.1));
+    Object.assign(N, { aR: lerp(-1.2, R.aR, rk), bendR: lerp(.35, R.bendR, rk), armKR: lerp(1, R.armKR, rk) });
     spawnling(nx, LOGY - 30, 48, N);   // behind the log: the log and the gun are drawn in front of him
     camLog();
     sleeper(t);
@@ -356,7 +374,7 @@
       handL: (u, sw) => beanCan(u * .9, sw, { open: true, rot: -.3 }), draw: (u, sw) => earFlower(u, 2.25, -11.35 + 2.05, .36, .5, 'gift3d') });
     emote('zzz', 200, 1020, 16, 1, t);
     const k = seg(t, 19, 22), nx = lerp(460, 760, k), ph = (t - 19) * 1.7;
-    spawnling(nx, 1470, 46, { ...feel('happy', t, { emote: null }), boilKey: NK, seed: 1, view: 'q', walk: ph, dy: -.4 * Math.abs(Math.sin(ph * Math.PI)), rawArms: true, aL: -1.0 + .5 * Math.sin(ph * Math.PI), bendL: .3, aR: -1.2 - .3 * Math.sin(ph * Math.PI), bendR: .3 });
+    spawnling(nx, 1470, 46, { ...feel('happy', t, { emote: null }), boilKey: NK, seed: 1, view: 'q', walk: ph, dy: -.25 * Math.pow(Math.sin(ph * Math.PI), 2), rawArms: true, aL: -1.0 + .5 * Math.sin(ph * Math.PI), bendL: .3, aR: -1.2 - .3 * Math.sin(ph * Math.PI), bendR: .3 });
     emote('music', nx - 175, 1470 - 16.4 * 46, 24, 1, t);   // the notes float up-left, clear of his head
     grade('#F2A27A', 24); glow(930, 985, 380, '#FFC488', .5);
     camEnd();

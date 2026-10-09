@@ -494,7 +494,7 @@
       if (meet > .9) O.draw = (u, sw) => { boilSeed('interlace'); for (let f = 0; f < 4; f++) inkLine([[(-.42 + f * .28) * u, hy - .3 * u], [(-.3 + f * .28) * u, hy + .28 * u]], sw * .45, mixCol(SKIN.dk, PAL.ink, .5), 'inkfine', 0); if (cr > .2) for (const a of [-2.6, -1.6, -.5]) inkLine([[Math.cos(a) * .9 * u, hy + Math.sin(a) * .9 * u], [Math.cos(a) * 1.45 * u, hy + Math.sin(a) * 1.45 * u]], sw * .8, '#FFF6DA', 'ink', 0); };
     }
     naked(NX, G, O);
-    for (let i = 0; i < pats.length; i++) { const [sx, sy] = spots[i]; dust(NX + sx * U, G + sy * U, 26, t - pats[i], 'soot' + i); }
+    for (let i = 0; i < pats.length; i++) { const [sx, sy] = spots[i]; puff(NX + sx * U, G + sy * U, 22, t - pats[i], { col: '#E9E2D6', noInk: true, life: .28, key: 'soot' + i, rise: 1.4, n: 4 }); }   // quick, pale puffs that lift off and are gone (a slow translucent fade over his skin read as purple rings under the dusk grade)
     if (t < 14.2) smoke(NX, tipsY(G, O), 1.0, t - 5.62, 'z2', { op: 170 * (1 - seg(t, 13.6, 14.2)) });
     dusk();
     camEnd();
@@ -510,6 +510,10 @@
     set(t, { lock: 'error', digits: '1234' });
     const w = seg(t, 17.2, 17.55), O = { view: 'q', soot: .2, frizz: .25, hold: { L: 'rock' }, aL: -.3, bendL: 1.1, aR: -1.2, bendR: .3, lookX: .7 };
     Object.assign(O, t < 17.2 ? { eyes: 'narrow', mouth: 'grin' } : t < 17.42 ? { eyes: 'normal', mouth: 'grin' } : t < 17.6 ? { eyes: 'wide', mouth: 'wobble' } : { eyes: 'wide', mouth: 'frown' });
+    // the rock held up at his chest in both hands, the fists wrapped round it (hanging at his belly over the far fist, it
+    // floated in front of him)
+    Object.assign(O, reachArm(U, O, 'L', 1.75 * U, -6.1 * U), { handOver: true });
+    const [rx, ry] = handLocal(U, O, 'L'); Object.assign(O, reachArm(U, O, 'R', rx + .45 * U, ry + .45 * U));
     O.sy = 1 + .03 * w; O.dy = -.15 * w;
     naked(NA, G, O);
     const hc = headY(G, O);

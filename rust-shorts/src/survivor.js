@@ -16,7 +16,8 @@
 //          hairCol, beard ('full' | 'stubble' | null), briefs colour, gear (see GEAR below)
 //   hooks: handL(u, sw, info), handR(u, sw, info): called at each hand in an upright body-local frame (+x = forward);
 //          handOver: true draws the fist after the hook (wrapping a gun's grip);
-//          behind(u, sw, V), under(u, sw, V) (on the torso, under the arms), draw(u, sw, V) (on top), boilKey
+//          behind(u, sw, V), under(u, sw, V) (on the torso, under the arms), lap(u, sw, V) (over the body, gear and head,
+//          under the arms: a rifle across the lap), draw(u, sw, V) (on top), boilKey
 //   emote, emoteK, emoteAge as in clawd()
 // GEAR (o.gear): hoodie (+ hoodieCol), pants (+ pantsCol), boots, gloves (burlap, fingerless), hazmat, scientist (variant
 // key), mask, chest, kilt. Suit colours come from gear.js (HAZ, SCI, suitCols); this file draws the body under them:
@@ -381,6 +382,7 @@ function survivor(x, y, u, o = {}) {
   // ---------- neck and head (heads.js) ----------
   rs('head');
   survivorHead(u, sw, o, V, S, SB, gear, shY, drop, soot, rs);
+  if (o.lap) { rs('lap'); o.lap(u, sw, V); }   // a prop over the body and gear (a rifle across the lap), under the arms and hands
 
   if (o.farFront) for (const w of V.far) arm(w, true, true);   // over the body, under the near arm and what it holds
   for (const w of V.near) arm(w, false);
@@ -449,7 +451,9 @@ function reachArm(u, o, which, tx, ty, elbowDown = true) {
   const dx = (tx - sx) * sideSign, dy = -(ty - sy), D = Math.hypot(dx, dy), ak = clamp(D / (3.6 * u * .97), 1, 1.3);   // out of reach: the arm stretches (up to 30%)
   const L1 = 1.85 * u * ak, L2 = 1.75 * u * ak, d = clamp(D, .2 * u, (L1 + L2) * .999);
   const th = Math.atan2(dy, dx), phi = Math.acos(clamp((L1 * L1 + d * d - L2 * L2) / (2 * L1 * d), -1, 1));
-  const a = th + (elbowDown ? -phi : phi), ex = L1 * Math.cos(a), ey = L1 * Math.sin(a), a2 = Math.atan2(dy * d / (D || 1) - ey, dx * d / (D || 1) - ex);
+  // elbow down means below the shoulder-hand line in the picture: for a target across the body or behind the shoulder
+  // (dx < 0) that's the other solution, or a hand reaching across the chest gets its elbow cocked up over the shoulder
+  const a = th + ((elbowDown !== (dx < 0)) ? -phi : phi), ex = L1 * Math.cos(a), ey = L1 * Math.sin(a), a2 = Math.atan2(dy * d / (D || 1) - ey, dx * d / (D || 1) - ex);
   return which === 'L' ? { aL: a, bendL: a - a2, armKL: ak } : { aR: a, bendR: a - a2, armKR: ak };
 }
 
