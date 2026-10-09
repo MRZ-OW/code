@@ -40,7 +40,7 @@ function transitions(list) {
 const transDur = e => clamp(e.o.dur ?? TRANS_FX[e.name].dur, .4, .9);
 // o.in: the share of dur spent covering, before the cut (default .5). A smaller one covers fast, so a gag just before
 // the cut stays on screen; the reveal after the cut takes the rest of dur.
-const transIn = e => clamp(e.o.in ?? .5, .2, .8);
+const transIn = e => clamp(e.o.in ?? TRANS_FX[e.name].in ?? .5, .2, .8);   // the episode's, else the transition's own default
 const transSpan = e => { const d = transDur(e), k = transIn(e); return [e.t - d * k, e.t + d * (1 - k)]; };
 const transActive = (t, list = TRANS) => list.filter(e => { const [a, b] = transSpan(e); return t > a && t < b; });
 // the transition's own progress p (0..1, .5 = the cut) at time t
@@ -53,14 +53,14 @@ function drawTransitions(t, list = TRANS) {
   for (const e of act) {
     const d = transDur(e), p = transP(e, t);
     push(); if (e.o.flip) { translate(W, 0); scale(-1, 1); }
-    TRANS_FX[e.name].draw(p, d, e.o, t);
+    TRANS_FX[e.name].draw(p, d, { ...e.o, in: transIn(e) }, t);
     pop();
   }
 }
 // The screen shake of the running transitions at t: [dx, dy] px, or null.
 function transitionShake(t, list = TRANS) {
   let a = 0;
-  for (const e of transActive(t, list)) { const fx = TRANS_FX[e.name]; if (!fx.shake) continue; const d = transDur(e); a += fx.shake(transP(e, t), d, e.o) * (e.o.shake ?? 1); }
+  for (const e of transActive(t, list)) { const fx = TRANS_FX[e.name]; if (!fx.shake) continue; const d = transDur(e); a += fx.shake(transP(e, t), d, { ...e.o, in: transIn(e) }) * (e.o.shake ?? 1); }
   return a > .5 ? shakeXY(t, a) : null;
 }
 // Hook for drawWorld: shifts (and slightly over-scales, so no paper edge shows) everything drawn until the matching pop().
@@ -69,6 +69,24 @@ function transShakeBegin(t, list = TRANS) {
   const m = Math.max(Math.abs(s[0]), Math.abs(s[1]));
   push(); translate(W / 2 + s[0], H / 2 + s[1]); scale(1 + 2.4 * m / W); translate(-W / 2, -H / 2);
   return true;
+}
+// Inside a transition p is piecewise linear in time (.5 = the cut; o.in, resolved, is the share of dur before it).
+// trS: seconds from the cut at p; trA: seconds from p0 to p. Time anything that must hold for whole frames with these.
+const trS = (p, d, o) => (p - .5) * 2 * d * (p < .5 ? o.in ?? .5 : 1 - (o.in ?? .5));
+const trA = (p, p0, d, o) => trS(p, d, o) - trS(p0, d, o);
+// p at s seconds from the cut (the inverse of trS)
+const trPs = (s, d, o) => .5 + s / (2 * d * (s < 0 ? o.in ?? .5 : 1 - (o.in ?? .5)));
+// An ink polyline in short pieces: p5.brush drops a stroke once it spans more than about 1100 px.
+function trSegLine(P, sw, col, br = 'inkfine', maxLen = 450) {
+  let run = [P[0]], len = 0;
+  for (let i = 1; i < P.length; i++) {
+    const a = P[i - 1], b = P[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(l / maxLen));
+    for (let k = 1; k <= n; k++) {
+      const q = [lerp(a[0], b[0], k / n), lerp(a[1], b[1], k / n)]; run.push(q); len += l / n;
+      if (len >= maxLen) { inkLine(run, sw, col, br, 0); run = [q]; len = 0; }
+    }
+  }
+  if (run.length > 1) inkLine(run, sw, col, br, 0);
 }
 // a closed ink loop (inkLine through the points and back to the first)
 const trLoop = (P, sw, col, br = 'ink') => inkLine([...P, P[0]], sw, col, br, .5);
@@ -99,59 +117,69 @@ function trPuffs(P, op, rim = PAL.ink, rimW = 4, key = 'puffs', o = {}) {
 function trRockAt(p) {
   const rot = -2.6 + 5.4 * p;
   if (p <= .5) {
-    const k = clamp(p / .45), u = p < .45 ? 60 * Math.pow(1500 / 60, k) : lerp(1500, 1650, seg(p, .45, .5));
+    const k = clamp(p / .42), u = p < .42 ? 60 * Math.pow(1500 / 60, k) : lerp(1500, 1650, seg(p, .42, .5));
     const e = easeOut(k);
     return { x: lerp(-170, 540, e), y: lerp(1850, 960, e) - 260 * Math.sin(Math.PI * e) * (1 - e), u, rot };
   }
   const q = seg(p, .5, 1), e = Math.pow(q, 1.25);
   return { x: lerp(540, 1430, e), y: lerp(960, -330, e), u: 1650 * Math.pow(95 / 1650, e), rot };
 }
-// The rock, drawn like rockProp (rustcast.js) but with its curves smoothed here: p5.brush drops curved shapes (curv > 0)
-// once they're more than about 1100 px across, and this one gets to 4000.
+// The rock (reference: rock.png, rockProp in rustcast.js): an angular chunk with flat broken faces and the red smear on its
+// lower striking edge. Straight edges with slightly rounded corners, flat facets in three values, and every line drawn
+// in short pieces, so it stays readable (and keeps its outline) from a pebble to 4000 px across.
 const trClosed = (P, n = 5) => { const L = P.length, C = through([P[L - 1], ...P, P[0], P[1]], n); return C.slice(n, n * (L + 1)); };
-const TR_ROCK = [[-.25, -1.05], [.85, -1.3], [1.7, -.75], [1.85, .25], [1.15, .95], [.1, .9], [-.45, .2]];
+function trFacet(P, r = .12) {   // straight edges, each corner rounded over r of its edges with 3 points
+  const out = [], n = P.length;
+  for (let i = 0; i < n; i++) {
+    const a = P[(i - 1 + n) % n], b = P[i], c = P[(i + 1) % n], p0 = [lerp(b[0], a[0], r), lerp(b[1], a[1], r)], p2 = [lerp(b[0], c[0], r), lerp(b[1], c[1], r)];
+    for (const t of [0, .5, 1]) { const v = 1 - t; out.push([v * v * p0[0] + 2 * v * t * b[0] + t * t * p2[0], v * v * p0[1] + 2 * v * t * b[1] + t * t * p2[1]]); }
+  }
+  return out;
+}
+const TR_ROCK = [[-.3, -1.0], [.35, -1.32], [.95, -1.28], [1.7, -.78], [1.88, .2], [1.15, .95], [.15, .92], [-.45, .25], [-.48, -.45]];
 function trRock(x, y, u, rot) {
-  const sw = clamp(u / 34, 1, 5.5), R = trClosed(U2(u, TR_ROCK));
+  const sw = clamp(u / 34, 1, 5.5), R = trFacet(U2(u, TR_ROCK));
   push(); translate(x, y); rotate(rot); translate(-.7 * u, .17 * u);
   boilSeed('tr-rock');
-  paint(R, { wash: '#E3D3B6', ink: null });
-  paint(U2(u, [[.95, -.2], [1.75, -.45], [1.8, .25], [1.15, .9], [.7, .55]]), { wash: '#C9B391', ink: null });          // the shaded side
+  paint(R, { wash: '#DCCAA8', ink: null });                                                                                   // the front face
+  paint(trFacet(U2(u, [[-.48, -.45], [-.3, -1.0], [.35, -1.32], [.95, -1.28], [1.7, -.78], [1.12, -.5], [.3, -.42]]), .08), { wash: '#EFE4CC', ink: null });   // the lit top facet
+  paint(trFacet(U2(u, [[1.7, -.78], [1.88, .2], [1.15, .95], [.85, .3], [1.12, -.5]]), .08), { wash: '#C2AB88', ink: null });   // the shaded side facet
   // stone mottling and pits, so a frame-filling rock still reads as stone (kept well inside the outline)
   for (let i = 0; i < 7; i++) {
     const a = i * 2.4, d = .2 + .35 * hash(i + 4), mx = .7 + Math.cos(a) * d, my = -.2 + Math.sin(a) * d * .8;
     boilSeed('tr-rockm' + i);
-    paint(ellPts(mx * u, my * u, (.1 + .12 * hash(i)) * u, (.07 + .08 * hash(i + 2)) * u, 12, u * .006, a), { wash: i % 3 ? '#CDB894' : '#B49C78', washOp: 70, ink: null });
+    paint(ellPts(mx * u, my * u, (.1 + .12 * hash(i)) * u, (.07 + .08 * hash(i + 2)) * u, 12, u * .006, a), { wash: i % 3 ? '#CDB894' : '#B49C78', washOp: 60, ink: null });
   }
   for (let i = 0; i < 5; i++) { const px = .3 + .9 * hash(i + 20), py = -.75 + .9 * hash(i + 30); boilSeed('tr-rockp' + i); paint(ellPts(px * u, py * u, .025 * u, .018 * u, 8), { wash: '#8E7A5E', washOp: 150, ink: null }); }
   boilSeed('tr-rocks');
-  paint(trClosed(U2(u, [[-.4, .25], [-.1, .52], [.35, .78], [.9, .86], [1.15, .82], [.8, .6], [.3, .5], [-.05, .3]])), { wash: '#A8322A', washOp: 230, ink: null });   // the red smear on the striking edge
-  paint(U2(u, [[.2, .62], [.5, .66], [.42, .72]]), { wash: '#7E2420', ink: null });
-  paint(R, { ink: PAL.ink, sw: sw * .7 });
-  if (u < 900) {   // creases (up close they'd read as stray hairs)
-    inkLine(through(U2(u, [[-.05, -.62], [.35, -.42], [.62, -.66]]), 5), sw * .38, '#8E7A5E', 'inkfine', 0);
-    inkLine(U2(u, [[1.2, -.95], [1.45, -.6]]), sw * .3, '#8E7A5E', 'inkfine', 0);
-  }
+  paint(trClosed(U2(u, [[-.4, .25], [-.05, .55], [.3, .8], [.9, .88], [1.15, .86], [.8, .62], [.3, .52], [-.05, .32]])), { wash: '#A8322A', washOp: 230, ink: null });   // the red smear on the striking edge
+  paint(U2(u, [[.2, .66], [.5, .7], [.42, .76]]), { wash: '#7E2420', ink: null });
+  boilSeed('tr-rocke');
+  const fw = clamp(u / 260, .7, 2.6);   // the facet ridges: fine ink
+  trSegLine(U2(u, [[-.48, -.45], [.3, -.42], [1.12, -.5], [1.7, -.78]]), fw, '#7E6A4E');
+  trSegLine(U2(u, [[1.12, -.5], [.85, .3], [1.15, .95]]), fw, '#7E6A4E');
+  trSegLine([...R, R[0]], sw * .7, PAL.ink, 'ink');
   pop();
 }
 TRANS_FX.rockSpin = {
   dur: .7,
-  draw(p, d) {
+  draw(p, d, o) {
     const S = trRockAt(p), post = p > .5;
-    // the whoosh: a pale smear back along the path, and dry-brush streaks
-    const C = [[S.x, S.y]], wd = [];
+    // the whoosh: a pale smear back along the path, as wide as the rock, and (once it's big) dry-brush streaks
+    const C = [[S.x, S.y]];
     for (let j = 1; j <= 6; j++) { const pj = p - j * .032; if (pj < 0 || (post && pj < .5 - .001)) break; const Q = trRockAt(pj); C.push([Q.x, Q.y]); }
     if (C.length > 2) {
-      const w0 = S.u * 1.9, fade = post ? 1 - seg(p, .5, .7) : 1;
+      const w0 = S.u * 2.4, fade = post ? 1 - seg(p, .5, .7) : 1;
       boilSeed('tr-whoosh');
-      paint(ribbon(C, w0, w0 * .15), { wash: '#F3E7CC', washOp: 140 * fade, ink: null });
-      if (fade > .3) for (const k of [-.32, 0, .3]) {
+      paint(ribbon(C, w0, w0 * .35), { wash: '#F3E7CC', washOp: 140 * fade, ink: null });
+      if (fade > .3 && S.u > 300) for (const k of [-.32, 0, .3]) {
         const L = C.map(([cx, cy], i) => { const a = C[Math.min(i + 1, C.length - 1)], b = C[Math.max(i - 1, 0)], dx = a[0] - b[0], dy = a[1] - b[1], l = Math.hypot(dx, dy) || 1; return [cx - dy / l * k * w0 * (1 - i / C.length), cy + dx / l * k * w0 * (1 - i / C.length)]; });
         inkLine(L, clamp(S.u / 60, 1, 4), '#BFAE8C', 'dry', .5);
       }
     }
     trRock(S.x, S.y, S.u, S.rot);
     // THOCK: impact ticks round the frame as it hits the glass
-    const a = (p - .5) * d;
+    const a = trS(p, d, o);
     if (a >= 0 && a < .12) {
       const k = a / .12;
       for (let i = 0; i < 10; i++) {
@@ -161,7 +189,7 @@ TRANS_FX.rockSpin = {
       }
     }
   },
-  shake(p, d) { const a = (p - .5) * d; return a >= 0 && a < .09 ? 10 * (1 - a / .09) : 0; },
+  shake(p, d, o) { const a = trS(p, d, o); return a >= 0 && a < .09 ? 10 * (1 - a / .09) : 0; },
 };
 
 // ---------- 2. doorSlam ----------
@@ -173,15 +201,15 @@ function trDoorPt(th, u, v, back = 0) {
   const s = u * TR_DOOR.w, X = TR_DOOR.hx + s * Math.cos(th) - Math.sin(th) * back, Z = TR_DOOR.D + s * Math.sin(th) + Math.cos(th) * back, k = TR_DOOR.D / Z;
   return [W / 2 + X * k, H / 2 + (v - .5) * TR_DOOR.h * k];
 }
-function trDoorAngle(p, d) {
+function trDoorAngle(p, d, o) {
   if (p < .34) return -1.32 * (1 - Math.pow(p / .34, 1.5));                                       // whips in from the lens side
-  if (p < .62) { const a = (p - .34) * d; return -.06 * Math.exp(-a * 18) * Math.abs(Math.sin(a * 38)); }   // the slam's rebound
+  if (p < .62) { const a = trA(p, .34, d, o); return -.06 * Math.exp(-a * 18) * Math.abs(Math.sin(a * 38)); }   // the slam's rebound
   return 2.05 * Math.pow(seg(p, .62, 1), 1.4);                                                     // swings away into the scene
 }
 TRANS_FX.doorSlam = {
   dur: .8,
-  draw(p, d) {
-    const th = trDoorAngle(p, d), M = (u, v) => trDoorPt(th, u, v);
+  draw(p, d, o) {
+    const th = trDoorAngle(p, d, o), M = (u, v) => trDoorPt(th, u, v);
     const A = M(0, .5), B = M(1, .5); if (B[0] < A[0] + 3 || Math.max(A[0], B[0]) < -20) return;   // edge-on, from behind, or gone
     const Q = (u0, v0, u1, v1) => [M(u0, v0), M((u0 + u1) / 2, v0), M(u1, v0), M(u1, (v0 + v1) / 2), M(u1, v1), M((u0 + u1) / 2, v1), M(u0, v1), M(u0, (v0 + v1) / 2)];
     const sc = TR_DOOR.D / (TR_DOOR.D + TR_DOOR.w * .5 * Math.sin(th));   // the door's middle scale, for line weights
@@ -219,7 +247,7 @@ TRANS_FX.doorSlam = {
       paint(ellPts(c[0] - rx * .3, c[1] - ry * .35, rx * .35, ry * .3, 6), { wash: '#D2B394', washOp: 170, ink: null });
     });
     // CLANG: rings off the steel, a glint on the latch
-    const a = (p - .34) * d;
+    const a = trA(p, .34, d, o);
     if (a >= 0 && a < .24) {
       const k = a / .24, c = M(.5, .5), L = M(.8825, .5);
       for (let i = 0; i < 3; i++) { const r = (120 + 1000 * easeOut(k)) * (1 - i * .24); boilSeed('tr-clang' + i); trLoop(ellPts(c[0], c[1], r * .8, r, 36), 3.4 * (1 - k), '#EDE3CF'); }
@@ -227,13 +255,13 @@ TRANS_FX.doorSlam = {
       glow(L[0], L[1], 160, '#FFF1C8', .8 * (1 - k));
     }
   },
-  shake(p, d) { const a = (p - .34) * d; return a >= 0 && a < .13 ? 18 * (1 - a / .13) : 0; },
+  shake(p, d, o) { const a = trA(p, .34, d, o); return a >= 0 && a < .13 ? 18 * (1 - a / .13) : 0; },
 };
 
 // ---------- 3. garageDoor ----------
 // Reference: wall.frame.garagedoor: off-white corrugated slats with patches of old paint, a rusty roll housing on top.
 function trGarageBottom(p) {
-  const top = 70, bot = H + 50;
+  const top = 70, bot = H + 12;   // at rest its bottom rail sits along the frame's bottom edge
   if (p < .28) return lerp(top, bot, Math.pow(p / .28, 2));                // falls, gathering speed
   if (p < .38) return bot - 75 * Math.sin(Math.PI * (p - .28) / .1);       // one small bounce
   if (p < .6) return bot;
@@ -241,7 +269,7 @@ function trGarageBottom(p) {
 }
 TRANS_FX.garageDoor = {
   dur: .7,
-  draw(p, d) {
+  draw(p, d, o) {
     const hy = -150 * (1 - easeOut(seg(p, 0, .08))) - 150 * easeIn(seg(p, .93, 1));   // the housing slides in and out at the top
     const yb = trGarageBottom(p) + hy, top = hy + 90, sh = 104;
     if (yb > top + 4) {
@@ -249,7 +277,7 @@ TRANS_FX.garageDoor = {
       paint(rectPts(-40, top, W + 80, yb - top), { wash: '#D7D1C1', ink: null });
       const n = Math.ceil((yb - top) / sh) + 1;
       for (let i = 0; i < n; i++) {
-        const y1 = yb - 58 - i * sh, y0 = y1 - sh; if (y1 < top) break;
+        const y1 = yb - 76 - i * sh, y0 = y1 - sh; if (y1 < top) break;
         const yA = Math.max(y0, top), c = ['#DCD7C8', '#D2CCBA', '#E3DFD2', '#CFC8B4'][i % 4];
         boilSeed('tr-gd' + i);
         paint(rectPts(-40, yA, W + 80, y1 - yA), { wash: c, ink: null });
@@ -265,12 +293,14 @@ TRANS_FX.garageDoor = {
         for (const ex of [-40, W - 30]) { const rw = 50 + 40 * hash(i + ex); paint([[ex, Math.max(top, y0 + 4)], [ex + rw, Math.max(top, y0 + 4)], [ex + rw * .6, y1 - 6], [ex, y1 - 6]], { wash: '#8E5A38', washOp: 100, ink: null }); }   // rusty edges
       }
       boilSeed('tr-gd-bar');   // the bottom rail and its handle
-      paint(rectPts(-40, yb - 58, W + 80, 58), { wash: '#6E675E', ink: PAL.ink, sw: 2 });
-      paint(rectPts(-40, yb - 14, W + 80, 14), { wash: '#2E2A28', ink: null });
-      paint(rrPts(470, yb - 46, 140, 26, 10), { wash: '#3A3632', ink: PAL.ink, sw: 1.2 });
-      // dust knocked out at the bottom on impact
-      const a = (p - .28) * d;
-      if (a > 0 && a < .3) for (let i = 0; i < 6; i++) puff(60 + i * 192, Math.min(yb, H) - 20, 110, a, { life: .3, col: '#E2D8C2', key: 'tr-gd' + i, rot: i, rise: .8, noInk: true });
+      paint(rectPts(-40, yb - 76, W + 80, 76), { wash: '#6E675E', ink: PAL.ink, sw: 2.2 });
+      paint(rectPts(-40, yb - 76, W + 80, 14), { wash: '#8E877C', washOp: 180, ink: null });
+      paint(rectPts(-40, yb - 24, W + 80, 24), { wash: '#2E2A28', ink: null });
+      paint(rrPts(450, yb - 66, 180, 34, 12), { wash: '#3A3632', ink: PAL.ink, sw: 1.4 });
+      paint(rrPts(472, yb - 58, 136, 14, 6), { wash: '#8A847A', ink: null });
+      // dust knocked out from under the rail on impact, spreading along the floor
+      const a = trA(p, .28, d, o);
+      if (a > 0 && a < .3) for (let i = 0; i < 7; i++) puff(-20 + i * 186, Math.min(yb, H + 6) - 4, 95, a, { life: .3, col: '#D6C8A8', key: 'tr-gd' + i, rot: i, rise: .45, noInk: true });
     }
     // the rusty roll housing
     if (hy > -148) {
@@ -281,7 +311,7 @@ TRANS_FX.garageDoor = {
       for (let i = 0; i < 5; i++) { boilSeed('tr-gd-hs' + i); paint(ellPts(80 + i * 230 + 60 * hash(i), hy + 40 + 30 * hash(i + 3), 60, 16, 10, 2), { wash: '#6E3A26', washOp: 120, ink: null }); }
     }
   },
-  shake(p, d) { const a = (p - .28) * d; return a >= 0 && a < .09 ? 9 * (1 - a / .09) : 0; },
+  shake(p, d, o) { const a = trA(p, .28, d, o); return a >= 0 && a < .09 ? 9 * (1 - a / .09) : 0; },
 };
 
 // ---------- 4. c4Blast ----------
