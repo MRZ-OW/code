@@ -126,7 +126,7 @@ function survivor(x, y, u, o = {}) {
   const heavy = gear.scientist === 'heavy', legW = heavy ? [1.75 * u, 1.4 * u] : [1.45 * u, 1.15 * u];   // trouser legs (the heavy suit is padded)
   const legC = mixCol(SB.col, SB.dk, .15), farSkin = mixCol(SB.col, SB.dk, .6);   // far limbs: the same skin, in shade
 
-  rs('shadow');
+  staticSeed(`surv ${id} shadow`);   // the soft shadow keeps its shape (a re-rolled watercolour bleed shimmers under the feet)
   if (!o.noShadow) { const f = 1 - Math.min(.5, Math.abs(o.dy || 0) * .05); paint(ellPts(x, y + u * .12, u * 2.9 * f, u * .55 * f, 20), { fill: PAL.ink, fillOp: 90, bleed: .25, tex: .3, border: .1, ink: null }); }
   if (sm > .05) smearTrail(x, y + dy, u * .8, { R: 3, L: -3 }, sm, o.smearDir ?? (o.flip ? -1 : 1), SB.col);
 
@@ -160,7 +160,9 @@ function survivor(x, y, u, o = {}) {
     paint(P(pose.prof ? BOOT_SIDE : BOOT_FRONT), { wash: bc, ink: PAL.ink, sw: sw * .7, curv: .25 });
     const Q = svQuad(low, top, wSh, wTop);
     paint(Q, { wash: bc, ink: null });
-    inkLine([Q[1], Q[0]], sw * .7, PAL.ink, 'ink', 0); inkLine([Q[2], Q[3]], sw * .7, PAL.ink, 'ink', 0);
+    // the shaft's sides start where the boot's own outline ends (not down inside the boot, where their ends would show)
+    const Qs = svQuad([ax - sd[0] * .42 * u, ay - sd[1] * .42 * u], top, wSh, wTop);
+    inkLine([Qs[1], Qs[0]], sw * .7, PAL.ink, 'ink', 0); inkLine([Qs[2], Qs[3]], sw * .7, PAL.ink, 'ink', 0);
     const sole = pose.prof ? BOOT_SIDE_SOLE.map(([a, b]) => kind === 'haz' ? [a < 0 ? a - .06 : a + .06, b < .3 ? b - .03 : b + .02] : [a, b]) : BOOT_FRONT_SOLE.map(([a, b]) => [a * (kind === 'haz' ? 1.08 : 1), b]);
     paint(P(sole), { wash: soleC, ink: PAL.ink, sw: sw * .55 });
     const fwd = V.side ? [sd[1], -sd[0]] : [0, 0], at = (k, off) => [ax - sd[0] * k * H + fwd[0] * off, ay - sd[1] * k * H + fwd[1] * off], nrm = [-sd[1], sd[0]];
@@ -240,49 +242,23 @@ function survivor(x, y, u, o = {}) {
     const d1 = [sideSign * Math.cos(a), -Math.sin(a)], a2 = a - b, d2 = [sideSign * Math.cos(a2), -Math.sin(a2)], ak = (which === 'L' ? o.armKL : o.armKR) ?? 1;
     const ex = shx + d1[0] * 1.85 * u * ak, ey = shy + d1[1] * 1.85 * u * ak, hx = ex + d2[0] * 1.75 * u * ak, hy = ey + d2[1] * 1.75 * u * ak;
     const top = gear.hoodie || suit, col0 = top ? (suit || (gear.hoodieCol || '#A8382E')) : SB.col, shade = far && !inFront;
-    // an arm over the body (a far arm reaching across it, a 3/4 arm raised across the chest, a front arm folded in) is a
-    // step darker than the chest and fully outlined, so it doesn't merge with it
-    // (3/4 and profile: per segment, by how far the upper arm and the forearm are raised)
-    // An arm over the body (a far arm reaching across it, a 3/4 arm raised or reaching across the chest, a front arm folded
-    // in) is a step darker than the chest and fully outlined, so it doesn't merge with it. In 3/4 and profile the soft back
-    // edge is kept only while the arm hangs (shoulder angle below about -1.0); judged per segment (upper arm, forearm).
-    const overU = shade ? 0 : inFront ? 1 : V.side ? clamp((a + 1.0) / .15) : clamp((2.1 * u * V.torsoW * .7 - sideSign * hx) / (.8 * u));
-    const overF = shade ? 0 : inFront ? 1 : V.side ? clamp((a2 + 1.0) / .15) : overU, over = Math.max(overU, overF);
-    const col = shade ? (top ? svShade(col0, .14) : farSkin) : mixCol(col0, top ? svShade(col0, .12) : mixCol(SB.col, SB.dk, .45), over);
-    const w0 = (heavy ? 1.45 : top ? 1.15 : .95) * u, w1 = (heavy ? 1.2 : top ? .95 : .78) * u, [SA, SBd] = limbSides([shx, shy], [ex, ey], [hx, hy], w0, w1), RB = SA.concat([...SBd].reverse());
-    if (shade) paint(RB, { wash: col, ink: PAL.ink, sw: sw * .8 });
-    else {   // a near arm grows out of a round shoulder: no outline across the joint
-      const r = w0 * .55, exA = Math.atan2(d1[1], d1[0]);
-      let a0 = V.side ? -Math.PI - .3 : -Math.PI / 2 - .35 * sideSign, a1 = V.side ? .3 : (sideSign > 0 ? .35 : -Math.PI - .35);
-      if (V.side && overU > .5) { a0 = exA + 1.2; a1 = exA + TAU - 1.2; }   // raised over the body: the shoulder is outlined all round but where the arm leaves it
-      paint(ellPts(shx, shy, r, r, 16), { wash: col, ink: null });
-      inkLine(Array.from({ length: 13 }, (_, i) => { const t = lerp(a0, a1, i / 12); return [shx + Math.cos(t) * r, shy + Math.sin(t) * r]; }), sw * .8, PAL.ink, 'ink', 0);   // the shoulder's outer edge
-      const out = P => P.filter(p => Math.hypot(p[0] - shx, p[1] - shy) > w0 * .5);
-      if (over > .5 && Math.abs(b) > 1.6) {
-        // folded tight over the body: the upper arm, then the forearm laid over it, so the inner crease under the forearm
-        // is hidden (no chevron on the chest)
-        const wm = (w0 + w1) / 2, UA = svQuad([shx, shy], [ex, ey], w0, wm), FA = svQuad([ex, ey], [hx, hy], wm, w1);
-        paint(UA, { wash: col, ink: null }); paint(ellPts(ex, ey, wm / 2, wm / 2, 14), { wash: col, ink: null });
-        // the inner crease (the two edges facing each other) is left un-inked, so no chevron on the chest; the darker shade
-        // separates the fold from the chest
-        const inU = (hx - ex) * (UA[1][0] - ex) + (hy - ey) * (UA[1][1] - ey) > 0 ? 0 : 1, inF = (shx - ex) * (FA[0][0] - ex) + (shy - ey) * (FA[0][1] - ey) > 0 ? 0 : 1;
-        const crease = () => [];
-        [[UA[0], UA[1]], [UA[3], UA[2]]].forEach((E, j) => { let P = out(densify(E, 10)); if (j === inU) P = crease(P); if (P.length > 1) inkLine(P, sw * .8, PAL.ink, 'ink', 0); });
-        inkLine(Array.from({ length: 9 }, (_, i) => { const t = exA - Math.PI / 2 + Math.PI * i / 8; return [ex + Math.cos(t) * wm / 2, ey + Math.sin(t) * wm / 2]; }), sw * .8, PAL.ink, 'ink', 0);   // the elbow
-        paint(FA, { wash: col, ink: null });
-        [[FA[0], FA[1]], [FA[3], FA[2]]].forEach((E, j) => { let P = densify(E, 10); if (j === inF) P = crease(P); if (P.length > 1) inkLine(P, sw * .8, PAL.ink, 'ink', 0); });
-      } else {
-        paint(RB, { wash: col, ink: null });
-        const sideA = out(densify(SA)), sideB = out(densify(SBd).reverse()), meanX = P => P.reduce((a, p) => a + p[0], 0) / (P.length || 1);
-        const backIsA = V.side && meanX(sideA) < meanX(sideB), softC = top ? svShade(col0, .3) : mixCol(SB.col, SB.dk, .75);   // the edge toward his back: the sleeve's (or skin's) own shade, full ink where the arm lies over the body
-        const edge = (P, soft) => {
-          if (!soft) { inkLine(P, sw * .8, PAL.ink, 'ink', 0); return; }
-          let i = 0, dm = Infinity; P.forEach((p, j) => { const dd = Math.hypot(p[0] - ex, p[1] - ey); if (dd < dm) { dm = dd; i = j; } });   // split at the elbow
-          for (const [Q, k] of [[P.slice(0, i + 1), overU], [P.slice(i), overF]]) if (Q.length > 1) inkLine(Q, sw * lerp(.4, .8, k), mixCol(softC, PAL.ink, k), 'ink', 0);
-        };
-        edge(sideA, backIsA); edge(sideB, V.side && !backIsA);
-      }
-    }
+    // An arm over the body (a far arm reaching across it, a 3/4 arm raised or swung forward across the chest, a front arm
+    // folded in) is a step darker than the chest, so it doesn't merge with it. In 3/4 and profile that's judged per
+    // segment, by how far it's raised and how far forward of the shoulder it reaches (a hanging arm stays the body's own colour).
+    const fwdU = V.side ? clamp(((ex - shx) - .6 * u) / (.5 * u)) : 0, fwdF = V.side ? clamp(((hx - shx) - 1.0 * u) / (.6 * u)) : 0;
+    const overU = shade ? 0 : inFront ? 1 : V.side ? Math.max(clamp((a + 1.0) / .15), fwdU) : clamp((2.1 * u * V.torsoW * .7 - sideSign * hx) / (.8 * u));
+    const overF = shade ? 0 : inFront ? 1 : V.side ? Math.max(clamp((a2 + 1.0) / .15), fwdF) : overU, over = Math.max(overU, overF);
+    const col = shade ? (top ? svShade(col0, .14) : farSkin) : mixCol(col0, top ? svShade(col0, .12) : mixCol(SB.col, SB.dk, .38), over);
+    const w0 = (heavy ? 1.45 : top ? 1.15 : .95) * u, w1 = (heavy ? 1.2 : top ? .95 : .78) * u;
+    // Every arm is ONE closed silhouette, inked as one stroke: a round shoulder cap, the two sides (a round elbow outside,
+    // a crease inside) and the wrist (under the hand), so no separately inked caps, arcs or side lines overlap inside it.
+    // Its stroke starts and ends at the wrist, under the fist. Folded tight (the forearm back over the upper arm), the
+    // upper arm is drawn first as its own closed shape with a round elbow, and the forearm laid over it hides that end.
+    if (!shade && over > .5 && Math.abs(b) > 1.6) {
+      const wm = (w0 + w1) / 2, mid = (P, Q) => [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2];
+      paint(limbLoop([shx, shy], mid([shx, shy], [ex, ey]), [ex, ey], w0, wm, true), { wash: col, ink: PAL.ink, sw: sw * .8 });
+      paint(limbLoop([ex, ey], mid([ex, ey], [hx, hy]), [hx, hy], wm, w1), { wash: col, ink: PAL.ink, sw: sw * .8 });
+    } else paint(limbLoop([shx, shy], [ex, ey], [hx, hy], w0, w1), { wash: col, ink: PAL.ink, sw: sw * .8 });
     if (gear.hazmat) {   // a baggy fold at the elbow
       const n = [-d1[1], d1[0]], fc = svShade(col, .28), c = [ex - d1[0] * .3 * u, ey - d1[1] * .3 * u];
       inkLine([[c[0] - n[0] * .4 * u, c[1] - n[1] * .4 * u], [c[0] + d1[0] * .1 * u, c[1] + d1[1] * .1 * u], [c[0] + n[0] * .35 * u, c[1] + n[1] * .35 * u]], sw * .45, fc, 'inkfine', .5);

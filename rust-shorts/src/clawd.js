@@ -546,42 +546,47 @@ function heartPts(cx, cy, r, n = 22) {
 }
 
 // ---------- emotions ----------
-// Each emotion is a face AND a way of moving. body(t) returns pose offsets for clawd(), and every one is alive: it
-// moves on its own, at its own energy, locked to the beat (PROJECT.bpm). take = how big the reaction is when Clawd
-// switches INTO this emotion. fade = the emote is a one-off that fades out instead of staying.
+// Each emotion is a face AND a way of moving. body(t) returns pose offsets for clawd() and survivor(), and every one is
+// alive, but calmly: whole-body motion (dy, sq, rot, dx) is slow and smooth, a breath (about .4 Hz) or a slow sway of a
+// few px, never a bounce on every beat or a squash that snaps back each beat (on the human rig those read as the body
+// hopping and jittering). Only the arms (clawd units; a survivor posed with rawArms ignores them) gesture faster. Fear
+// and anger shiver, but small and at ~7 Hz so it reads at 24 fps instead of aliasing into noise. take = how big the
+// reaction is when the character switches INTO this emotion. fade = the emote is a one-off that fades out.
 const _b = t => { const bp = bpOf(t), s1 = Math.sin(bp * Math.PI); return { bp, s1, ab: Math.abs(s1), hit: pulse(t), s2: Math.sin(bp * TAU), f: frac(bp) }; };
+const _br = (t, f = .4, ph = 0) => Math.sin((t * f + ph) * TAU);   // a breath: smooth, slow
+const _up = (t, f = .4, ph = 0) => .5 - .5 * Math.cos((t * f + ph) * TAU);   // 0..1, smooth at both ends
 const EMO = {
-  neutral:    { eyes: 'normal', take: .3, body: t => { const b = _b(t); return { dy: -.25 * b.ab, sq: .03 * b.hit, aL: .15 + .05 * b.s1, aR: .15 - .05 * b.s1 }; } },
-  happy:      { eyes: 'happy', mouth: 'smile', blush: .3, take: .6, body: t => { const b = _b(t); return { dy: -1.2 * b.ab, sq: .1 * b.hit, aL: .4 + .4 * b.s1, aR: .4 - .4 * b.s1 }; } },
-  excited:    { eyes: 'wide', mouth: 'open', emote: 'spark', take: 1, body: t => { const b = _b(t), h = Math.abs(b.s2); return { dy: -2.4 * h, sq: .16 * pulse2(t) - .06 * h, aL: 1 + .5 * Math.sin(b.bp * TAU * 2), aR: 1 - .5 * Math.sin(b.bp * TAU * 2) }; } },
-  laugh:      { eyes: 'squeeze', mouth: 'laugh', blush: .45, take: .8, body: t => { const c = Math.abs(Math.sin(t * TAU * 5)); return { dy: -.45 * c, sq: .08 * c - .04, rot: -.07 + .03 * Math.sin(t * TAU * 5), aL: -.35 + .12 * c, aR: -.35 + .12 * c }; } },
-  love:       { eyes: 'heart', mouth: 'cat', blush: .8, tint: 'rosy', tintK: .5, emote: 'hearts', take: .7, body: t => { const b = _b(t), s = Math.sin(b.bp * Math.PI / 2); return { rot: .08 * s, dx: .5 * s, dy: -.6 * b.ab, sq: .05 * b.hit, aL: -.1 + .15 * b.s1, aR: -.1 - .15 * b.s1 }; } },
-  shy:        { eyes: 'look', mouth: 'wobble', blush: 1, take: .3, body: t => { const b = _b(t), s = Math.sin(b.bp * Math.PI / 2); return { lookX: -.7, lookY: .8, sq: .06, rot: -.05 + .02 * s, dx: .15 * s, aL: -.55 + .15 * Math.sin(t * TAU * 1.5), aR: -.6 - .12 * Math.sin(t * TAU * 1.5) }; } },
-  proud:      { eyes: 'closed', mouth: 'smile', tint: 'gold', tintK: .3, emote: 'spark', take: .5, body: t => { const b = _b(t); return { sq: -.1 - .03 * b.ab, dy: -.3 * b.hit, aL: -.9, aR: -.9, rot: .02 * b.s1 }; } },
-  smug:       { eyes: 'narrow', mouth: 'smirk', take: .4, body: t => { const b = _b(t), s = Math.sin(b.bp * Math.PI / 2); return { lookX: .4, rot: -.06 + .03 * s, dy: -.2 * b.ab, aL: -.5, aR: .5 + .15 * s }; } },
-  relieved:   { eyes: 'closed', mouth: 'smile', emote: 'sweat', take: .4, body: t => { const b = _b(t), br = Math.sin(t * TAU * .35); return { sq: .05 + .05 * br, dy: -.15 * b.ab, aL: -.7 + .1 * br, aR: -.7 + .1 * br }; } },
-  sad:        { eyes: 'sad', mouth: 'frown', tint: 'blue', tintK: .35, gloom: .35, emote: 'cloud', take: .3, body: t => { const b = _b(t), s = Math.sin(b.bp * Math.PI / 4); return { sq: .08 + .02 * s, rot: .03 * s, aL: -.75, aR: -.75, lookY: .5 }; } },
-  cry:        { eyes: 'cry', mouth: 'wail', tint: 'blue', tintK: .2, take: .8, body: t => { const b = _b(t), sob = Math.sin(b.f * Math.PI) * Math.exp(-b.f * 2); return { sq: .14 * sob - .02, dy: -.7 * sob, aL: .9 + .15 * Math.sin(t * TAU * 6), aR: .9 - .15 * Math.sin(t * TAU * 6), rot: .03 * b.s1 }; } },
-  angry:      { eyes: 'angry', mouth: 'teeth', tint: 'flush', tintK: .45, emote: 'anger', take: .8, body: t => { const b = _b(t); return { dx: .1 * Math.sin(t * TAU * 18), sq: .12 * b.hit, aL: -.3 + .1 * b.hit, aR: -.3 + .1 * b.hit }; } },
-  furious:    { eyes: 'red', lid: .28, tint: 'flush', tintK: .85, emote: 'steam', take: 1.2, body: t => { const b = _b(t); return { dx: .22 * Math.sin(t * TAU * 20), rot: .025 * Math.sin(t * TAU * 13), sq: .2 * b.hit, dy: -.8 * Math.sin(b.f * Math.PI) * (1 - b.f), aL: 1 + .2 * Math.sin(t * TAU * 9), aR: 1 - .2 * Math.sin(t * TAU * 9) }; } },
-  scared:     { eyes: 'scared', mouth: 'wobble', tint: 'pale', tintK: .6, emote: 'sweat', take: 1.1, body: t => ({ dx: .1 * Math.sin(t * TAU * 22), sq: -.06, aL: 1 + .08 * Math.sin(t * TAU * 17), aR: 1 + .08 * Math.sin(t * TAU * 19), lookX: .6 * Math.sign(Math.sin(t * 2.3)) }) },
-  surprised:  { eyes: 'wide', mouth: 'O', emote: '!', fade: true, take: 1.3, body: t => { const b = _b(t); return { sq: -.12, dy: -.3 - .15 * b.ab, aL: 1.1 + .05 * b.s2, aR: 1.1 - .05 * b.s2 }; } },
-  confused:   { eyes: ['narrow', 'wide'], mouth: 'wobble', emote: '?', take: .6, body: t => { const b = _b(t); return { rot: .1 * Math.sin(b.bp * Math.PI / 4), aL: .1, aR: 1.5 + .15 * Math.sin(t * TAU * 3), dy: -.15 * b.ab }; } },
-  thinking:   { eyes: 'look', mouth: 'flat', emote: 'dots', take: .4, body: t => { const b = _b(t); return { lookX: .5, lookY: -.8, rot: .05, aR: .9, aL: -.3 + .25 * Math.sin(b.f * Math.PI), dy: -.1 * b.ab }; } },
-  idea:       { eyes: 'shine', mouth: 'grin', emote: 'bulb', take: 1.1, body: t => { const b = _b(t); return { dy: -1 * b.ab, sq: -.05 + .1 * b.hit, aR: 1.55 + .1 * b.s2, aL: .2 + .2 * b.s1 }; } },
-  determined: { eyes: 'determined', mouth: 'flat', take: .7, body: t => { const b = _b(t), p1 = Math.sin(b.f * Math.PI), p2 = Math.abs(Math.cos(b.f * Math.PI)); return { rot: .06, sq: -.04 + .06 * b.hit, dy: -.3 * b.ab, aL: .1 + .7 * p1, aR: .1 + .7 * p2 }; } },
-  sleepy:     { eyes: 'sleepy', mouth: 'o', emote: 'zzz', take: .2, body: t => { const br = Math.sin(t * TAU * .3); return { sq: .05 + .05 * br, rot: .06 * Math.sin(t * .8), aL: -.6, aR: -.6 }; } },
-  bored:      { eyes: 'narrow', mouth: 'flat', take: .2, body: t => { const f = frac(bpOf(t) / 4), sigh = f < .3 ? ease(f / .3) : 1 - ease((f - .3) / .7); return { lookX: -.3, lookY: .4, sq: .08 - .14 * sigh, rot: -.04, aL: -.85 + .05 * Math.sin(t * 2), aR: -.85 - .05 * Math.sin(t * 2) }; } },
-  nervous:    { eyes: 'look', mouth: 'wobble', tint: 'pale', tintK: .2, emote: 'sweat', take: .5, body: t => { const b = _b(t); return { lookX: beatN(t) % 2 ? .8 : -.8, dx: .3 * b.s1, sq: .04, aL: -.1 + .2 * Math.sin(t * TAU * 5), aR: -.1 + .2 * Math.sin(t * TAU * 5 + 1) }; } },
-  suspicious: { eyes: 'narrow', mouth: 'flat', take: .4, body: t => { const s = Math.sin(t * TAU * .25); return { lookX: s, rot: -.08 * s, dx: .4 * s, sq: .04, aL: -.4, aR: -.4 }; } },
-  disgusted:  { eyes: 'squeeze', mouth: 'wobble', tint: 'green', tintK: .5, take: .8, body: t => { const a = frac(bpOf(t) / 2) * BEAT * 2, sh = Math.exp(-a * 6) * Math.sin(a * 45); return { rot: -.1, dx: -.3 + .15 * sh, sq: .05, aL: .7 + .2 * sh, aR: .7 - .2 * sh }; } },
-  dizzy:      { eyes: 'swirl', mouth: 'wobble', emote: 'stars', take: .7, body: t => { const a = t * TAU * .8; return { rot: .12 * Math.sin(a), dx: .7 * Math.sin(a), dy: -.3 * Math.abs(Math.cos(a)), aL: .3 + .6 * Math.sin(a * 1.3), aR: .3 - .6 * Math.sin(a * 1.3) }; } },
-  cool:       { eyes: 'shades', mouth: 'smirk', emote: 'music', take: .4, body: t => { const b = _b(t); return { rot: .04 * b.hit, dy: -.35 * b.hit, sq: .06 * b.hit, aL: -.4, aR: .7 + .1 * b.s1 }; } },
-  starstruck: { eyes: 'spark', mouth: 'open', tint: 'gold', tintK: .3, take: 1, body: t => { const b = _b(t), h = Math.abs(b.s2); return { dy: -1.6 * h, sq: .1 * pulse2(t), aL: 1.1 + .35 * Math.sin(b.bp * TAU * 2), aR: 1.1 + .35 * Math.sin(b.bp * TAU * 2) }; } },
+  neutral:    { eyes: 'normal', take: .3, body: t => { const br = _br(t); return { sq: .008 * br, aL: .15 + .05 * _br(t, .25), aR: .15 - .05 * _br(t, .25) }; } },
+  happy:      { eyes: 'happy', mouth: 'smile', blush: .3, take: .6, body: t => { const br = _br(t, .45); return { dy: -.06 * _up(t, .45), sq: .01 * br, rot: .012 * _br(t, .22), aL: .4 + .25 * _br(t, .5), aR: .4 - .25 * _br(t, .5) }; } },
+  excited:    { eyes: 'wide', mouth: 'open', emote: 'spark', take: 1, body: t => { const h = _up(t, 1); return { dy: -.3 * h, sq: -.02 * h, aL: 1 + .4 * _br(t, 1), aR: 1 - .4 * _br(t, 1) }; } },
+  laugh:      { eyes: 'squeeze', mouth: 'laugh', blush: .45, take: .8, body: t => { const c = _up(t, 2.5); return { dy: -.08 * c, sq: .02 * c - .01, rot: -.06 + .015 * _br(t, 2.5), aL: -.35 + .1 * c, aR: -.35 + .1 * c }; } },
+  love:       { eyes: 'heart', mouth: 'cat', blush: .8, tint: 'rosy', tintK: .5, emote: 'hearts', take: .7, body: t => { const s = _br(t, .3); return { rot: .05 * s, dx: .25 * s, dy: -.05 * _up(t, .45), sq: .008 * _br(t), aL: -.1 + .12 * _br(t, .5), aR: -.1 - .12 * _br(t, .5) }; } },
+  shy:        { eyes: 'look', mouth: 'wobble', blush: 1, take: .3, body: t => { const s = _br(t, .25); return { lookX: -.7, lookY: .8, sq: .04, rot: -.05 + .02 * s, dx: .1 * s, aL: -.55 + .12 * _br(t, 1), aR: -.6 - .1 * _br(t, 1) }; } },
+  proud:      { eyes: 'closed', mouth: 'smile', tint: 'gold', tintK: .3, emote: 'spark', take: .5, body: t => ({ sq: -.08 - .01 * _br(t), aL: -.9, aR: -.9, rot: .015 * _br(t, .25) }) },
+  smug:       { eyes: 'narrow', mouth: 'smirk', take: .4, body: t => { const s = _br(t, .25); return { lookX: .4, rot: -.05 + .02 * s, sq: .006 * _br(t), aL: -.5, aR: .5 + .12 * s }; } },
+  relieved:   { eyes: 'closed', mouth: 'smile', emote: 'sweat', take: .4, body: t => { const br = _br(t, .35); return { sq: .03 + .015 * br, aL: -.7 + .1 * br, aR: -.7 + .1 * br }; } },
+  sad:        { eyes: 'sad', mouth: 'frown', tint: 'blue', tintK: .35, gloom: .35, emote: 'cloud', take: .3, body: t => { const s = _br(t, .25); return { sq: .05 + .01 * s, rot: .02 * s, aL: -.75, aR: -.75, lookY: .5 }; } },
+  cry:        { eyes: 'cry', mouth: 'wail', tint: 'blue', tintK: .2, take: .8, body: t => { const sob = _up(t, 1.2); return { sq: .03 * sob, dy: -.08 * sob, aL: .9 + .12 * _br(t, 3), aR: .9 - .12 * _br(t, 3), rot: .02 * _br(t, .3) }; } },
+  angry:      { eyes: 'angry', mouth: 'teeth', tint: 'flush', tintK: .45, emote: 'anger', take: .8, body: t => ({ dx: .03 * _br(t, 7), sq: .015 + .008 * _br(t), aL: -.3, aR: -.3 }) },
+  furious:    { eyes: 'red', lid: .28, tint: 'flush', tintK: .85, emote: 'steam', take: 1.2, body: t => ({ dx: .05 * _br(t, 7), rot: .01 * _br(t, 3), sq: .02 + .01 * _br(t, .6), aL: 1 + .15 * _br(t, 3), aR: 1 - .15 * _br(t, 3) }) },
+  scared:     { eyes: 'scared', mouth: 'wobble', tint: 'pale', tintK: .6, emote: 'sweat', take: 1.1, body: t => ({ dx: .03 * _br(t, 7), sq: -.05, aL: 1 + .06 * _br(t, 6), aR: 1 + .06 * _br(t, 6.5), lookX: .6 * Math.sign(Math.sin(t * 2.3)) }) },
+  surprised:  { eyes: 'wide', mouth: 'O', emote: '!', fade: true, take: 1.3, body: t => ({ sq: -.1, dy: -.3 - .03 * _up(t, .5), aL: 1.1 + .05 * _br(t, .5), aR: 1.1 - .05 * _br(t, .5) }) },
+  confused:   { eyes: ['narrow', 'wide'], mouth: 'wobble', emote: '?', take: .6, body: t => ({ rot: .08 * _br(t, .25), aL: .1, aR: 1.5 + .12 * _br(t, 1.5) }) },
+  thinking:   { eyes: 'look', mouth: 'flat', emote: 'dots', take: .4, body: t => ({ lookX: .5, lookY: -.8, rot: .05, aR: .9, aL: -.3 + .2 * _up(t, .5) }) },
+  idea:       { eyes: 'shine', mouth: 'grin', emote: 'bulb', take: 1.1, body: t => ({ dy: -.1 * _up(t, .8), sq: -.04 + .01 * _br(t), aR: 1.55 + .08 * _br(t, 1), aL: .2 + .15 * _br(t, .5) }) },
+  determined: { eyes: 'determined', mouth: 'flat', take: .7, body: t => ({ rot: .05, sq: -.03 + .008 * _br(t), aL: .1 + .5 * _up(t, .5), aR: .1 + .5 * _up(t, .5, .5) }) },
+  sleepy:     { eyes: 'sleepy', mouth: 'o', emote: 'zzz', take: .2, body: t => { const br = _br(t, .3); return { sq: .025 + .015 * br, rot: .025 * Math.sin(t * .8), aL: -.6, aR: -.6 }; } },
+  bored:      { eyes: 'narrow', mouth: 'flat', take: .2, body: t => { const sigh = _up(t, .25); return { lookX: -.3, lookY: .4, sq: .05 - .07 * sigh, rot: -.04, aL: -.85 + .05 * Math.sin(t * 2), aR: -.85 - .05 * Math.sin(t * 2) }; } },
+  nervous:    { eyes: 'look', mouth: 'wobble', tint: 'pale', tintK: .2, emote: 'sweat', take: .5, body: t => ({ lookX: beatN(t) % 2 ? .8 : -.8, dx: .08 * _br(t, .5), sq: .03, aL: -.1 + .15 * _br(t, 3), aR: -.1 + .15 * _br(t, 3, .3) }) },
+  suspicious: { eyes: 'narrow', mouth: 'flat', take: .4, body: t => { const s = Math.sin(t * TAU * .25); return { lookX: s, rot: -.06 * s, dx: .3 * s, sq: .03, aL: -.4, aR: -.4 }; } },
+  disgusted:  { eyes: 'squeeze', mouth: 'wobble', tint: 'green', tintK: .5, take: .8, body: t => { const sh = .5 * _br(t, 3); return { rot: -.1, dx: -.3 + .04 * sh, sq: .04, aL: .7 + .15 * sh, aR: .7 - .15 * sh }; } },
+  dizzy:      { eyes: 'swirl', mouth: 'wobble', emote: 'stars', take: .7, body: t => { const a = t * TAU * .5; return { rot: .1 * Math.sin(a), dx: .5 * Math.sin(a), dy: -.12 * _up(t, 1), aL: .3 + .5 * Math.sin(a * 1.3), aR: .3 - .5 * Math.sin(a * 1.3) }; } },
+  cool:       { eyes: 'shades', mouth: 'smirk', emote: 'music', take: .4, body: t => { const n = _up(t, .5); return { rot: .02 * n, dy: -.05 * n, sq: .01 * n, aL: -.4, aR: .7 + .08 * _br(t, .5) }; } },
+  starstruck: { eyes: 'spark', mouth: 'open', tint: 'gold', tintK: .3, take: 1, body: t => { const h = _up(t, .8); return { dy: -.15 * h, sq: -.015 * h, aL: 1.1 + .3 * _br(t, 1), aR: 1.1 + .3 * _br(t, 1) }; } },
   ko:         { eyes: 'x', mouth: 'wobble', tint: 'pale', tintK: .3, emote: 'stars', take: 1, body: t => ({ sq: .28 + .02 * Math.sin(t * 3), rot: .12, aL: -1, aR: -.9 }) },
-  playful:    { eyes: 'wink', mouth: 'tongue', take: .6, body: t => { const b = _b(t), side = beatN(t) % 2 ? 1 : -1, k = lerp(-side, side, easeOut(clamp(b.f * 3))); return { dx: .8 * k, dy: -1.4 * b.ab, rot: .1 * k, sq: .1 * b.hit, aL: .65 + .55 * k, aR: .65 - .55 * k }; } },
-  mischief:   { eyes: 'narrow', mouth: 'grin', gloom: .3, take: .5, body: t => { const r = Math.sin(t * TAU * 4); return { lookX: .3, sq: .07, rot: .04, aL: -.05 + .15 * r, aR: -.05 - .15 * r, dy: -.1 * Math.abs(r) }; } },
-  hopeful:    { eyes: 'shine', mouth: 'cat', blush: .35, take: .5, body: t => { const b = _b(t); return { sq: -.06 - .02 * b.ab, dy: -.25 * b.ab, lookY: -.4, aL: .5 + .05 * b.s1, aR: .5 - .05 * b.s1, rot: .03 * Math.sin(b.bp * Math.PI / 2) }; } },
+  playful:    { eyes: 'wink', mouth: 'tongue', take: .6, body: t => { const k = _br(t, .5); return { dx: .35 * k, dy: -.08 * _up(t, 1), rot: .06 * k, sq: .008 * _br(t), aL: .65 + .5 * k, aR: .65 - .5 * k }; } },
+  mischief:   { eyes: 'narrow', mouth: 'grin', gloom: .3, take: .5, body: t => { const r = _br(t, 3); return { lookX: .3, sq: .05, rot: .04, aL: -.05 + .12 * r, aR: -.05 - .12 * r }; } },
+  hopeful:    { eyes: 'shine', mouth: 'cat', blush: .35, take: .5, body: t => ({ sq: -.05 - .01 * _br(t), dy: -.04 * _up(t, .4), lookY: -.4, aL: .5 + .05 * _br(t, .5), aR: .5 - .05 * _br(t, .5), rot: .02 * _br(t, .25) }) },
 };
 
 // One emotion, alive at time t: face, colour and body motion together. Spread it into clawd():

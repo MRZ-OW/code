@@ -82,7 +82,7 @@ function take(t, t0, amt = 1) {
 // going in 3/4 view, and faces front when it stops. Returns { x, walk, view, flip, dy } for clawd().
 function stroll(t, t0, t1, x0, x1, u) {
   const x = lerp(x0, x1, ease(seg(t, t0, t1))), d = Math.abs(x - x0) / (4 * u), moving = t > t0 && t < t1;
-  return { x, walk: d, view: moving ? 'q' : 'front', flip: x1 < x0, dy: moving ? -Math.abs(Math.sin(d * Math.PI)) * .5 : 0 };
+  return { x, walk: d, view: moving ? 'q' : 'front', flip: x1 < x0, dy: moving ? -.3 * Math.pow(Math.sin(d * Math.PI), 2) : 0 };   // a smooth rise and fall per step (|sin| has a hard kink at each footfall)
 }
 
 // ---------- camera ----------
@@ -113,7 +113,7 @@ function flash(k, col = '#FFFDF6') {
 function glow(x, y, r, col = '#FFC766', a = 1) {
   if (a <= 0 || r < 1) return;
   flushBrush();
-  const c = color(col), rr = r * (1 + jit(.03));
+  const c = color(col), rr = r * (1 + jit(.008));   // a faint boil (a bigger one pulses the whole halo at 12 fps)
   push(); blendMode(ADD); tint(red(c), green(c), blue(c), 150 * clamp(a)); image(glowTex, x - rr, y - rr, 2 * rr, 2 * rr); noTint(); blendMode(BLEND); pop();
 }
 function makeGlowTex() {
@@ -197,6 +197,19 @@ function limbSides(P0, P1, P2, w0, w1 = w0) {
   return [side(1), side(-1)];
 }
 function limb(P0, P1, P2, w0, w1 = w0) { const [L, R] = limbSides(P0, P1, P2, w0, w1); return L.concat(R.reverse()); }
+// The same limb as ONE closed silhouette with round ends (a round shoulder cap at P0; a round cap at P2 too when
+// capEnd), so the whole limb is inked as one continuous stroke: no separately inked caps, arcs or side lines whose
+// ends overlap inside it (they read as stray strokes and shimmer as the line boils). The outline starts and ends at
+// the P2 end (the wrist, under the hand; or the elbow, under the forearm laid over it), where its join is hidden.
+function limbLoop(P0, P1, P2, w0, w1 = w0, capEnd = false) {
+  const [L, R] = limbSides(P0, P1, P2, w0, w1);
+  const arc = (c, t0, dt, r) => { const n = Math.max(3, Math.ceil(Math.abs(dt) / .3)), P = []; for (let i = 1; i < n; i++) { const t = t0 + dt * i / n; P.push([c[0] + Math.cos(t) * r, c[1] + Math.sin(t) * r]); } return P; };
+  const nrm = (a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1; return Math.atan2(dx / l, -dy / l); };   // the angle of the side normal (-dy, dx)
+  const tA = nrm(P0, P1), tB = nrm(P1, P2);
+  const start = arc(P0, tA, Math.PI, w0 / 2);                 // L[0] → round the back of P0 → R[0]
+  const end = capEnd ? arc(P2, tB + Math.PI, Math.PI, w1 / 2) : [];   // R[last] → round the far end → L[last]
+  return [...[...L].reverse(), ...start, ...R, ...end];      // begins at L's P2 end; the closing edge crosses P2
+}
 // a polyline with extra points along each segment (for side lines that get trimmed point by point)
 const densify = (P, n = 5) => P.flatMap((p, i) => i ? Array.from({ length: n }, (_, k) => [lerp(P[i - 1][0], p[0], (k + 1) / n), lerp(P[i - 1][1], p[1], (k + 1) / n)]) : [p]);
 
@@ -306,8 +319,9 @@ function makeGrain() {
 
 // ---------- custom brushes ----------
 function defineBrushes() {
-  brush.add('ink', { type: 'default', weight: 5, scatter: .25, sharpness: .8, grain: 40, opacity: 235, spacing: .2, pressure: [1.15, .75], rotate: 'natural', noise: .15 });
-  brush.add('inkfine', { type: 'default', weight: 2.6, scatter: .15, sharpness: .85, grain: 40, opacity: 230, spacing: .2, pressure: [1.1, .8], rotate: 'natural', noise: .1 });
+  // the line boil (each boil frame re-rolls the stroke's scatter and noise) is kept subtle: a hand-drawn shimmer, not a hop
+  brush.add('ink', { type: 'default', weight: 5, scatter: .15, sharpness: .8, grain: 40, opacity: 235, spacing: .2, pressure: [1.15, .75], rotate: 'natural', noise: .08 });
+  brush.add('inkfine', { type: 'default', weight: 2.6, scatter: .1, sharpness: .85, grain: 40, opacity: 230, spacing: .2, pressure: [1.1, .8], rotate: 'natural', noise: .06 });
   brush.add('dry', { type: 'default', weight: 14, scatter: 3, sharpness: .3, grain: 6, opacity: 90, spacing: .6, pressure: [1, .6], rotate: 'natural', noise: .4 });
 }
 
