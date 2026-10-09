@@ -9,6 +9,7 @@
 //   dur    length in s, clamped to 0.4..0.9 (each has its own default, below; the busy ones read best at their default)
 //   flip   true mirrors it left ↔ right (the rock comes from the lower right, the door hinges on the right, ...)
 //   shake  scales the screen shake (0 = none)
+//   in     the share of dur before the cut (default .5; e.g. .3 covers fast so the beat just before the cut stays visible)
 //
 //   rockSpin    .7  the hero's cream rock with its red smear tumbles at the lens from the lower left, fills the frame (THOCK),
 //                   and tumbles away to the upper right
@@ -37,14 +38,20 @@ function transitions(list) {
   TRANS.sort((a, b) => a.t - b.t);
 }
 const transDur = e => clamp(e.o.dur ?? TRANS_FX[e.name].dur, .4, .9);
-const transActive = (t, list = TRANS) => list.filter(e => Math.abs(t - e.t) < transDur(e) / 2);
+// o.in: the share of dur spent covering, before the cut (default .5). A smaller one covers fast, so a gag just before
+// the cut stays on screen; the reveal after the cut takes the rest of dur.
+const transIn = e => clamp(e.o.in ?? .5, .2, .8);
+const transSpan = e => { const d = transDur(e), k = transIn(e); return [e.t - d * k, e.t + d * (1 - k)]; };
+const transActive = (t, list = TRANS) => list.filter(e => { const [a, b] = transSpan(e); return t > a && t < b; });
+// the transition's own progress p (0..1, .5 = the cut) at time t
+const transP = (e, t) => { const d = transDur(e), k = transIn(e); return t < e.t ? .5 * (t - (e.t - d * k)) / (d * k) : .5 + .5 * (t - e.t) / (d * (1 - k)); };
 // Paints every running transition over the frame (screen space, no camera). Lettering queued by the shot is flushed
 // first, so the cover goes over it.
 function drawTransitions(t, list = TRANS) {
   const act = transActive(t, list); if (!act.length) return;
   flushLetters();
   for (const e of act) {
-    const d = transDur(e), p = (t - e.t) / d + .5;
+    const d = transDur(e), p = transP(e, t);
     push(); if (e.o.flip) { translate(W, 0); scale(-1, 1); }
     TRANS_FX[e.name].draw(p, d, e.o, t);
     pop();
@@ -53,7 +60,7 @@ function drawTransitions(t, list = TRANS) {
 // The screen shake of the running transitions at t: [dx, dy] px, or null.
 function transitionShake(t, list = TRANS) {
   let a = 0;
-  for (const e of transActive(t, list)) { const fx = TRANS_FX[e.name]; if (!fx.shake) continue; const d = transDur(e); a += fx.shake((t - e.t) / d + .5, d, e.o) * (e.o.shake ?? 1); }
+  for (const e of transActive(t, list)) { const fx = TRANS_FX[e.name]; if (!fx.shake) continue; const d = transDur(e); a += fx.shake(transP(e, t), d, e.o) * (e.o.shake ?? 1); }
   return a > .5 ? shakeXY(t, a) : null;
 }
 // Hook for drawWorld: shifts (and slightly over-scales, so no paper edge shows) everything drawn until the matching pop().

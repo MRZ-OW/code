@@ -416,7 +416,7 @@
     if (t < 26.35) {   // waking up sitting on the sand, legs out; a knuckle rubs one scrunched eye; he reaches back for
       // his rock (25.95–26.1) and pushes himself up through a crouch (26.1–26.35)
       const rub = t > 25.45 && t < 25.95, up = ease(seg(t, 26.1, 26.35)), grabbed = t >= 26.1;
-      const Ns = { ...feel('sleepy', t, { emote: null }), eyes: rub ? 'squeeze' : t < 25.95 ? 'closed' : 'normal', boilKey: NK, seed: 1, view: 'side', sit: 1 - up, legsOut: true, dy: 2.3 * (1 - up), crouch: .5 * Math.sin(up * Math.PI), rawArms: true, aL: -1.0, bendL: .4, aR: lerp(-1.0, -1.25, up), bendR: .4, prop: 'none', sq: .06 * Math.sin(Math.min(1, (t - 25) * 3) * Math.PI) };
+      const Ns = { ...feel('sleepy', t, { emote: null }), eyes: rub ? 'squeeze' : t < 25.95 ? 'closed' : 'normal', boilKey: NK, seed: 1, view: 'side', sit: 1 - up, legsOut: true, dy: 2.3 * (1 - up), crouch: .5 * Math.sin(up * Math.PI), rawArms: true, aL: -1.0, bendL: .4, aR: lerp(-1.0, -1.25, up), bendR: .4, prop: 'none', sq: .06 * Math.sin(clamp((t - 25.3) * 3) * Math.PI) };
       if (rub) {   // a solid fist, knuckles up, half over the eye, rubbing on twos
         Object.assign(Ns, reachArm(U, Ns, 'L', 1.9 * U + 6 * Math.sin(Math.floor(t * 12) * 2.1), -10.85 * U + 2.05 * U + .35 * U));
         Ns.handL = (u, sw) => { paint(ellPts(0, 0, .56 * u, .56 * u, 14), { wash: SKIN_TONES.light.dk, washOp: 120, ink: null }); for (const k of [-1, 0, 1]) inkLine(Array.from({ length: 5 }, (_, i) => { const a = Math.PI + i / 4 * Math.PI; return [k * .3 * u + Math.cos(a) * .15 * u, -.4 * u + Math.sin(a) * .15 * u]; }), sw * .5, PAL.ink, 'ink', 0); };
@@ -431,7 +431,7 @@
       spawnling(NX, G, U, { ...N, boilKey: NK, seed: 1, view: 'q', walk: t < 26.5 ? undefined : .12 * seg(t, 26.5, 26.85), emoteDx: .9, emoteDy: 2.6, rawArms: true, aL: lerp(-1.32, -.95, seg(t, 26.9, 27.2)), bendL: .25, aR: -1.32, bendR: .22, prop: 'none', hold: { L: 'rock' } });
     }
     if (t < 26.1) { boilSeed('respawnrock'); push(); translate(rockAt[0], rockAt[1]); rotate(3.5); rockProp(U, 2.2); pop(); }
-    if (t < 25.4) respawn(NX + .3 * U, G - 4.6 * U, 1.2, (t - 25) * 3);   // on his chest, gone by 25.4
+    if (t >= 25.3 && t < 25.7) respawn(NX + .3 * U, G - 4.6 * U, 1.2, (t - 25.3) * 3);   // on his chest as the sleeping bag lifts, gone by 25.7
     const cin = ease(seg(t, 26.5, 26.95)), cx = lerp(1480, CXA, cin);   // the gun enters first; nothing in frame before 26.5
     const aimPose = reachArm(U, { view: 'q', rawArms: true }, 'L', 1.75 * U, -6.95 * U);
     geared(cx, G, U, { ...feel('determined', t), boilKey: CH, seed: 2, view: 'q', flip: true, walk: seg(t, 26.5, 26.95), rawArms: true, ...aimPose, aR: -1.32, bendR: .22, gunRot: .03, twoHand: true,
@@ -441,4 +441,6 @@
   }
 
   shots([[0, s1], [6, s2a], [8, s2b], [10, s2c], [12, s2d], [14, s3a], [16, s3b], [17, s3c], [19, s3d], [22, s4a], [23, s4b], [25, s4d]]);
+  // sunset to night: his rock tumbles at the lens; the respawn: the sleeping bag rolls down and up (he wakes as it lifts)
+  transitions([[10.0, 'rockSpin', { in: .4 }], [25.0, 'sleepingBag', { dur: .6, in: .35 }]]);
 })();

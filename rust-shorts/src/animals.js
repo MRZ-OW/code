@@ -21,7 +21,8 @@
 //     rump(u, sw, info)   a hook on its backside, in body space: the origin is the middle of the near haunch, +x points
 //            toward the head, and flip, rot and the gait's bob all apply, so a red X drawn round (0, 0) rides along.
 //            boarRump(x, y, s, o) gives that point in the world (to aim an arc at it).
-//     emote, emoteK, emoteAge (as survivor()), noShadow, boilKey, seed (blink timing), t (time for the idle; default T)
+//     emote, emoteK, emoteAge (as survivor(); emote: null hides the mood's emote), noShadow, boilKey, seed (blink timing),
+//            t (time for the idle; default T)
 //     acting (ep4): dy (lift off the ground, in u; negative = up; the shadow stays down and shrinks), sq (squash > 0 /
 //            stretch < 0 about the ground point, keeping volume), head (an extra head pitch in radians, + = snout down,
 //            e.g. rooting), squeal 0..1 (the jaw drops open: a squeal or an oink), stride 0..1 (scales a moving gait's
@@ -327,7 +328,7 @@ function boar(x, y, s = 1, o = {}) {
   pop();
 
   rs('emote');
-  const em = o.emote ?? M.emote;
+  const em = o.emote !== undefined ? o.emote : M.emote;   // emote: null hides the mood's own emote
   if (em) {
     const top = EMOTE_TOP.includes(em), hx = (V.neck[0] + V.ox + (top ? .9 : 2.6)) * u, hy = (V.neck[1] + P.dy - (top ? 3.2 : 2.0)) * u;
     emote(em, x + dir * hx, y + hy, u * .7, o.emoteK ?? 1, o.emoteAge ?? T);

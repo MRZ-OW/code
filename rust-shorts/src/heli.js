@@ -313,9 +313,12 @@ function patrolHeli(x, y, s = 1, o = {}) {
       bs('face' + sz); const F = hCirc(c1, ar, HPOD.r - 1, 20); paint(F.map(p2), { wash: K(HELI.podFace), ink: PAL.ink, sw: sw * .45 });
       for (const [hy, hz] of holes) { const Hc = hCirc([HPOD.x1 + .5, yc + hy, zc + hz], ar, 4.2, 10); paint(Hc.map(p2), { wash: arm > .05 ? mixCol('#3A1C14', '#FFB050', arm) : '#18161A', ink: null }); }
     }
-    if (arm > .02) {   // armed: the mouths glow and a little red light blinks on the pylon
-      const m = p2([HPOD.x1 + 4, yc, zc]), fl = .7 + .3 * Math.sin(t * 14);
-      glow(m[0], m[1], (26 + 10 * arm) * fl, '#FF8A3A', arm * fl);
+    if (arm > .02) {   // armed: the mouths glow hot orange, pulsing, and a little red light blinks on the pylon
+      const m = p2([HPOD.x1 + 4, yc, zc]), fl = .7 + .3 * Math.sin(t * 14), hot = mixCol('#FF6A1E', '#FFD27A', .5 + .5 * Math.sin(t * 14));
+      bs('hot' + sz); paint(hCirc([HPOD.x1 + 1, yc, zc], ar, HPOD.r + 1, 18).map(p2), { wash: hot, washOp: 235 * arm, ink: PAL.ink, sw: sw * .4 });   // the pod's mouth, red-hot
+      for (const [hy, hz] of holes) { const c = p2([HPOD.x1 + 2, yc + hy, zc + hz]); paint(ellPts(c[0], c[1], 2.6, 2.6, 6), { wash: '#FFF2B0', washOp: 255 * arm, ink: null }); }
+      glow(m[0], m[1], (46 + 30 * arm) * fl, '#FF8A3A', arm * fl);
+      glow(m[0], m[1], 18 * fl, '#FFE0A0', arm);
       if (frac(t * 3) < .5) { const L = p2([20, -44, 104 * sz]); glow(L[0], L[1], 14, '#FF3048', arm); paint(ellPts(L[0], L[1], 3, 3, 8), { wash: '#FF5A6A', ink: null }); }
     }
   };
@@ -349,7 +352,12 @@ function patrolHeli(x, y, s = 1, o = {}) {
     B.sort((p, q) => p.d - q.d);
     const blur = spin > .35;
     B.forEach((br, i) => { if (i < 3) return; bs('barrel' + i); inkLine([p2(br.a), p2(br.b)], sw * (blur ? .32 : .42), K(i > 4 ? HELI.gunLt : '#5A5E66'), 'inkfine', 0); });
-    if (blur) { bs('gblur'); for (const k of [-3.5, 0, 3.5]) inkLine([p2(hAdd(at(34), G.up, k)), p2(hAdd(at(88), G.up, k))], sw * .22, K('#8A8E96'), 'inkfine', 0); }
+    if (blur) {   // spinning: a pale blur round the barrels and spin arcs at the muzzle
+      bs('gblur'); shape([...hCirc(at(32), g, 8.5, 14), ...hCirc(at(93), g, 8.5, 14)], K('#C4C8CE'), 0, 120);
+      for (const k of [-3.5, 0, 3.5]) inkLine([p2(hAdd(at(34), G.up, k)), p2(hAdd(at(88), G.up, k))], sw * .22, K('#8A8E96'), 'inkfine', 0);
+      const sa = t * 23;
+      for (const [k, r] of [[60, 12], [86, 14]]) { bs('garc' + k); inkLine(hCirc(at(k), g, r, 9, sa + k, sa + k + 2.4).map(p2), sw * .3, K('#6E737B'), 'inkfine', .4); inkLine(hCirc(at(k), g, r, 9, sa + k + Math.PI, sa + k + Math.PI + 2.4).map(p2), sw * .3, K('#6E737B'), 'inkfine', .4); }
+    }
     bs('gring'); shape([...hCirc(at(74), g, 9, 14), ...hCirc(at(81), g, 9, 14)], K(HELI.gunLt), sw * .35);
     if (hFacing(C, g) > .15) { bs('gface'); paint(hCirc(at(92), g, 7.5, 14).map(p2), { wash: '#1E1D22', ink: PAL.ink, sw: sw * .3 });
       for (let i = 0; i < 6; i++) { const a = spA + i / 6 * TAU, c = p2(hAdd(hAdd(at(92.5), G.up, Math.cos(a) * 5.2), e2, Math.sin(a) * 5.2)); paint(ellPts(c[0], c[1], 1.6, 1.6, 6), { wash: '#6A6E76', ink: null }); } }
@@ -418,9 +426,9 @@ function scanLine(x, yTop, yBottom, k, w = 220, o = {}) {
   // fading scan lines
   const h = y - yTop;
   if (h > 3) {
-    const cuts = [0, Math.min(36, h), Math.min(110, h), h], ops = [44, 28, 15];
+    const cuts = [0, Math.min(30, h), Math.min(80, h), h], ops = [30, 12, 0];
     for (let i = 0; i < 3; i++) { const b0 = cuts[i], b1 = cuts[i + 1], ww = w * (1 - .04 * i); if (b1 - b0 > 2) paint(rectPts(x - ww / 2, y - b1, ww, b1 - b0, 1), { wash: '#E5333D', washOp: ops[i] * a, ink: null }); }
-    lightPoly([[x0, y - Math.min(110, h)], [x1, y - Math.min(110, h)], [x1, y], [x0, y]], '#FF3A46', .07 * a);
+    lightPoly([[x0, y - Math.min(60, h)], [x1, y - Math.min(60, h)], [x1, y], [x0, y]], '#FF3A46', .05 * a);
   }
   for (let i = 1; i <= 3; i++) if (y - i * 17 > yTop + 2) inkLine([[x0 + 10, y - i * 17], [x1 - 10, y - i * 17]], .35, mixCol(red, '#F6D7D2', .25 + i * .18), 'inkfine', 0);
   // the beam itself: a glowing red line with a hot core and bracket ends
@@ -460,13 +468,21 @@ function rocket(x0, y0, x1, y1, k, o = {}) {
   if (k < 0 || k > 2.2) return;
   const s = o.s ?? 1, arc = o.arc ?? 0, wob = (o.wob ?? 7) * s, dur = o.dur ?? .6, key = o.key ?? 'rkt', L = Math.hypot(x1 - x0, y1 - y0) || 1, nx = -(y1 - y0) / L, ny = (x1 - x0) / L;
   const at = q => { const [ax, ay] = arcPt([x0, y0], [x1, y1], arc, q), w = wob * Math.sin(q * 11 + x0 * .01) * Math.sin(q * Math.PI); return [ax + nx * w, ay + ny * w]; };
-  // the smoke trail: puffs dropped at fixed points along the flight, so they stay put as the rocket moves on
-  const step = .04, last = Math.floor(Math.min(k, 1) / step);
-  for (let i = 0; i <= last; i++) {
-    const q = i * step, age = (k - q) * dur; if (age > 1.2) continue;
-    const [px, py] = at(q), fade = 1 - age / 1.2, r = (7 + 26 * Math.sqrt(age)) * s;
-    boilSeed(key + ' puff' + i);
-    paint(ellPts(px + 10 * s * Math.sin(i * 1.7), py - age * 36 * s, r, r * .86, 12, 1.2 * s), { wash: mixCol('#F4F0E8', '#A19DA3', clamp(age / .9)), washOp: 220 * fade, ink: age < .3 ? PAL.ink : null, sw: .5 });
+  // the smoke trail: one soft streak along the flown path (no outline), thin and white at the rocket, wider and greyer
+  // toward the launcher, the oldest end fading first; after impact it spreads and thins out (gone by k ≈ 2)
+  const head = Math.min(k, 1), qmin = Math.max(0, k - 1.15 / dur), after = Math.max(0, k - 1);
+  if (head - qmin > .02) {
+    const n = 14, P = [], Pn = [];
+    for (let i = 0; i <= n; i++) { const q = lerp(qmin, head, i / n), age = (k - q) * dur, [px, py] = at(q); P.push([px + 6 * s * Math.sin(q * 17 + x0 * .01) * Math.min(1, age * 3), py - age * 30 * s]); }
+    const wOld = (14 + 34 * Math.sqrt(Math.min(1.15, (k - qmin) * dur))) * s * (1 + after * 1.2), fade = clamp(1 - after * 1.05);
+    boilSeed(key + ' trail');
+    paint(ribbon(P, wOld, 4 * s), { wash: '#C9C5CC', washOp: 120 * fade, ink: null });
+    for (let i = Math.floor(n * .45); i <= n; i++) Pn.push(P[i]);   // the young end: brighter, narrower
+    if (Pn.length > 2) paint(ribbon(Pn, wOld * .5, 2.5 * s), { wash: '#FBF8F2', washOp: 190 * fade, ink: null });
+    for (let i = 1; i < 4; i++) {   // a few soft lumps along the older part, for texture
+      const j = Math.floor(n * i / 7), [px, py] = P[j], r = wOld * (.42 - .06 * i);
+      boilSeed(key + ' lump' + i); paint(ellPts(px, py, r, r * .8, 12, 1.5 * s), { wash: '#B4B0B8', washOp: 70 * fade, ink: null });
+    }
   }
   if (k > 1) return;
   const [rx, ry] = at(k), [bx, by] = at(Math.max(0, k - .015)), ang = Math.atan2(ry - by, rx - bx) || Math.atan2(y1 - y0, x1 - x0);
