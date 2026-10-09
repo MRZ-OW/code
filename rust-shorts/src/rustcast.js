@@ -117,5 +117,5 @@ function geared(x, y, u, o = {}) {
   }
   survivor(x, y, u, { skin: 'tan', hair: 'buzz', hairCol: 'dark', ...o,
     gear: { mask: 'metal', chest: 'metal', kilt: 'roadsign', hoodie: true, hoodieCol: '#5F6B52', pants: true, boots: true, gloves: true, ...(o.gear || {}) },
-    handOver: true, farFront: !!(o.twoHand && o.rawArms && !o.noGun), ...(o.noGun ? {} : holding({ ...o, hold: { [near]: (uu, sw) => { push(); rotate(o.gunRot || 0); akProp(uu, sw, o.fire || 0); pop(); } } })) });
+    handOver: true, farFront: !!(o.twoHand && o.rawArms && !o.noGun), ...(o.noGun ? {} : holding({ ...o, hold: { [near]: (uu, sw) => { push(); rotate(o.gunRot || 0); if (o.gunFlip) scale(-1, 1); akProp(uu, sw, o.fire || 0); pop(); } } })) });
 }

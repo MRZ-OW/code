@@ -24,6 +24,8 @@ const jit = a => (random() * 2 - 1) * a;
 // number) that's the same every frame: call it before each separate element. clawd() does this for itself and its parts.
 let BOILN = 0, CLAWD_N = 0;
 const boilSeed = key => { let h = 2166136261; for (const c of key + '|' + BOILN) h = Math.imul(h ^ c.charCodeAt(0), 16777619); randomSeed(h >>> 0); };
+// For big soft background fills: the same shape every frame (a boiling sky band would flicker its whole edge).
+const staticSeed = key => { let h = 2166136261; for (const c of key) h = Math.imul(h ^ c.charCodeAt(0), 16777619); randomSeed(h >>> 0); };
 
 // ---------- timing helpers (everything is a pure function of t; no state survives between frames) ----------
 const seg = (t, a, b) => clamp((t - a) / (b - a));                 // 0..1 progress of t through [a, b]
@@ -97,7 +99,13 @@ function toScreen(x, y, cam = CAM) {
 }
 
 // ---------- full-frame effects (call outside a camera, in screen space) ----------
-function flash(k, col = '#FFFDF6') { if (k > .01) paint(rectPts(-60, -60, W + 120, H + 120), { wash: col, washOp: 255 * clamp(k), ink: null }); }
+// A flash of light over the whole frame: additive, like glow(), so nothing turns see-through (a pigment wash would).
+function flash(k, col = '#FFFDF6') {
+  if (k <= .01) return;
+  flushBrush();
+  const c = color(col);
+  push(); resetMatrix(); translate(-W / 2, -H / 2); blendMode(ADD); noStroke(); fill(red(c), green(c), blue(c), 200 * clamp(k)); rect(-10, -10, W + 20, H + 20); blendMode(BLEND); pop();
+}
 // Light: glow(x, y, r, col, a) ADDS a soft halo of light for anything that shines (stars, lamps, fireflies, magic).
 // p5.brush mixes every colour like pigment, so yellow painted over blue turns green and light can't be painted; this
 // is the one non-paint mark in the kit. It lands on what's painted so far, under anything painted after it, follows

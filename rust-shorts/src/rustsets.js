@@ -18,7 +18,8 @@ function rustSky(t, o = {}) {
   const tod = o.tod ?? 0, dusk = clamp(tod), night = clamp(tod - 1);
   const top = mixCol(mixCol(RUST.skyTop, '#E48A63', dusk), '#1E2550', night), low = mixCol(mixCol(RUST.skyLow, '#F6C487', dusk), '#3B3F6E', night);
   boilSeed('sky');
-  paint(rectPts(-1600, -1800, W + 3200, 2800), { wash: top, ink: null });
+  paint(rectPts(-1600, -1800, W + 3200, 4400), { wash: top, ink: null });   // reaches well below any horizon: no paper gaps
+  staticSeed('skyband');
   paint(rectPts(-1600, (o.horizon ?? 900) - 520, W + 3200, 560), { fill: low, fillOp: 190, bleed: .18, tex: .3, border: .2, ink: null });
   const [sx, sy] = o.sun || [800, 380];
   boilSeed('sun');
@@ -204,7 +205,12 @@ function doorPanel(x, y, w, h, kind = 'wood', o = {}) {
   } else {   // armor
     paint(rectPts(x0, y0, ww, h, 1), { wash: '#4A4E54', ink: PAL.ink, sw: 1.2 });
     paint(rectPts(x0 + ww * .1, y0 + h * .06, ww * .8, h * .88), { wash: '#5A6068', ink: PAL.ink, sw: .7 });
-    paint(rectPts(x0 + ww * .25, y0 + h * .2, ww * .5, h * .05), { wash: '#1E1B22', ink: null });   // the vent slot
+    // the viewing hatch (reference: door.hinged.toptier "with a hatch to see and shoot out of"): a slot whose cover
+    // slides aside (o.hatch 0..1); o.hatchIn(x, y, w, h) draws whatever looks out of it
+    const hk = clamp(o.hatch || 0), hx0 = x0 + ww * .22, hy0 = y0 + h * .16, hw = ww * .56, hh = h * (.05 + .06 * hk);
+    paint(rectPts(hx0, hy0, hw, hh), { wash: '#16131A', ink: PAL.ink, sw: .8 });
+    if (hk > 0 && o.hatchIn) o.hatchIn(hx0, hy0, hw, hh);
+    paint(rectPts(hx0 + hw * hk * .9, hy0 - 5, hw * (1 - hk * .9), hh + 10), { wash: '#6A7078', ink: PAL.ink, sw: .7 });   // the cover
     for (let r = 0; r < 4; r++) for (const xx of [x0 + ww * .16, x0 + ww * .84]) paint(ellPts(xx, y0 + h * (.15 + r * .23), 5, 5, 8), { wash: '#A3ABB3', ink: PAL.ink, sw: .4 });
   }
   if (ww > w * .3 && kind !== 'garage') paint(rectPts(x0 + ww * .8, y0 + h * .48, 10, 30), { wash: '#2E2B30', ink: PAL.ink, sw: .5 });   // handle

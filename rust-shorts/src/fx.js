@@ -65,11 +65,14 @@ function puff(x, y, r, age, o = {}) {
   }
 }
 
-function notePop(x, y, s, age) {
+function notePop(x, y, s, age) {   // a whistled note bursts: a cream poof, the note's head and stem fly apart
   if (age < 0 || age > .5) return;
-  const k = age / .5;
+  const k = age / .5, d = 46 * easeOut(k) * s;
   boilSeed('notepop');
-  for (let i = 0; i < 6; i++) { const a = i / 6 * TAU, d = (10 + 60 * easeOut(k)) * s; inkLine([[x + Math.cos(a) * d * .5, y + Math.sin(a) * d * .5], [x + Math.cos(a) * d, y + Math.sin(a) * d]], 2.4 * s * (1 - k), PAL.ink, 'ink', 0); }
+  const R = (8 + 20 * easeOut(k)) * s;
+  paint(ellPts(x, y, R, R * .8, 12), { wash: '#FFF4DC', washOp: 255 * (1 - k), ink: null });
+  paint(ellPts(x - d * .6, y + d * .45, 5 * s, 3.6 * s, 10, 0, -.3), { wash: PAL.ink, washOp: 255 * (1 - k), ink: null });
+  push(); translate(x + d * .7, y - d * .7); rotate(k * 7); inkLine([[0, -10 * s], [0, 10 * s]], 1.5 * s, PAL.ink, 'ink', 0); pop();
 }
 
 function shootingStar(x0, y0, x1, y1, k) {
@@ -88,12 +91,13 @@ function lightning(x0, y0, x1, y1, o = {}) {
   for (let i = 0; i <= n; i++) { const k = i / n, off = (i === 0 || i === n) ? 0 : (hash(seed * 13 + i) - .5) * L * .22; P.push([lerp(x0, x1, k) + nx * off, lerp(y0, y1, k) + ny * off]); }
   glow((x0 + x1) / 2, (y0 + y1) / 2, L * .55, o.glowCol || '#BFE6FF', o.glowA ?? .8);
   boilSeed('bolt' + seed);
-  inkLine(P, w * 2.2, PAL.ink, 'ink', 0);
-  inkLine(P, w, o.col || '#EAF8FF', 'ink', 0);
+  inkLine(P, w * 1.7, '#2A3A6A', 'ink', 0);
+  inkLine(P, w * 1.05, o.col || '#EAF8FF', 'ink', 0);
+  glow(P[Math.floor(n / 2)][0], P[Math.floor(n / 2)][1], L * .3, '#FFFFFF', .5);
   for (let f = 0; f < (o.forks ?? 2); f++) {
     const i = 2 + Math.floor(hash(seed * 7 + f) * (n - 4)), [bx, by] = P[i], a = Math.atan2(y1 - y0, x1 - x0) + (hash(seed + f * 3) - .5) * 2.2, fl = L * (.18 + .14 * hash(seed + f));
     const F = [[bx, by], [bx + Math.cos(a) * fl * .5 + nx * 8, by + Math.sin(a) * fl * .5 + ny * 8], [bx + Math.cos(a) * fl, by + Math.sin(a) * fl]];
-    inkLine(F, w * 1.4, PAL.ink, 'ink', 0); inkLine(F, w * .6, o.col || '#EAF8FF', 'ink', 0);
+    inkLine(F, w * 1.2, '#2A3A6A', 'ink', 0); inkLine(F, w * .7, o.col || '#EAF8FF', 'ink', 0);
   }
 }
 
@@ -106,5 +110,43 @@ function sparks(x, y, s, age, o = {}) {
     const a = dir + (hash(i + (o.seed || 0) * 17) - .5) * spread, sp = (60 + 110 * hash(i + 5 + (o.seed || 0))) * s, d = sp * easeOut(k), g = 140 * s * k * k;
     const px = x + Math.cos(a) * d, py = y + Math.sin(a) * d + g, tl = 14 * s * (1 - k);
     inkLine([[px - Math.cos(a) * tl, py - Math.sin(a) * tl], [px, py]], 2.4 * s, i % 3 ? '#FFD36A' : '#FFF4C8', 'ink', 0);
+  }
+}
+
+// The cartoon electrocution x-ray: the survivor (front view) as a glowing cyan silhouette with his bones showing.
+// Same pose options as survivor(): rawArms aL/aR/bendL/bendR (radians), plus dx/dy, rot, sx/sy.
+function xray(x, y, u, o = {}) {
+  const sw = clamp(u / 16, .45, 2.4), bone = '#F8F6EE', boneInk = '#1E2A44', body = '#9FE6FF';
+  const aL = o.aL ?? -1.32, aR = o.aR ?? -1.32, bL = o.bendL ?? .2, bR = o.bendR ?? .2;
+  boilSeed('xray' + (o.key || ''));
+  glow(x, y - 7 * u, 9 * u, '#BFF4FF', .9);
+  push(); translate(x + (o.dx || 0) * u, y + (o.dy || 0) * u); if (o.rot) rotate(o.rot); scale(o.sx ?? 1, o.sy ?? 1);
+  const arm = (side, a, b) => { const sx = side * 1.8 * u, sy = -7.75 * u, d1 = [side * Math.cos(a), -Math.sin(a)], a2 = a - b, d2 = [side * Math.cos(a2), -Math.sin(a2)]; const e = [sx + d1[0] * 1.85 * u, sy + d1[1] * 1.85 * u], h = [e[0] + d2[0] * 1.75 * u, e[1] + d2[1] * 1.75 * u]; return [[sx, sy], e, h]; };
+  const A = [arm(-1, aL, bL), arm(1, aR, bR)], Lg = [-1, 1].map(sd => [[sd * .9 * u, -4.4 * u], [sd * .95 * u, -2.3 * u], [sd * .9 * u, -.3 * u]]);
+  // the glowing silhouette
+  for (const P of [...A, ...Lg]) paint(ribbon(P, 1.1 * u, .9 * u), { wash: body, ink: boneInk, sw: sw * .6 });
+  paint([[-2.1 * u, -8.35 * u], [2.1 * u, -8.35 * u], [1.85 * u, -4.0 * u], [-1.85 * u, -4.0 * u]], { wash: body, ink: boneInk, sw: sw * .7, curv: .2 });
+  paint(ellPts(0, -10.85 * u, 2.35 * u, 2.3 * u, 24), { wash: body, ink: boneInk, sw: sw * .7 });
+  // bones
+  const bonePath = (P, w) => { paint(ribbon(P, w * u, w * .85 * u), { wash: bone, ink: boneInk, sw: sw * .45 }); for (const p of [P[0], P[P.length - 1]]) paint(ellPts(p[0], p[1], w * .62 * u, w * .62 * u, 10), { wash: bone, ink: boneInk, sw: sw * .45 }); };
+  for (const [s0, e, h] of A) { bonePath([s0, e], .34); bonePath([e, h], .3); for (let f = 0; f < 3; f++) paint(ellPts(h[0] + (f - 1) * .22 * u, h[1] + .2 * u, .1 * u, .16 * u, 6), { wash: bone, ink: boneInk, sw: sw * .3 }); }
+  for (const [hp, k, f] of Lg) { bonePath([hp, k], .38); bonePath([k, f], .32); }
+  for (let i = 0; i < 7; i++) paint(rrPts(-.22 * u, (-8.2 + i * .55) * u, .44 * u, .4 * u, .1 * u), { wash: bone, ink: boneInk, sw: sw * .35 });   // spine
+  for (let i = 0; i < 4; i++) for (const sd of [-1, 1]) inkLine([[0, (-7.7 + i * .55) * u], [sd * 1.0 * u, (-7.9 + i * .55) * u], [sd * 1.55 * u, (-7.3 + i * .6) * u]], sw * .9, bone, 'ink', .6);   // ribs
+  paint([[-1.4 * u, -4.9 * u], [0, -4.3 * u], [1.4 * u, -4.9 * u], [1.0 * u, -3.9 * u], [0, -4.0 * u], [-1.0 * u, -3.9 * u]], { wash: bone, ink: boneInk, sw: sw * .45, curv: .3 });   // pelvis
+  // the skull: dome, eye sockets, nose, a grinning jaw
+  paint(ellPts(0, -11.0 * u, 1.75 * u, 1.65 * u, 22), { wash: bone, ink: boneInk, sw: sw * .55 });
+  paint(rrPts(-1.05 * u, -10.1 * u, 2.1 * u, 1.0 * u, .35 * u), { wash: bone, ink: boneInk, sw: sw * .5 });
+  for (const sd of [-1, 1]) paint(ellPts(sd * .62 * u, -11.0 * u, .42 * u, .5 * u, 12), { wash: boneInk, ink: null });
+  paint([[-.15 * u, -10.35 * u], [.15 * u, -10.35 * u], [0, -10.65 * u]], { wash: boneInk, ink: null });
+  for (let k = -2; k <= 2; k++) inkLine([[k * .32 * u, -9.95 * u], [k * .32 * u, -9.35 * u]], sw * .35, boneInk, 'inkfine', 0);
+  pop();
+}
+// Soot and smoke curling up from a scorched character (age in s since the zap).
+function smolder(x, y, s, age, o = {}) {
+  for (let i = 0; i < 4; i++) {
+    const k = frac(age * .6 + i / 4), px = x + 18 * s * Math.sin(k * 5 + i * 2), py = y - 160 * s * k, r = (10 + 22 * k) * s;
+    boilSeed('smolder' + (o.key || '') + i);
+    paint(ellPts(px, py, r, r * .85, 12), { wash: mixCol('#4A4650', '#9A96A0', k), washOp: 200 * (1 - k), ink: k < .3 ? PAL.ink : null, sw: .8 });
   }
 }

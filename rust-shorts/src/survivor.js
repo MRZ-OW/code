@@ -87,8 +87,12 @@ function survivor(x, y, u, o = {}) {
     const a2 = Math.PI / 2 + swing + (V.side ? knee : 0) * 1; let ax = kx + Math.cos(a2) * sh * (V.side ? 1 : 0) - (V.side ? 0 : side * knee * .2 * u), ay = Math.min(-.25 * u, ky + Math.sin(a2) * sh * (V.side ? 1 : 1 - lift * .3));
     if (st > 0) {   // sitting: the thigh swings forward to level (side) or foreshortens toward us (front), the shin hangs down
       const skx = V.side ? hx + th * .98 : hx + side * .25 * u, sky = V.side ? hy + th * .06 : hy + th * .2;
-      kx = lerp(kx, skx, st); ky = lerp(ky, sky, st); ax = lerp(ax, skx + (V.side ? .1 : side * .05) * u, st); ay = lerp(ay, -.25 * u, st);
+      kx = lerp(kx, skx, st); ky = lerp(ky, sky, st);
+      if (o.legsOut && V.side) { ax = lerp(ax, skx + sh * .98, st); ay = lerp(ay, sky + .05 * u, st); }   // sitting on the ground, legs out straight
+      else { ax = lerp(ax, skx + (V.side ? .1 : side * .05) * u, st); ay = lerp(ay, -.25 * u, st); }
     }
+    const ck = clamp(i === 0 ? o.clutchL || 0 : o.clutchR || 0);
+    if (ck > 0) [kx, ky, ax, ay] = clutchLeg(u, hx, hy, ck, kx, ky, ax, ay, V.side);
     const col = far ? mixCol(legC, SB.dk, .45) : legC;
     if (gear.pants || gear.hazmat) {
       const pc = gear.hazmat ? '#D8B83C' : (gear.pantsCol || '#3D4248');
@@ -96,12 +100,16 @@ function survivor(x, y, u, o = {}) {
     } else paint(ribbon([[hx, hy], [kx, ky], [ax, ay]], 1.2 * u, .95 * u), { wash: col, ink: PAL.ink, sw: sw * .8 });
     // foot (or boot)
     const boot = gear.boots || gear.hazmat, fcol = boot ? (gear.hazmat ? '#2E2B30' : '#6B4A30') : col;
-    if (V.side) paint(ellPts(ax + .45 * u, ay + .02 * u, (boot ? 1.05 : .9) * u, .42 * u, 14, 0, swing * .3), { wash: far ? mixCol(fcol, PAL.ink, .25) : fcol, ink: PAL.ink, sw: sw * .7 });
+    if (V.side && o.legsOut && st > .5) paint(ellPts(ax + .15 * u, ay - .35 * u, (boot ? 1.05 : .9) * u, .42 * u, 14, 0, -1.35), { wash: far ? mixCol(fcol, PAL.ink, .25) : fcol, ink: PAL.ink, sw: sw * .7 });   // heel down, toes up
+    else if (V.side) paint(ellPts(ax + .45 * u, ay + .02 * u, (boot ? 1.05 : .9) * u, .42 * u, 14, 0, swing * .3), { wash: far ? mixCol(fcol, PAL.ink, .25) : fcol, ink: PAL.ink, sw: sw * .7 });
+    else if (ck > .3) paint(ellPts(ax + .2 * u, ay + .05 * u, .85 * u, .42 * u, 14, 0, .25), { wash: fcol, ink: PAL.ink, sw: sw * .7 });   // the hurt foot, held up
     else paint(ellPts(ax + side * .12 * u, ay + .05 * u, (boot ? .82 : .7) * u, .4 * u, 14), { wash: fcol, ink: PAL.ink, sw: sw * .7 });
     return [[hx, hy], [kx, ky]];
   };
   const thighs = [];
-  if (V.side) { thighs[1] = leg(1, 1, true); thighs[0] = leg(-1, 0, false); }
+  if (V.back && st > .5) { const hx = .9 * u; thighs[0] = [[-hx, hipY], [-hx, hipY + .3 * u]]; thighs[1] = [[hx, hipY], [hx, hipY + .3 * u]]; }   // seated, seen from behind: the legs are out in front of him
+  else if (V.side) { thighs[1] = leg(1, 1, true); thighs[0] = leg(-1, 0, false); }
+  else if (o.clutchL > 0) { thighs[1] = leg(1, 1, false); thighs[0] = leg(-1, 0, false); }   // the held-up leg crosses in front
   else { thighs[0] = leg(-1, 0, false); thighs[1] = leg(1, 1, false); }
 
   // ---------- arms (far ones go behind the torso) ----------
@@ -123,6 +131,13 @@ function survivor(x, y, u, o = {}) {
       const sideA = out(RB.slice(0, n)), sideB = out(RB.slice(n)), meanX = P => P.reduce((a, p) => a + p[0], 0) / (P.length || 1);
       const backIsA = V.side && meanX(sideA) < meanX(sideB), soft = [sw * .45, mixCol(SB.dk, PAL.ink, .45)];   // the edge toward his back
       inkLine(sideA, backIsA ? soft[0] : sw * .8, backIsA ? soft[1] : PAL.ink, 'ink', 0); inkLine(sideB, V.side && !backIsA ? soft[0] : sw * .8, V.side && !backIsA ? soft[1] : PAL.ink, 'ink', 0);
+      // a round elbow: fill the outer corner of the bend and ink its arc (a sharp fold otherwise ends in a box)
+      const ux = -d1[0], uy = -d1[1], bx = ux + d2[0], by = uy + d2[1], cosT = clamp(ux * d2[0] + uy * d2[1], -1, 1);
+      if (cosT > -.75 && Math.hypot(bx, by) > .05) {
+        const we = (w0 + (top ? .95 : .78) * u) / 4, oa = Math.atan2(-by, -bx), span = (Math.PI - Math.acos(cosT)) / 2 + .15;
+        paint(ellPts(ex, ey, we, we, 16), { wash: col, ink: null });
+        inkLine(Array.from({ length: 9 }, (_, i) => { const t = oa - span + 2 * span * i / 8; return [ex + Math.cos(t) * we, ey + Math.sin(t) * we]; }), sw * .8, PAL.ink, 'ink', 0);
+      }
     }
     const hand = gear.hazmat ? '#2E2B30' : (gear.gloves ? '#5A4A3A' : SB.col), hc = far && !inFront ? mixCol(hand, PAL.ink, .28) : hand, open = which === 'L' ? o.openL : o.openR;
     const fist = () => {
@@ -268,7 +283,7 @@ const headArc = (hcx, hcy, R, r, a0, a1, n = 14, bump = null) => {
 function beardOf(u, sw, o, V, hcx, hcy, R, fx, mx) {
   const col = hairCol(o);
   if (o.beard === 'stubble') { for (let i = 0; i < 14; i++) { const a = .5 + i / 13 * (Math.PI - 1), r = R * .8; paint(ellPts(hcx + Math.cos(a) * r * (V.side ? .45 : 1) + (V.side ? .9 * u : 0), hcy + .3 * u + Math.sin(a) * r * .75, .07 * u, .07 * u, 6), { wash: col, ink: null }); } return; }
-  let top, jaw, back = [];
+  let top, jaw, back = [];   // jaw may be re-assigned (frizz)
   if (V === SV.side) {
     top = HR(hcx, hcy, R, [[.08, .28], [.2, .46], [.42, .6], [.6, .74], [.78, .78], [.9, .68]]);
     jaw = headArc(hcx, hcy, R, 1.05, .6, 1.62, 12, [.88, .09]);
@@ -282,7 +297,8 @@ function beardOf(u, sw, o, V, hcx, hcy, R, fx, mx) {
     top = [[fx - w, hcy + .35 * u], [fx - w * .72, hcy + 1.0 * u], [fx - w * .3, hcy + 1.64 * u], [fx, hcy + 1.76 * u], [fx + w * .3, hcy + 1.64 * u], [fx + w * .72, hcy + 1.0 * u], [fx + w, hcy + .35 * u]];
     jaw = []; for (let i = 0; i <= 10; i++) { const a = i / 10 * Math.PI; jaw.push([fx + Math.cos(a) * w * .98, hcy + .45 * u + Math.sin(a) * 2.05 * u]); }
   }
-  const Tp = through(top, 3), Jw = through(jaw, 2), Bk = back.length ? through([jaw[jaw.length - 1], ...back, top[0]], 3) : [];
+  if (o.frizz > 0) jaw = jaw.map(([x, y], i) => { const dx = x - hcx, dy = y - hcy, d = Math.hypot(dx, dy) || 1, k = (i % 2 ? .05 : .2) * o.frizz * R; return [x + dx / d * k, y + dy / d * k]; });   // bristling
+  const Tp = through(top, 3), Jw = o.frizz > 0 ? jaw : through(jaw, 2), Bk = back.length ? through([jaw[jaw.length - 1], ...back, top[0]], 3) : [];
   paint([...Tp, ...Jw, ...Bk], { wash: col, ink: null });
   inkLine(Jw, sw * (V === SV.side ? .4 : .6), V === SV.side ? hairLine(o) : PAL.ink, 'ink', 0);
   inkLine(Tp, sw * .32, hairLine(o), 'inkfine', 0);
@@ -313,6 +329,13 @@ function hairOf(u, sw, o, V, hcx, hcy, R) {
     for (let i = 0; i <= 14; i++) { const a = a0 + (a1 - a0) * i / 14; outer.push([hcx + Math.cos(a) * R * r, hcy + Math.sin(a) * R * r]); }
     const fringe = style === 'messy' ? 6 : style === 'buzz' ? 2 : 4; inner = [];
     for (let i = 0; i <= fringe; i++) { const fxx = lerp(hcx + R * .95, hcx - R * .95, i / fringe), up = (i % 2 ? .1 : .3) * u * (style === 'messy' ? 1.6 : 1); inner.push([fxx, hcy - R * .6 + up]); }
+  }
+  if (o.frizz > 0 && !V.back) {   // electrocuted: a spiky halo of hair standing on end, behind the hairline
+    const F = [], n = 26, fz = clamp(o.frizz), a0 = Math.PI * .92, a1 = Math.PI * 2.08;
+    for (let i = 0; i <= n; i++) { const a = lerp(a0, a1, i / n), rr = R * (1.1 + (i % 2 ? .12 : .42 + .1 * hash(i + 3)) * fz); F.push([hcx + Math.cos(a) * rr, hcy + Math.sin(a) * rr]); }
+    for (let i = n; i >= 0; i--) { const a = lerp(a0, a1, i / n); F.push([hcx + Math.cos(a) * R * .97, hcy + Math.sin(a) * R * .97]); }   // a ring: the face stays clear
+    paint(F, { wash: col, ink: null });
+    inkLine(F.slice(0, n + 1), sw * .7, PAL.ink, 'ink', 0);
   }
   const O = through(outer, 3), I = through([outer[outer.length - 1], ...inner, outer[0]], 3);
   paint([...O, ...I], { wash: col, ink: null });
@@ -424,7 +447,15 @@ function footLocal(u, o, i) {
   const hx = (V.side ? side * .35 : side * .9) * u * V.torsoW, th = 2.05 * u, sh = 2.0 * u;
   const a1 = Math.PI / 2 + swing - (V.side ? knee * .5 : 0), kx = hx + Math.cos(a1) * th * (V.side ? 1 : 0) + (V.side ? 0 : side * knee * .25 * u), ky = hipY + Math.sin(a1) * th * (V.side ? 1 : 1 - lift * .25);
   const a2 = Math.PI / 2 + swing + (V.side ? knee : 0), ax = kx + Math.cos(a2) * sh * (V.side ? 1 : 0) - (V.side ? 0 : side * knee * .2 * u), ay = Math.min(-.25 * u, ky + Math.sin(a2) * sh * (V.side ? 1 : 1 - lift * .3));
+  const ck = clamp(i === 0 ? o.clutchL || 0 : o.clutchR || 0);
+  if (ck > 0) { const [, , cx, cy] = clutchLeg(u, hx, hipY, ck, kx, ky, ax, ay, V.side); return V.side ? [cx + .45 * u, cy + .02 * u] : [cx + (ck > .3 ? .2 * u : side * .12 * u), cy + .05 * u]; }
   return V.side ? [ax + .45 * u, ay + .02 * u] : [ax + side * .12 * u, ay + .05 * u];
+}
+// A hurt leg pulled up (o.clutchL / o.clutchR 0..1): the knee comes up in front and the shin hangs under it, so the
+// foot is held up clear of the body (in front of the standing leg), where the hands can grab the knee and the ankle.
+function clutchLeg(u, hx, hipY, k, kx, ky, ax, ay, prof) {
+  const K = prof ? [1.9 * u, hipY - .6 * u] : [hx + 2.3 * u, hipY - .1 * u], F = prof ? [2.55 * u, hipY + 1.25 * u] : [hx + 2.05 * u, hipY + 1.15 * u];
+  return [lerp(kx, K[0], k), lerp(ky, K[1], k), lerp(ax, F[0], k), lerp(ay, F[1], k)];
 }
 // The same in the world (flip, dx, dy, rot, sq).
 function survivorFoot(x, y, u, o, i) {
