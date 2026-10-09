@@ -22,6 +22,10 @@
 //            toward the head, and flip, rot and the gait's bob all apply, so a red X drawn round (0, 0) rides along.
 //            boarRump(x, y, s, o) gives that point in the world (to aim an arc at it).
 //     emote, emoteK, emoteAge (as survivor()), noShadow, boilKey, seed (blink timing), t (time for the idle; default T)
+//     acting (ep4): dy (lift off the ground, in u; negative = up; the shadow stays down and shrinks), sq (squash > 0 /
+//            stretch < 0 about the ground point, keeping volume), head (an extra head pitch in radians, + = snout down,
+//            e.g. rooting), squeal 0..1 (the jaw drops open: a squeal or an oink), stride 0..1 (scales a moving gait's
+//            steps and bob: ease it to 0 as the boar comes to a stop, then switch to 'stand'). boarRump follows them too.
 //   chicken(x, y, s, o)   (x, y) = the ground point between the feet. s = 1 is about 120 px tall (u = 30·s too).
 //     pose   'stand' | 'walk' | 'sit' (nesting, legs hidden) | 'crow' (head up, beak open) | 'sleep' (sitting, head
 //            sunk, eyes shut) | 'flap' (wings out and beating, running on the spot)
@@ -165,8 +169,8 @@ function boarPaw(t) {
 // The body's pose this frame: bob, pitch, head, tail and ear angles (body units and radians).
 function boarPose(o, t, id) {
   const G = BOAR_GAITS[o.gait] || BOAR_GAITS.stand, M = BOAR_MOODS[o.mood] || BOAR_MOODS[o.eyes] || BOAR_MOODS.neutral, moving = G !== BOAR_GAITS.stand;
-  const ph = o.phase ?? t * G.rate, p = frac(ph);
-  const P = { G, M, moving, ph, p, dy: G.bob(p), pitch: G.pitch(p) + (M.lean || 0), head: G.head(p) + (M.head || 0), tail: G.tail(p), ear: G.ear(p) + (M.ear || 0) };
+  const ph = o.phase ?? t * G.rate, p = frac(ph), k = clamp(o.stride ?? 1);
+  const P = { G, M, moving, ph, p, k, dy: G.bob(p) * k, pitch: G.pitch(p) * k + (M.lean || 0), head: G.head(p) * k + (M.head || 0) + (o.head || 0), tail: G.tail(p), ear: G.ear(p) + (M.ear || 0) };
   if (!moving) {   // standing: breathing, a slow sniff, a tail swish and the odd ear flick
     P.dy += -.03 * (.5 + .5 * Math.sin(t * TAU * .5));
     P.head += .035 * Math.sin(t * TAU * .4 + 1);
@@ -187,8 +191,9 @@ function boarBody(V, P, u, bx, by) {
 function boarRump(x, y, s = 1, o = {}) {
   const u = 30 * s, V = o.view === 'q' ? BOAR_VIEWS.q : BOAR_VIEWS.side, P = boarPose(o, o.t ?? T, 0);
   let [bx, by] = boarBody(V, P, u, V.rump[0], V.rump[1]); bx += V.ox * u; if (o.flip) bx = -bx;
+  const sq = o.sq || 0; bx *= 1 + sq * .55; by *= 1 - sq;
   const r = o.rot || 0, c = Math.cos(r), sn = Math.sin(r);
-  return [x + bx * c - by * sn, y + bx * sn + by * c];
+  return [x + bx * c - by * sn, y + (o.dy || 0) * u + bx * sn + by * c];
 }
 
 function boar(x, y, s = 1, o = {}) {
@@ -201,13 +206,14 @@ function boar(x, y, s = 1, o = {}) {
   const soft = (pts, col, op, tex = .6) => paint(pts, { fill: col, fillOp: op, bleed: .12, tex, border: .5, ink: null });
 
   rs('shadow');
-  if (!o.noShadow) { const f = 1 + Math.min(0, P.dy) * .3; paint(ellPts(x + dir * V.shadow[0] * u, y + .1 * u, V.shadow[1] * u * f, V.shadow[2] * u * f, 24), { fill: PAL.ink, fillOp: 90, bleed: .25, tex: .3, border: .1, ink: null }); }
+  const lift = Math.min(0, o.dy || 0), sqk = o.sq || 0;
+  if (!o.noShadow) { const f = (1 + Math.min(0, P.dy) * .3) * Math.max(.45, 1 + lift * .12) * (1 + sqk * .4); paint(ellPts(x + dir * V.shadow[0] * u, y + .1 * u, V.shadow[1] * u * f, V.shadow[2] * u * f, 24), { fill: PAL.ink, fillOp: 90, bleed: .25, tex: .3, border: .1, ink: null }); }
 
-  push(); translate(x + shake, y); if (o.rot) rotate(o.rot); scale(dir, 1); translate(V.ox * u, 0);
+  push(); translate(x + shake, y + (o.dy || 0) * u); if (o.rot) rotate(o.rot); scale(dir * (1 + sqk * .55), 1 - sqk); translate(V.ox * u, 0);
   // ---------- legs (all under the body; far ones darker) ----------
   const leg = L => {
     rs('leg' + L.k);
-    const [fdx, lift, sk] = paw && L.k === 'FN' ? boarPaw(t) : moving ? critterStep(frac(P.ph + (G.off[L.k] || 0)), G.D, G.S, G.lift * (L.front ? 1 : .85)) : [0, 0, 0];
+    const [fdx, lift, sk] = paw && L.k === 'FN' ? boarPaw(t) : moving ? critterStep(frac(P.ph + (G.off[L.k] || 0)), G.D, G.S, G.lift * (L.front ? 1 : .85)).map(v => v * P.k) : [0, 0, 0];
     const fx = (L.fx + fdx * V.axis[0]) * u, fy = (L.gy + fdx * V.axis[1] + lift) * u, h = boarBody(V, P, u, L.hip[0], L.hip[1]), F = [fx, fy - .3 * u];
     const J = critterIK(h, F, L.l[0] * u, L.l[1] * u, L.front ? -1 : 1), col = L.far ? mixCol(C.leg, PAL.ink, .45) : C.leg;
     paint(ribbon([h, J, F], (L.front ? .8 : .95) * u, .3 * u), { wash: col, ink: PAL.ink, sw: sw * .75 });
@@ -284,7 +290,12 @@ function boar(x, y, s = 1, o = {}) {
   for (const [nx, ny, nrx, nry] of V.nostrils) paint(E(nx, ny, nrx, nry, 10), { wash: C.nostril, ink: null });
   const mo = V.mouth, mood = o.mood || o.eyes;
   const mouthPts = mood === 'happy' ? [mo[0], mo[1], [mo[2][0], mo[2][1] - .22]] : mood === 'angry' ? [mo[0], mo[1], [mo[2][0], mo[2][1] + .12]] : mo;
-  inkLine(U(mouthPts), sw * .6, PAL.ink, 'ink', .4);
+  const sq2 = clamp(o.squeal || 0);
+  if (sq2 > .02) {   // the jaw drops: a dark open mouth with a pink tongue, hinged at the back corner of the mouth
+    const jaw = mouthPts.map(([mx, my], i) => [mx - .06 * sq2 * (2 - i), my + .5 * sq2 * (1 - i / 2)]);
+    paint(U([...mouthPts, ...jaw.slice().reverse()]), { wash: '#4A1F2A', ink: PAL.ink, sw: sw * .6 });
+    paint(E(lerp(mouthPts[0][0], mouthPts[1][0], .6), mouthPts[1][1] + .3 * sq2, .32, .1 + .08 * sq2, 10), { wash: '#D9707A', ink: null });
+  } else inkLine(U(mouthPts), sw * .6, PAL.ink, 'ink', .4);
   paint(ribbon(U(V.tusks[0]), .3 * u, .08 * u), { wash: C.tusk, ink: PAL.ink, sw: sw * .8, br: 'inkfine' });
   // eyes: a lighter socket so a dark eye reads on the dark face, then the mood's eye and brow
   rs('eyes');

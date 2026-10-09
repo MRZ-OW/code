@@ -183,9 +183,9 @@ function wallPanel(x, y, w, h, grade = 'wood', o = {}) {
 // scrap patchwork of rusty, painted sheets) | garage (corrugated roll-up) | armor (dark riveted steel with a vent slot).
 // open 0..1 swings it (it narrows, like a turn).
 function doorPanel(x, y, w, h, kind = 'wood', o = {}) {
-  const open = clamp(o.open ?? 0), ww = w * Math.max(.08, 1 - open), x0 = x, y0 = y - h;
+  const open = clamp(o.open ?? 0), ww = w * Math.max(.08, 1 - open), x0 = o.hingeRight ? x + w - ww : x, y0 = y - h;   // hingeRight: it opens on its left edge
   boilSeed('door' + Math.round(x) + kind);
-  if (open > .02) paint(rectPts(x0, y0, w, h, 1), { wash: o.inside || '#2A2430', ink: PAL.ink, sw: 1 });   // the dark room behind
+  if (open > .02) paint(rectPts(x, y0, w, h, 1), { wash: o.inside || '#2A2430', ink: PAL.ink, sw: 1 });   // the dark room behind the doorway
   if (kind === 'wood') {
     paint(rectPts(x0, y0, ww, h, 1), { wash: '#C9A27A', ink: PAL.ink, sw: 1.1 });
     for (let k = 1; k < 4; k++) inkLine([[x0 + ww * k / 4, y0 + 6], [x0 + ww * k / 4, y - 6]], .7, '#8E6A46', 'inkfine', 0);
@@ -202,18 +202,24 @@ function doorPanel(x, y, w, h, kind = 'wood', o = {}) {
     for (let k = 1; k < 12; k++) inkLine([[x0 + 4, y0 + h * k / 12], [x0 + ww - 4, y0 + h * k / 12]], .8, '#6E7882', 'inkfine', 0);
     paint(rectPts(x0 + ww * .1, y0 + h * .4, ww * .3, h * .12), { wash: '#5E87A8', washOp: 170, ink: null });
     paint(rectPts(x0 + ww * .55, y0 + h * .62, ww * .35, h * .1), { wash: '#B5653A', washOp: 150, ink: null });
-  } else {   // armor
+  } else {   // armor (reference: door.hinged.toptier): dark steel, rusty rivet rows, a viewing hatch, a handle plate
     paint(rectPts(x0, y0, ww, h, 1), { wash: '#4A4E54', ink: PAL.ink, sw: 1.2 });
-    paint(rectPts(x0 + ww * .1, y0 + h * .06, ww * .8, h * .88), { wash: '#5A6068', ink: PAL.ink, sw: .7 });
+    paint(rectPts(x0 + ww * .07, y0 + h * .04, ww * .86, h * .92), { wash: '#565C63', ink: PAL.ink, sw: .6 });
+    if (ww > w * .3) {
+      for (const [px, py, ph] of [[.18, .3, .22], [.52, .44, .3], [.74, .68, .2], [.33, .74, .16]]) paint([[x0 + ww * px, y0 + h * py], [x0 + ww * (px + .05), y0 + h * py], [x0 + ww * (px + .035), y0 + h * (py + ph)], [x0 + ww * (px + .015), y0 + h * (py + ph)]], { wash: '#7A4A30', washOp: 110, ink: null });   // rust streaks
+      for (const ry of [.075, .29, .53, .925]) for (let k = 0; k < 7; k++) paint(ellPts(x0 + ww * (.12 + .76 * k / 6), y0 + h * ry, 3.4, 3.4, 6), { wash: k % 3 ? '#A9744E' : '#C4BCAE', ink: PAL.ink, sw: .3 });   // rivet rows
+      const hpx = o.hingeRight ? x0 + ww * .05 : x0 + ww * .83;   // the handle plate, on the side that opens
+      paint(rectPts(hpx, y0 + h * .44, ww * .12, h * .13), { wash: '#4E5258', ink: PAL.ink, sw: .6 });
+      paint(ellPts(hpx + ww * .06, y0 + h * .505, ww * .042, ww * .042, 10), { wash: '#8A9096', ink: PAL.ink, sw: .5 });
+    }
     // the viewing hatch (reference: door.hinged.toptier "with a hatch to see and shoot out of"): a slot whose cover
     // slides aside (o.hatch 0..1); o.hatchIn(x, y, w, h) draws whatever looks out of it
     const hk = clamp(o.hatch || 0), hx0 = x0 + ww * .22, hy0 = y0 + h * .16, hw = ww * .56, hh = h * (.05 + .06 * hk);
     paint(rectPts(hx0, hy0, hw, hh), { wash: '#16131A', ink: PAL.ink, sw: .8 });
     if (hk > 0 && o.hatchIn) o.hatchIn(hx0, hy0, hw, hh);
     paint(rectPts(hx0 + hw * hk * .9, hy0 - 5, hw * (1 - hk * .9), hh + 10), { wash: '#6A7078', ink: PAL.ink, sw: .7 });   // the cover
-    for (let r = 0; r < 4; r++) for (const xx of [x0 + ww * .16, x0 + ww * .84]) paint(ellPts(xx, y0 + h * (.15 + r * .23), 5, 5, 8), { wash: '#A3ABB3', ink: PAL.ink, sw: .4 });
   }
-  if (ww > w * .3 && kind !== 'garage') paint(rectPts(x0 + ww * .8, y0 + h * .48, 10, 30), { wash: '#2E2B30', ink: PAL.ink, sw: .5 });   // handle
+  if (ww > w * .3 && kind !== 'garage' && kind !== 'armor') paint(rectPts(x0 + ww * .8, y0 + h * .48, 10, 30), { wash: '#2E2B30', ink: PAL.ink, sw: .5 });   // handle
 }
 // Code lock (reference icon): a green keypad box with a little display and a status light. state: 'locked' (red) |
 // 'open' (green) | 'set' (blinking yellow). press = the key being pressed (0..11) or -1. s = 1 ≈ 64 × 92 px.

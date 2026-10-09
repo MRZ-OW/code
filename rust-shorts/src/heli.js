@@ -12,9 +12,13 @@
 //           | 'front' (nearly head-on, from a little below)
 //     yaw, elev: turn it in 3D instead, for swings and turns (radians; yaw 0 = profile, π/2 = nose at camera, -π/2 = tail;
 //                elev 0 = level, π/2 = straight below). They override the view's own.
-//     flip: face left. rot: pitch in radians, + = nose up (the "disdain" tilt), whichever way it faces.
+//     flip: face left. rot: pitch in radians, + = nose up (the "disdain" tilt), whichever way it faces. It turns the
+//           finished drawing, which only reads as a pitch near profile; pitch and bank turn the model itself:
+//     pitch: nose up (+) or down (-) in 3D, radians (reads from any view, even head-on). bank: roll in 3D, + = right side
+//           (the pilot's right, starboard) down, as in a turn to the right.
 //     t: time for the rotors (default T). They're always a blur with streaks, never still blades.
-//     light: { on 0..1, aim: world angle (π/2 = straight down), len: px, w: half-angle } the searchlight cone from the ball.
+//     light: { on 0..1, aim: world angle (π/2 = straight down), len: px, w: half-angle, cone: false } the searchlight cone
+//           from the ball (cone: false lights the lens only, so a scene can paint the beam later, over what it lights).
 //     spin 0..1: minigun barrels spinning (spinAng: pass the barrel angle yourself for a slow spin-up); fire 0..1: muzzle flash.
 //     gunAim: the minigun's pitch down (radians). pods 0..1: rocket pods glowing and arming. smoke 0..1: damage smoke from
 //     the engine (flames from .5). tod: 0 day → 2 night, as rustSky(). key: a boil key if two helis share a frame.
@@ -103,15 +107,23 @@ function hThin(P, step) { const out = [P[0]]; for (let i = 1; i < P.length; i++)
 
 // ---------- camera ----------
 function heliCam(o) {
-  const v = HELI_VIEWS[o.view] || HELI_VIEWS.side, yaw = o.yaw ?? v.yaw, elev = o.elev ?? v.elev;
-  return { cy: Math.cos(yaw), sy: Math.sin(yaw), ce: Math.cos(elev), se: Math.sin(elev), F: o.persp ?? v.F };
+  const v = HELI_VIEWS[o.view] || HELI_VIEWS.side, yaw = o.yaw ?? v.yaw, elev = o.elev ?? v.elev, p = o.pitch || 0, b = o.bank || 0;
+  return { cy: Math.cos(yaw), sy: Math.sin(yaw), ce: Math.cos(elev), se: Math.sin(elev), F: o.persp ?? v.F,
+    att: !!(p || b), pc: Math.cos(p), ps: Math.sin(p), bc: Math.cos(b), bs: Math.sin(b) };
 }
-// model point → [x, y (screen, down), depth (+ = nearer)] at s = 1, before the pitch and flip
+// the model's own attitude: roll about its long axis (X), then pitch about its side axis (Z)
+function hAtt(C, P) {
+  if (!C.att) return P;
+  const y1 = P[1] * C.bc - P[2] * C.bs, z1 = P[1] * C.bs + P[2] * C.bc;
+  return [P[0] * C.pc - y1 * C.ps, P[0] * C.ps + y1 * C.pc, z1];
+}
+// model point → [x, y (screen, down), depth (+ = nearer)] at s = 1, before the 2D rot and flip
 function hProj(C, P) {
+  P = hAtt(C, P);
   const u = P[0] * C.cy + P[2] * C.sy, d1 = P[0] * C.sy - P[2] * C.cy, v = P[1] * C.ce + d1 * C.se, d = d1 * C.ce - P[1] * C.se, k = C.F / (C.F - d);
   return [u * k, -v * k, d];
 }
-const hFacing = (C, n) => { const l = Math.hypot(n[0], n[1], n[2]) || 1; return ((n[0] * C.sy - n[2] * C.cy) * C.ce - n[1] * C.se) / l; };
+const hFacing = (C, n) => { n = hAtt(C, n); const l = Math.hypot(n[0], n[1], n[2]) || 1; return ((n[0] * C.sy - n[2] * C.cy) * C.ce - n[1] * C.se) / l; };
 // a local (projected) point → world, through the heli's pitch, flip, scale and position
 function hWorld(x, y, s, o, p) {
   const r = -(o.rot || 0), c = Math.cos(r), sn = Math.sin(r);
@@ -171,7 +183,7 @@ function patrolHeli(x, y, s = 1, o = {}) {
   const lit = o.light ? clamp(o.light.on ?? 1) : 0, aim = o.light?.aim ?? Math.PI / 2, G = hGunAxis(o);
 
   // the searchlight beam goes first, so the heli covers where it starts
-  if (lit > .01) { const [lx, ly] = heliPt(x, y, s, o, 'light'); searchCone(lx, ly, aim, o.light.len ?? 700 * s, lit, { key: key + ' cone', w: o.light.w, col: o.light.col }); }
+  if (lit > .01 && o.light.cone !== false) { const [lx, ly] = heliPt(x, y, s, o, 'light'); searchCone(lx, ly, aim, o.light.len ?? 700 * s, lit, { key: key + ' cone', w: o.light.w, col: o.light.col }); }
 
   push(); translate(x, y); scale((o.flip ? -1 : 1) * s, s); rotate(-(o.rot || 0));
   const parts = [], part = (d, draw) => parts.push({ d, draw });
