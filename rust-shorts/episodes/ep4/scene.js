@@ -825,11 +825,11 @@
       else { const p = [lerp(high[0], -.6 * U, k2), lerp(high[1], -6.6 * U, k2)], r = lerp(TAU - 1.75, TAU - 2.3, k2), hp = reachArm(U, { view: 'q', rawArms: true }, 'L', high[0], high[1]), fall = ease(seg(t, 14.32, 14.5));
         CA = { aL: lerp(hp.aL, -1.32, fall), bendL: lerp(hp.bendL, .22, fall), armKL: lerp(hp.armKL, 1, fall), noGun: true, twoHand: false, aR: -1.3, behind: (u, sw) => { push(); translate(p[0] * u / U, p[1] * u / U); rotate(r); akProp(u, sw * .9, 0); pop(); } }; }
     } else {
-      const reach = ease(seg(t, 14.5, 14.66)) * (1 - ease(seg(t, 14.72, 14.86))), up = ease(seg(t, 14.86, 15.33));
-      const R = reachArm(U, { view: 'q', rawArms: true }, 'L', lerp(-.4, -1.3, reach) * U, lerp(-5.6, -4.9, reach) * U);
-      const H = reachArm(U, { view: 'q', rawArms: true }, 'L', lerp(.6, UP3[0], up) * U, lerp(-6.4, UP3[1], up) * U, false);
-      const k = ease(seg(t, 14.72, 14.86));
-      CA = { aL: lerp(R.aL, H.aL, k), bendL: lerp(R.bendL, H.bendL, k), armKL: lerp(R.armKL, H.armKL, k), rot: -.08 * up, noGun: true, twoHand: false, aR: -1.3, behind: slungAK, handOver: true,
+      // the hand goes back to the hip for it, then carries it up behind his back and over his shoulder (never across the mask)
+      const reach = ease(seg(t, 14.5, 14.66)), up = ease(seg(t, 14.8, 15.33));
+      const hp = up > 0 ? kf(up, [[0, [-1.3, -4.9]], [.35, [-2.75, -7.7]], [.72, [-2.55, -10.9]], [1, UP3]], k => k) : [lerp(-.4, -1.3, reach), lerp(-5.6, -4.9, reach)];
+      const H = reachArm(U, { view: 'q', rawArms: true }, 'L', hp[0] * U, hp[1] * U, up < .3);
+      CA = { aL: H.aL, bendL: H.bendL, armKL: H.armKL, rot: -.08 * up, noGun: true, twoHand: false, aR: -1.3, behind: slungAK, handOver: true,
         handL: t >= 14.72 ? (u, sw) => { push(); rotate(-.6 - .95 * up); translate(-.1 * u, 0); rockProp(u * .95, sw); pop(); } : null };
     }
     const Co = { ...C0, ...CA, rawArms: true, view: 'q', face: chadFace(0, 1) };

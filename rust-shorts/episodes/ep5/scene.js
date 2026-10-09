@@ -466,14 +466,14 @@
   }
   // the AK's pickup sparkle, a 'spark' at a world point
   // The patrol heli's opening hover (1A–1B), echoed at the end (3F): above and right of him, looming.
-  const HOVER = (t, o = {}) => heliAt({ x: 585 + 8 * Math.sin(t * 1.3), y: 470 + 7 * Math.sin(t * 2.1), s: 1.42, hd: 1.12, elev: .5, pitch: -.1, bank: .04 * Math.sin(t * 1.7), key: 'hover', ...o });
+  const HOVER = (t, o = {}) => heliAt({ x: 615 + 8 * Math.sin(t * 1.3), y: 425 + 7 * Math.sin(t * 2.1), s: 1.36, hd: 1.12, elev: .5, pitch: -.1, bank: .04 * Math.sin(t * 1.7), key: 'hover', ...o });
   // The disdainful exit, from t0: the light clicks off, the nose tips up ("hmph"), it banks round to the right and is
   // gone off the right edge in under a second (fast < 1 squeezes it).
   function leaving(h, t, t0, fast = 1) {
     const T1 = x => t0 + x * fast;
     const turn = ease(seg(t, T1(.35), T1(.68))), fly = easeIn(seg(t, T1(.45), T1(.95)));
     return heliAt({ ...h, x: h.x + 1400 * fly, y: h.y - 160 * fly, hd: lerp(h.hd, .06, turn), elev: lerp(h.elev, .3, turn),
-      pitch: t < T1(.05) ? h.pitch : t < T1(.35) ? lerp(h.pitch, .3, ease(seg(t, T1(.05), T1(.3)))) : lerp(.3, -.28, ease(seg(t, T1(.35), T1(.72)))),
+      pitch: t < T1(.05) ? h.pitch : t < T1(.35) ? lerp(h.pitch, .17, ease(seg(t, T1(.05), T1(.3)))) : lerp(.17, -.28, ease(seg(t, T1(.35), T1(.72)))),
       bank: (h.bank || 0) + .3 * Math.sin(Math.PI * seg(t, T1(.35), T1(.95))) });
   }
   const PILE = [285, 1352];   // the clothes lying in the grass by him (S1C–S2C)

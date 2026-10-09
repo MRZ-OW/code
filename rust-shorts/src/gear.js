@@ -252,15 +252,18 @@ function hazmatCapeOver(u, sw, o, V, shY) {
     const k = clamp((-a - .25) / .75, 0, 1); if (k < .15) continue;   // 1 = arm hanging, 0 = raised to level
     const s = turned ? -1 : sideSign, R2 = r + .14 * u, drop = (.3 + .35 * k) * u;   // s: the outer side (toward the back in 3/4 and profile)
     const arc = []; for (let i = 0; i <= 10; i++) { const t = lerp(-Math.PI / 2 - s * .9, -Math.PI / 2 + s * 1.45, i / 10); arc.push([sx + Math.cos(t) * R2, sy + Math.sin(t) * R2 * .95]); }
-    const ox = sx + s * (turned ? .6 * u : R2 + .02 * u), ix = sx - s * .6 * u, hem = [];   // the hem spans the sleeve
-    for (let i = 0; i <= 4; i++) hem.push([lerp(ox, ix, i / 4), sy + drop + (i % 2 ? .18 : -.04) * u * k + (hash(i + (w === 'L' ? 5 : 9)) - .5) * .08 * u]);
+    const ox = sx + s * (turned ? .6 * u : R2 + .02 * u), ix = sx - s * .54 * u, hem = [];   // the hem spans the sleeve
+    for (let i = 0; i <= 4; i++) hem.push([lerp(ox, ix, i / 4), sy + drop + (i % 2 ? .18 : i === 4 ? .1 : -.04) * u * k + (i === 4 ? 0 : (hash(i + (w === 'L' ? 5 : 9)) - .5) * .08 * u)]);   // ends level on the sleeve's inner edge
     const P = arc.concat([[ox, sy + .2 * u]], hem, [[ix - s * .2 * u, sy - .1 * u]]);
     paint(P, { wash: HAZ.hood, ink: null });
     // ink: the shoulder's outline only where it sticks out past the hood and cape, then the torn hem; nothing where the
     // drape meets the cape, so it all reads as one cloth
     const A = arc.concat([[ox, sy + .2 * u]]), outside = p => !gearInside(C, p[0], p[1] + .02 * u);
     let i0 = A.length; while (i0 > 0 && outside(A[i0 - 1])) i0--;   // only the run that reaches the outer side, never a stray flick
-    const out = A.length - i0 > 1 ? A.slice(i0).concat(hem) : hem;
+    // front and back: start the stroke at the hood/cape junction so it runs on over the cape's own shoulder line (two
+    // tapered stroke ends meeting there leave a gap that reads as a flick)
+    const run = A.length - i0 > 1 ? (turned ? [] : [[s * 1.75 * u, shY + .02 * u]]).concat(A.slice(i0)) : [];
+    const out = run.length ? run.concat(hem) : hem;
     inkLine(out, sw * .8, PAL.ink, 'ink', .3);
     inkLine([[sx + s * .1 * u, sy - .35 * u], [sx + s * .35 * u, sy + drop * .7]], sw * .4, HAZ.hoodDk, 'inkfine', .5);   // a fold
     paint(ellPts(sx + s * .3 * u, sy + drop * .55, .06 * u, .05 * u, 6), { wash: '#D9B23E', ink: null });   // a paint fleck

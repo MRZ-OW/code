@@ -263,10 +263,14 @@ function survivor(x, y, u, o = {}) {
         // is hidden (no chevron on the chest)
         const wm = (w0 + w1) / 2, UA = svQuad([shx, shy], [ex, ey], w0, wm), FA = svQuad([ex, ey], [hx, hy], wm, w1);
         paint(UA, { wash: col, ink: null }); paint(ellPts(ex, ey, wm / 2, wm / 2, 14), { wash: col, ink: null });
-        for (const E of [[UA[0], UA[1]], [UA[3], UA[2]]]) { const P = out(densify(E, 8)); if (P.length > 1) inkLine(P, sw * .8, PAL.ink, 'ink', 0); }
+        // the inner crease (the two edges facing each other) is left un-inked, so no chevron on the chest; the darker shade
+        // separates the fold from the chest
+        const inU = (hx - ex) * (UA[1][0] - ex) + (hy - ey) * (UA[1][1] - ey) > 0 ? 0 : 1, inF = (shx - ex) * (FA[0][0] - ex) + (shy - ey) * (FA[0][1] - ey) > 0 ? 0 : 1;
+        const crease = () => [];
+        [[UA[0], UA[1]], [UA[3], UA[2]]].forEach((E, j) => { let P = out(densify(E, 10)); if (j === inU) P = crease(P); if (P.length > 1) inkLine(P, sw * .8, PAL.ink, 'ink', 0); });
         inkLine(Array.from({ length: 9 }, (_, i) => { const t = exA - Math.PI / 2 + Math.PI * i / 8; return [ex + Math.cos(t) * wm / 2, ey + Math.sin(t) * wm / 2]; }), sw * .8, PAL.ink, 'ink', 0);   // the elbow
         paint(FA, { wash: col, ink: null });
-        inkLine([FA[0], FA[1]], sw * .8, PAL.ink, 'ink', 0); inkLine([FA[3], FA[2]], sw * .8, PAL.ink, 'ink', 0);
+        [[FA[0], FA[1]], [FA[3], FA[2]]].forEach((E, j) => { let P = densify(E, 10); if (j === inF) P = crease(P); if (P.length > 1) inkLine(P, sw * .8, PAL.ink, 'ink', 0); });
       } else {
         paint(RB, { wash: col, ink: null });
         const sideA = out(densify(SA)), sideB = out(densify(SBd).reverse()), meanX = P => P.reduce((a, p) => a + p[0], 0) / (P.length || 1);

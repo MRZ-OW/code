@@ -7,7 +7,7 @@
   const WALL_TOP = 560;                         // the wall's top edge: dusk sky above it
   const GLOVE = '#5A4A3A', SLEEVE = '#5F6B52', CUFF = '#8E908C';
   const WX = 400, WY = 1080, WZ = 1.2;          // the wide shot's camera: him, the lock and the door
-  const NA = 245;                               // where he stands at the lock
+  const NA = 222;                               // where he stands at the lock
   const NX = 150;                               // where the big zap drops him, sitting
   const RK = [86, G + 4];                       // his rock on the ground behind him
   const RD = [442, G - 14];                     // his rock at the door's foot after the mega zap
@@ -530,8 +530,8 @@
       if (!skel) puff(NA, G - 6 * U, 54, t - 18.25, { col: '#CFCBD3', noInk: true, life: .6, key: 'launchsmoke', n: 6, rise: .8 });
       const k = seg(t, 18.25, 18.72);
       if (k < 1) {   // launched: one arc up and out to the top left, spinning, at a steady size
-        const c = arcPt([NA, G - 6.5 * U], [60, -380], 200, easeIn(k) * .35 + k * .65), rot = -k * 6, p = [c[0] - 6.5 * U * Math.sin(rot), c[1] + 6.5 * U * Math.cos(rot)];   // it spins round his middle
-        const vx = -185, vy = -1433, vl = Math.hypot(vx, vy);
+        const c = arcPt([NA, G - 6.5 * U], [200, -380], 200, easeIn(k) * .35 + k * .65), rot = k * 6, p = [c[0] - 6.5 * U * Math.sin(rot), c[1] + 6.5 * U * Math.cos(rot)];   // it spins round his middle
+        const vx = -45, vy = -1433, vl = Math.hypot(vx, vy);
         boilSeed('speed');
         for (let i = 0; i < 5; i++) { const off = (i - 2) * 22, L = 130 + 40 * hash(i), bx = c[0] - vy / vl * off - vx / vl * 90, by = c[1] + vx / vl * off - vy / vl * 90; inkLine([[bx, by], [bx - vx / vl * L, by - vy / vl * L]], 1.4, '#F4EEE6', 'ink', 0); }
         const O = { view: 'front', soot: .9, frizz: 1, eyes: 'x', mouth: 'o', rot, aL: 1.3, bendL: .1, aR: 1.2, bendR: .2, liftL: .6, liftR: .3, noShadow: true };
@@ -584,14 +584,14 @@
     for (let i = 0; i < 3; i++) { boilSeed('armsoot' + i); paint(ellPts(wx - 50 - i * 34, wy + 26 + i * 22, 9, 5, 9, 2), { wash: '#3E3D43', washOp: 120, ink: null }); }
     // the hand, palm down: the back of the hand, four fingers spread toward the door, the thumb tucked in
     boilSeed('charhand');
-    push(); translate(wx, wy); rotate(-.32 - .35 * lift); scale(1 + .3 * sq, 1 - .4 * sq + .1 * lift);
+    push(); translate(wx, wy); rotate(-.32 - .35 * lift); scale(1 + .18 * sq, 1 - .22 * sq + .1 * lift);
     for (let f = 0; f < 4; f++) { const fy = (-.48 + f * .32) * U, len = (f === 1 || f === 2 ? .95 : .8) * U * (1 - .55 * lift); paint(rrPts(.5 * U, fy - .13 * U, len + .2 * U, .27 * U, .13 * U), { wash: ch, ink: PAL.ink, sw: sw * .7 }); }
     paint(rrPts(-.45 * U, -.62 * U, 1.15 * U, 1.18 * U, .4 * U), { wash: ch, ink: PAL.ink, sw });
     paint(ribbon([[.05 * U, -.5 * U], [.45 * U, -.85 * U]], .3 * U, .24 * U), { wash: ch, ink: PAL.ink, sw: sw * .7 });   // thumb
     paint(ellPts(.1 * U, .05 * U, .3 * U, .2 * U, 9, 2), { wash: '#3E3D43', washOp: 110, ink: null });   // soot on the back of the hand
     for (let f = 0; f < 3; f++) inkLine([[.42 * U, (-.32 + f * .32) * U], [.55 * U, (-.32 + f * .32) * U]], .6, dk, 'inkfine', 0);   // knuckles
     pop();
-    for (const [age, k] of [[slap1, 'pat1'], [slap2, 'pat2']]) if (age >= 0 && age < .12) for (const a of [-2.4, -1.6, -.8]) { boilSeed('slap' + k + a); inkLine([[wx + 30 + Math.cos(a) * 52, wy + Math.sin(a) * 40], [wx + 30 + Math.cos(a) * 80, wy + Math.sin(a) * 62]], 1.2, PAL.ink, 'ink', 0); }
+    for (const [age, k] of [[slap1, 'pat1'], [slap2, 'pat2']]) if (age >= 0 && age < .12) for (const a of [-2.4, -1.6, -.8]) { boilSeed('slap' + k + a); inkLine([[wx + 30 + Math.cos(a) * 72, wy + Math.sin(a) * 52], [wx + 30 + Math.cos(a) * 98, wy + Math.sin(a) * 72]], .9, '#F4EEE2', 'ink', 0); }
     for (const [age, k] of [[slap1, 'pat1'], [slap2, 'pat2']]) puff(wx + 30, wy + 18, 15, age, { col: '#D9CFBC', noInk: true, life: .4, key: k, rise: .3, n: 6 });
     smoke(wx - 10, wy - 34, .55, t - 22.5, 'hand', { op: 140, life: 1.3 });
     dusk();
