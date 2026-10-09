@@ -432,6 +432,12 @@
       paint(ellPts(0, 0, s * 1.3, s, 8, s * .15), { wash: i % 3 ? '#7A5E42' : '#5E4A36', ink: PAL.ink, sw: .8 }); pop();
     }
   }
+  // a cloud's billowing outline: an ellipse with a few soft bumps (seed n picks them)
+  function cloudPts(x, y, rx, ry, n) {
+    const P = [];
+    for (let i = 0; i < 30; i++) { const a = i / 30 * TAU, b = 1 + .15 * Math.sin(a * 6 + n * 3.1) + .06 * Math.sin(a * 11 + n * 1.7); P.push([x + Math.cos(a) * rx * b, y + Math.sin(a) * ry * b]); }
+    return P;
+  }
   // Soft smoke, no outlines: puffs of different sizes that swell, drift up and aside and thin out (age from 0 s).
   function softSmoke(x, y, r, age, key, n = 7, life = 1.5) {
     if (age < 0 || age > life) return;
@@ -439,9 +445,9 @@
       const st = i * .05, a2 = age - st; if (a2 < 0) continue;
       const kk = clamp(a2 / (life - st)), ang = -Math.PI / 2 + (hash(i + 11) - .5) * 2.4, d = r * (.25 + 1.0 * easeOut(kk));   // (puffs overlap and thin, never a row of balls)
       const px = x + Math.cos(ang) * d + r * .5 * kk * (hash(i + 3) - .5), py = y + Math.sin(ang) * d * .6 - a2 * r * .8, pr = r * (.35 + .5 * easeOut(kk)) * (.6 + .6 * hash(i)), op = 175 * (1 - kk * kk) * (1 - .3 * kk);
-      boilSeed(key + i);
-      paint(ellPts(px, py, pr, pr * .86, 16, pr * .04), { wash: mixCol('#5E5A64', '#A29EA8', kk), washOp: op, ink: null });
-      paint(ellPts(px - pr * .15, py - pr * .3, pr * .6, pr * .42, 12), { wash: mixCol('#8E8A94', '#C4C0C8', kk), washOp: op * .8, ink: null });
+      boilSeed(key + i);   // billowing outlines (a bumpy edge, not a ball), a paler lit top
+      paint(cloudPts(px, py, pr * 1.1, pr * .8, i + kk * .6), { wash: mixCol('#5E5A64', '#A29EA8', kk), washOp: op, ink: null, curv: .4 });
+      paint(cloudPts(px - pr * .12, py - pr * .25, pr * .62, pr * .4, i + 5), { wash: mixCol('#8E8A94', '#C4C0C8', kk), washOp: op * .7, ink: null, curv: .4 });
     }
   }
   // A low dust puff kicked up along the ground (no outlines, so it never reads as bubbles): flat lumps that spread
@@ -895,8 +901,8 @@
   function s3f(t, lt) {
     camBegin(...stage(.9, 1150, 1150 - 160 * .9, NX3, 330));
     scr(() => backdrop(t, sc(0, HZc)[1], { tower: 120 }));
-    const arrive = easeOut(seg(t, 22.0, 22.42)), hov = HOVER(t, { s: 1.15, key: 'h3f' });
-    hov.x = lerp(1260, 560 + 8 * Math.sin(t * 1.3), arrive); hov.y = lerp(330, 470 + 7 * Math.sin(t * 2.1), arrive); hov.hd = lerp(2.2, 1.12, arrive);
+    const arrive = easeOut(seg(t, 22.0, 22.42)), hov = HOVER(t, { s: 1.05, key: 'h3f' });
+    hov.x = lerp(1260, 640 + 8 * Math.sin(t * 1.3), arrive); hov.y = lerp(300, 395 + 7 * Math.sin(t * 2.1), arrive); hov.hd = lerp(2.2, 1.12, arrive);
     const h = leaving(heliAt(hov), t, 23.2, .8), windK = arrive * (1 - seg(t, 23.5, 23.9)), hx = ws(h.x, 0)[0];
     ground(t, { wind: [hx, windK] });
     downwash(t, hx, G, windK * .7);
@@ -920,7 +926,7 @@
     if (down) { dust(NX3, G - 2.3 * U, 85, t - 23.6, 'faceplant', .45); dust(NX3 + .3 * U, G - 2.6 * U, 45, t - 23.62, 'ash', .45, '#5A5452'); }   // at his head's end, on the ground
     smolder(AKDROP[0] + 20, AKDROP[1] - 40, .9, t - 21.4, { key: 'akwisp' });
     if (!down) smolder(NX3 + 6, G - 12.8 * U * lerp(1, .17, fall), 1.2, t - 21.5, { key: 'him' });
-    softSmoke(NX3 - 40, G - 5 * U, 170, t - 21.62, 'clear3f', 8, .9);   // the blast's smoke, thinning off him as the shot opens
+    softSmoke(NX3 - 40, G - 5 * U, 170, t - 21.62, 'clear3f', 5, .9);   // the blast's smoke, thinning off him as the shot opens
     light(tx, ty, 170, on);
     drawHeli(h);
     snort(h, t - 23.28);

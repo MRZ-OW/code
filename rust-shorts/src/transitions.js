@@ -752,7 +752,7 @@ TRANS_FX.wallUpgrade = {
       const off = (H + 2200) * (1 - easeOut(clamp(tt / rise)));   // the twig frame rises out of the ground
       if (g) trWallGrade(g); else trTwigFrame(off);
     } else {
-      const C = trWallCells(), crack = clamp(s / .06), out = 1 - seg(s, post - .09, post);
+      const C = trWallCells(), crack = clamp(s / .06), out = 1 - seg(s, post - .05, post);
       // the raid charge's dust, behind the chunks
       if (s > 0) {
         const dk = clamp(s / post), D = [];
@@ -763,8 +763,8 @@ TRANS_FX.wallUpgrade = {
       for (const c of C) {   // blasted out from the middle and falling; they fade in the last frames
         const dn = clamp(Math.hypot((c.cx - 540) * 1.5, c.cy - 960) / 1500), a = s - (.03 + .04 * dn);
         if (a <= 0) { trArmorCell(c, 0, 0, 0, crack > dn ? 2.2 : 0); continue; }
-        const l = Math.hypot(c.cx - 540, c.cy - 960) || 1, vx = (c.cx - 540) / l * 2400, vy = (c.cy - 960) / l * 1400 + 300;
-        trArmorCell(c, vx * a, vy * a + 40000 * a * a, (hash(c.i * 3 + c.j) - .5) * 9 * a, 2.2, 255 * out);
+        const l = Math.hypot(c.cx - 540, c.cy - 960) || 1, vx = (c.cx - 540) / l * 3000, vy = (c.cy - 960) / l * 2000 + 300;
+        trArmorCell(c, vx * a, vy * a + 52000 * a * a, (hash(c.i * 3 + c.j) - .5) * 9 * a, 2.2, 255 * out);
       }
       if (s > 0 && s < .2) trFireball(540, 980, 330 * easeOut(s / .06), clamp(s / .15), 1 - seg(s, .08, .2), 'tr-raidf');
       if (crack > 0 && s < .08) glow(540, 980, 500 * crack, '#FFB060', .4 * (1 - s / .08));   // light through the cracks
