@@ -835,7 +835,7 @@
   }
   const koStars = (B, age, s = 1) => {   // KO stars circling over his head: full size from the thud
     const [hx, hy] = ptOf(B, 0, -8.8);
-    for (let i = 0; i < 3; i++) { const a = age * 5 + i * TAU / 3, d = .8 + .2 * Math.sin(a); boilSeed('kostar' + i); paint(starPts(hx - 8 + Math.cos(a) * 60 * s, hy - 42 + Math.sin(a) * 16 * s, 17 * s * d, .45, 5, age * 3), { wash: '#F2C14E', ink: PAL.ink, sw: 1.4 }); }
+    for (let i = 0; i < 3; i++) { const a = age * 5 + i * TAU / 3, d = .8 + .2 * Math.sin(a); boilSeed('kostar' + i); paint(starPts(hx - 8 + Math.cos(a) * 62 * s, hy - 112 + Math.sin(a) * 18 * s, 22 * s * d, .45, 5, age * 3), { wash: '#FFD45A', ink: PAL.ink, sw: 1.6 }); }
   };
   function s3d(t, lt) {
     WIDE();
