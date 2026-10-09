@@ -297,13 +297,13 @@ TRANS_FX.garageDoor = {
       }
       boilSeed('tr-gd-bar');   // the bottom rail and its handle
       paint(rectPts(-40, yb - 76, W + 80, 76), { wash: '#6E675E', ink: PAL.ink, sw: 2.2 });
-      paint(rectPts(-40, yb - 76, W + 80, 14), { wash: '#8E877C', washOp: 180, ink: null });
+      paint(rectPts(-40, yb - 76, W + 80, 14), { wash: '#958D80', ink: null });
       paint(rectPts(-40, yb - 24, W + 80, 24), { wash: '#2E2A28', ink: null });
       paint(rrPts(450, yb - 66, 180, 34, 12), { wash: '#3A3632', ink: PAL.ink, sw: 1.4 });
       paint(rrPts(472, yb - 58, 136, 14, 6), { wash: '#8A847A', ink: null });
       // dust knocked out from under the rail on impact, spreading along the floor
       const a = trA(p, .28, d, o);
-      if (a > 0 && a < .3) for (let i = 0; i < 7; i++) puff(-20 + i * 186, Math.min(yb, H + 6) - 4, 95, a, { life: .3, col: '#D6C8A8', key: 'tr-gd' + i, rot: i, rise: .45, noInk: true });
+      if (a > 0 && a < .2) { const k = a / .2, D = []; for (let i = 0; i < 8; i++) D.push([-40 + i * 165 + (i % 2 ? 1 : -1) * 60 * easeOut(k), H - 6 - 30 * k, 40 + 60 * easeOut(k), '#CDBF9F']); trPuffs(D, 230 * (1 - k * k), null, 0, 'tr-gddust', { curl: '#A89A7C', curlW: 1 - k }); }
     }
     // the rusty roll housing
     if (hy > -148) {

@@ -752,7 +752,7 @@
   // 3A medium, a high camera on the towel: sunbathing. The sack in the grass glints (14.62); he sits up (14.88), takes
   // his shades by the temple and slides them down his nose (15.12–15.28): sparkling eyes over the top.
   function s3a(t, lt) {
-    camBegin(...stage(1.45, 1236, 1236 - 330 * 1.45, SIT, 672));
+    camBegin(...stage(1.45, 1236, 1236 - 330 * 1.45, SIT, 650));
     scr(() => backdrop(t, sc(0, HZc)[1], { pan: 10, tower: 300 }));
     ground(t);
     scr(() => boom(860, sc(0, HZc)[1] - 6, 24, t - 14.3, 'far3a'));   // a far-off boom on the horizon
