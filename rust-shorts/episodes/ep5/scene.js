@@ -461,7 +461,6 @@
     }
     P.push([x + w, y], [x - w, y]);
     boilSeed(key); paint(P, { wash: col, washOp: 175 * (1 - kk * kk), ink: null, curv: .5 });
-    paint(ellPts(x - w * .1, cy - h * .2, w * .55, h * .5, 12), { wash: '#F4EEDC', washOp: 110 * (1 - kk), ink: null });
   }
   // A blast in the painted style (world or screen): a white-yellow starburst, a layered fireball (a dark rim, red,
   // orange, yellow, a white-hot core) that rises as it burns out, then soft charcoal smoke. r = size, age in s.
@@ -908,7 +907,7 @@
     downwash(t, hx, G, windK * .7);
     clods(AKDROP[0], AKDROP[1], 180, 9, 9, 'clod3e');   // where they landed
     crater(AKDROP[0], AKDROP[1] + 4, 100);
-    bentAK(AKDROP[0] + 6, AKDROP[1] - 14, 1.3);
+    bentAK(AKDROP[0] - 50, AKDROP[1] - 12, 1.15);   // clear of his feet
     towel(...TOWEL, 300, 58, { singe: 1 });
     rockGround(...ROCK, .82);   // rocks don't burn
     const on = t > 22.3 && t < 23.2 ? 1 : t >= 23.2 && t < 23.26 ? .3 : 0, [tx, ty] = sc(NX3, G - 6.5 * U);
@@ -921,14 +920,15 @@
       rot: ang, dy: -1.2 * Math.sin(ang), noShadow: fall > .3 };
     if (t >= 23.34) { reach(Nf, U, 'L', .55 * U, -4.6 * U); reach(Nf, U, 'R', .25 * U, -4.8 * U); }   // arms stiff at his sides
     spawnling(NX3, G, U, Nf);
-    if (fall > .6) {   // his face buried in a heap of dirt where his head hit
-      const hx = NX3 + 10.9 * U, k = clamp((fall - .6) / .4);
+    if (down) {   // his face buried in a heap of dirt where his head hit: only the back of his head shows
+      const hx = NX3 + 10.9 * U, k = easeOut(seg(t, 23.6, 23.66)), top = [[hx - 3.3 * U, G + 1.15 * U], [hx - 2.6 * U, G + .1 * U], [hx - 1.6 * U, G - .75 * U * k], [hx - .3 * U, G - 1.15 * U * k], [hx + 1.0 * U, G - 1.0 * U * k], [hx + 2.3 * U, G - .45 * U * k], [hx + 3.1 * U, G + .35 * U], [hx + 3.5 * U, G + 1.15 * U]];
       boilSeed('faceplant dirt');
-      paint([[hx - 2.9 * U, G + 1.6 * U], [hx - 2.4 * U, G - .1 * U * k], [hx - 1.2 * U, G - .55 * U * k], [hx + .3 * U, G - .7 * U * k], [hx + 1.7 * U, G - .45 * U * k], [hx + 2.9 * U, G + .1 * U], [hx + 3.2 * U, G + 1.6 * U]], { wash: '#7A5E42', ink: PAL.ink, sw: 1.1, curv: .45 });
-      paint([[hx - 2.2 * U, G + 1.6 * U], [hx - 1.8 * U, G + .5 * U], [hx + 2.2 * U, G + .6 * U], [hx + 2.6 * U, G + 1.6 * U]], { wash: '#8DAA62', ink: null });   // grass in front of it
-      for (const [ox, oy, r] of [[-1.6, -.55, .32], [.6, -.8, .28], [1.9, -.4, .24]]) paint(ellPts(hx + ox * U, G + oy * U * k, r * U, r * .8 * U, 9), { wash: '#5E4A36', ink: PAL.ink, sw: .8 });
+      paint(top, { wash: '#7A5E42', ink: null, curv: .45 });
+      inkLine(top, 1.1, PAL.ink, 'ink', .45);
+      paint(ellPts(hx - .2 * U, G - .5 * U * k, 2.0 * U, .35 * U * k, 12), { wash: '#94765A', washOp: 160, ink: null });   // the loose top
+      for (const [ox, oy, r] of [[-2.0, .3, .32], [.4, -.9, .28], [2.2, -.2, .26], [-3.8, .8, .22], [3.9, .7, .2]]) paint(ellPts(hx + ox * U, G + oy * U * k, r * U, r * .8 * U, 9), { wash: '#5E4A36', ink: PAL.ink, sw: .8 });
     }
-    if (down) { dust(NX3 + 10.9 * U, G - .3 * U, 95, t - 23.6, 'faceplant', .45); dust(NX3 + 5 * U, G - .2 * U, 70, t - 23.62, 'flat', .4); }   // the thud raises dust at his head and along him
+    if (down) dust(NX3 + 10.9 * U, G - .3 * U, 110, t - 23.6, 'faceplant', .34);   // the thud raises dust at his head and along him
     smolder(AKDROP[0] + 20, AKDROP[1] - 40, .9, t - 21.4, { key: 'akwisp' });
     if (fall < .2) smolder(NX3 + 6, G - 12.8 * U, 1.2, t - 21.5, { key: 'him' });
     softSmoke(NX3 - 40, G - 5 * U, 170, t - 21.62, 'clear3f', 5, .9);   // the blast's smoke, thinning off him as the shot opens
