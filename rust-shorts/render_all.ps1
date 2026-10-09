@@ -34,7 +34,14 @@ if ($missing) {
 $env:CHROME_PATH = $chrome
 
 # ── packages (once) ──
-if (-not (Test-Path node_modules\p5.brush)) { Write-Host 'Installing packages...'; npm ci; if ($LASTEXITCODE) { exit 1 } }
+# Use the npm that ships with this Node: an old global npm earlier on PATH (npm 6) can't read the lockfile.
+$npmCli = Join-Path (Split-Path (Get-Command node).Source) 'node_modules\npm\bin\npm-cli.js'
+if (-not (Test-Path $npmCli)) { $npmCli = $null }
+if (-not (Test-Path node_modules\p5.brush)) {
+  Write-Host 'Installing packages...'
+  if ($npmCli) { node $npmCli ci } else { npm ci }
+  if ($LASTEXITCODE) { exit 1 }
+}
 
 New-Item -ItemType Directory -Force final | Out-Null
 $start = Get-Date
