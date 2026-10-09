@@ -123,6 +123,7 @@ function survivor(x, y, u, o = {}) {
   const S = ash(skinCols(o)), SB = o.tintBody ? S : ash(skinCols({ ...o, tint: null, tintMix: null })), gear = o.gear || {}, crouch = clamp(o.crouch || 0);
   const SC = svSuit(gear), suit = SC ? SC.suit : null;
   const aL = o.rawArms ? (o.aL ?? -1.32) : humanArm(o.aL ?? .2), aR = o.rawArms ? (o.aR ?? -1.32) : humanArm(o.aR ?? .2);
+  const heavy = gear.scientist === 'heavy', legW = heavy ? [1.75 * u, 1.4 * u] : [1.45 * u, 1.15 * u];   // trouser legs (the heavy suit is padded)
   const legC = mixCol(SB.col, SB.dk, .15), farSkin = mixCol(SB.col, SB.dk, .6);   // far limbs: the same skin, in shade
 
   rs('shadow');
@@ -154,10 +155,10 @@ function survivor(x, y, u, o = {}) {
     // boots: Chad's brown leather lace-ups with a rolled grey sock (shoes.boots); the hazmat's olive-black rubber boots,
     // yellow tape on one (hazmatsuit); the scientists' boots in the suit's own colour, darker
     const bc0 = kind === 'boot' ? '#6B4A30' : SC.boot, bc = far ? svShade(bc0, .14) : bc0;
-    const soleC = far ? svShade('#2A2422', .1) : '#2A2422', H = (kind === 'boot' ? 1.0 : kind === 'haz' ? 1.25 : 1.15) * u, wTop = (kind === 'haz' ? 1.42 : 1.36) * u;
+    const soleC = far ? svShade('#2A2422', .1) : '#2A2422', H = (kind === 'boot' ? 1.0 : kind === 'haz' ? 1.25 : 1.15) * u, wSh = Math.max(1.26 * u, legW[1] + .1 * u), wTop = wSh + (kind === 'haz' ? .16 : .1) * u;
     const top = [ax - sd[0] * H, ay - sd[1] * H], low = [ax + sd[0] * .12 * u, ay + sd[1] * .12 * u];
     paint(P(pose.prof ? BOOT_SIDE : BOOT_FRONT), { wash: bc, ink: PAL.ink, sw: sw * .7, curv: .25 });
-    const Q = svQuad(low, top, 1.26 * u, wTop);
+    const Q = svQuad(low, top, wSh, wTop);
     paint(Q, { wash: bc, ink: null });
     inkLine([Q[1], Q[0]], sw * .7, PAL.ink, 'ink', 0); inkLine([Q[2], Q[3]], sw * .7, PAL.ink, 'ink', 0);
     const sole = pose.prof ? BOOT_SIDE_SOLE.map(([a, b]) => kind === 'haz' ? [a < 0 ? a - .06 : a + .06, b < .3 ? b - .03 : b + .02] : [a, b]) : BOOT_FRONT_SOLE.map(([a, b]) => [a * (kind === 'haz' ? 1.08 : 1), b]);
@@ -207,7 +208,7 @@ function survivor(x, y, u, o = {}) {
     const col = far ? mixCol(legC, SB.dk, .45) : st > .5 ? mixCol(legC, SB.dk, .55) : legC;   // seated legs sit in the body's shade
     if (gear.pants || suit) {
       const pc0 = suit || (gear.pantsCol || '#3D4248'), pc = far ? svShade(pc0, .14) : pc0;
-      paint(limb([hx, hy], [kx, ky], [ax, ay], 1.45 * u, 1.15 * u), { wash: pc, ink: PAL.ink, sw: sw * .8, curv: .15 });
+      paint(limb([hx, hy], [kx, ky], [ax, ay], legW[0], legW[1]), { wash: pc, ink: PAL.ink, sw: sw * .8, curv: .15 });
       if (gear.hazmat) {   // the baggy hazmat legs: grey tape on one knee and thigh, a blue patch on the other shin, folds at the knees
         const tA = Math.atan2(ky - hy, kx - hx), dir = a => [Math.cos(a), Math.sin(a)], tape = far ? svShade(SC.tape, .14) : SC.tape;
         const patch = (c, a, l, w) => { const d = dir(a); return svQuad([c[0] - d[0] * l / 2, c[1] - d[1] * l / 2], [c[0] + d[0] * l / 2, c[1] + d[1] * l / 2], w, w * .92); };
@@ -241,7 +242,7 @@ function survivor(x, y, u, o = {}) {
     const ex = shx + d1[0] * 1.85 * u * ak, ey = shy + d1[1] * 1.85 * u * ak, hx = ex + d2[0] * 1.75 * u * ak, hy = ey + d2[1] * 1.75 * u * ak;
     const top = gear.hoodie || suit, col0 = top ? (suit || (gear.hoodieCol || '#A8382E')) : SB.col, shade = far && !inFront;
     const col = shade ? (top ? svShade(col0, .14) : farSkin) : col0;
-    const w0 = (top ? 1.15 : .95) * u, w1 = (top ? .95 : .78) * u, [SA, SBd] = limbSides([shx, shy], [ex, ey], [hx, hy], w0, w1), RB = SA.concat([...SBd].reverse());
+    const w0 = (heavy ? 1.45 : top ? 1.15 : .95) * u, w1 = (heavy ? 1.2 : top ? .95 : .78) * u, [SA, SBd] = limbSides([shx, shy], [ex, ey], [hx, hy], w0, w1), RB = SA.concat([...SBd].reverse());
     if (shade) paint(RB, { wash: col, ink: PAL.ink, sw: sw * .8 });
     else {   // a near arm grows out of a round shoulder: no outline across the joint
       const r = w0 * .55, a0 = V.side ? -Math.PI - .3 : -Math.PI / 2 - .35 * sideSign, a1 = V.side ? .3 : (sideSign > 0 ? .35 : -Math.PI - .35);
@@ -269,12 +270,12 @@ function survivor(x, y, u, o = {}) {
         // a fist: the knuckles toward the fingers' end, a thumb nub on the forward side, a crease where the fingers curl in
         const fwd = V.side ? [1, -.35] : [-sideSign, -.35], ts = (-d2[1] * fwd[0] + d2[0] * fwd[1]) >= 0 ? 1 : -1;
         push(); translate(hx, hy); rotate(Math.atan2(d2[1], d2[0])); scale(1, ts);
-        paint(ellPts(.1 * u, .5 * u, .32 * u, .17 * u, 10, 0, .35), { wash: hc, ink: PAL.ink, sw: sw * .5 });   // the thumb: a nub on the silhouette (the fist covers its root)
-        paint(ellPts(.04 * u, 0, .58 * u, .5 * u, 16), { wash: hc, ink: PAL.ink, sw: sw * .7 });
+        paint(ellPts(.02 * u, .56 * u, .4 * u, .25 * u, 12, 0, .3), { wash: hc, ink: PAL.ink, sw: sw * .35 });   // the thumb: a nub on the silhouette (the fist covers its root)
+        paint(ellPts(.04 * u, 0, .6 * u, .52 * u, 16), { wash: hc, ink: PAL.ink, sw: sw * .55 });
         const det = kind === 'bare' ? mixCol(SB.dk, PAL.ink, .2) : svShade(hc, .45);
         if (kind === 'burlap') for (let f = 0; f < 3; f++) { const fy = (-.28 + f * .2) * u; paint(rrPts(.3 * u, fy, .36 * u, .2 * u, .09 * u), { wash: fingers, ink: PAL.ink, sw: sw * .35 }); }   // finger stubs over the grip
         else inkLine([[.34 * u, -.32 * u], [.44 * u, -.05 * u], [.36 * u, .2 * u]], sw * .4, det, 'inkfine', .5);   // the curled fingers' crease
-        if (kind === 'burlap') paint(ellPts(.33 * u, .55 * u, .1 * u, .08 * u, 8, 0, .35), { wash: fingers, ink: null });   // the thumb's bare tip
+        if (kind === 'burlap') paint(ellPts(.33 * u, .64 * u, .11 * u, .09 * u, 8, 0, .3), { wash: fingers, ink: null });   // the thumb's bare tip
         pop();
         return;
       }
@@ -300,7 +301,7 @@ function survivor(x, y, u, o = {}) {
     } else if (kind === 'glove') paint(svQuad(wr(.2), wr(.75), w1 * 1.02, w1 * 1.1), { wash: hc, ink: PAL.ink, sw: sw * .55 });   // the blue glove's short cuff
     else if (kind === 'sci') {
       paint(svQuad(wr(.2), wr(.68), w1 * 1.02, w1 * 1.06), { wash: hc, ink: PAL.ink, sw: sw * .55 });
-      paint(svQuad(wr(.5), wr(.66), w1 * 1.1), { wash: shade ? svShade(SC.ring, .14) : SC.ring, ink: PAL.ink, sw: sw * .35 });   // the brass wrist ring
+      paint(svQuad(wr(.48), wr(.7), w1 * 1.12), { wash: shade ? svShade(SC.ring, .14) : SC.ring, ink: PAL.ink, sw: sw * .35 });   // the brass wrist ring
     } else if (kind === 'burlap') paint(svQuad(wr(.2), wr(.55), w1 * .98, w1 * 1.02), { wash: hc, ink: PAL.ink, sw: sw * .5 });
     const hook = which === 'L' ? (o.handL || o.armL) : (o.handR || o.armR);
     if (!(hook && o.handOver)) fist();
@@ -316,10 +317,12 @@ function survivor(x, y, u, o = {}) {
   const custom = briefsCol !== BRIEFS.col, BR = { band: custom ? mixCol(briefsCol, PAL.ink, .4) : BRIEFS.band, hem: custom ? svShade(briefsCol, .2) : BRIEFS.hem, fold: custom ? svShade(briefsCol, .12) : BRIEFS.fold };
   if (gear.pants || suit) {
     const pc = suit || (gear.pantsCol || '#3D4248');
-    paint([[-bw, wy], [bw, wy], [bw * 1.02, hipY + .35 * u], [0, hipY + .6 * u], [-bw * 1.02, hipY + .35 * u]], { wash: pc, ink: PAL.ink, sw: sw * .8, curv: .15 });
+    const lo = Math.max(wt * .95, (V.side ? .35 : .9) * u * V.torsoW + legW[0] / 2);   // the waist as wide as the torso, the hips as wide as the legs (not a kilt)
+    paint([[-wt, wy], [wt, wy], [lo, hipY + .35 * u], [0, hipY + .6 * u], [-lo, hipY + .35 * u]], { wash: pc, ink: PAL.ink, sw: sw * .8, curv: .15 });
   } else {
     // boxer legs from the hip line to mid-thigh (the cuff square to the thigh, a darker hem), then the seat over their tops
-    for (const [h, k] of thighs) {
+    for (const [h, k] of (prof ? [...thighs].reverse() : thighs)) {   // the far leg first
+      if (!h) continue;
       const m = svAlong(h, k, .68); if (!prof) m[1] = Math.max(m[1], hipY + .62 * u);   // a seated front view foreshortens the thigh
       const dx = k[0] - h[0], dy2 = prof ? k[1] - h[1] : Math.max(.05 * u, k[1] - h[1]), l = Math.hypot(dx, dy2) || 1, n = [-dy2 / l * .66 * u, dx / l * .66 * u];
       const s = Math.sign(h[0]) || 1, nw = lerp(bh * .95, .7 * u, Math.abs(dx / l)), nb = [-dy2 / l * nw, dx / l * nw];   // 3/4 and profile: the top spans the hip, square to the thigh (toward the back/seat is +nb); a level (seated) thigh only its own depth

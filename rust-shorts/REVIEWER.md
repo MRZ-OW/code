@@ -48,7 +48,7 @@ the fixes until the work is clean. You never edit project files.
 - Work from `/home/user/code/rust-shorts`. Render what you need (keep renders under ~40 frames; the machine is
   shared):
   - model sheets: `node render.mjs --ep=0 --loop=naked --chrome=/opt/pw-browsers/chromium --xvfb --sheet=0.5 --w=1080 --out=<scratchpad>/rev_naked.jpg`
-    (other loops: `kit`, `base`, `cast`, and any listed in `src/*.js` under `LOOPS.`)
+    (other loops: `kit`, `base`, `cast`, `suits`, `heads` (every head view, big), and any listed in `src/*.js` under `LOOPS.`)
   - episode frames: `node render.mjs --ep=N --chrome=/opt/pw-browsers/chromium --xvfb --sheet=1,2.5,4 --cols=3 --w=360 --out=<scratchpad>/rev_epN.jpg`
   - crops: add `--crop=x,y,w,h --w=600`; every frame in a stretch: `--strip=2.0:2.5`.
   Write every render to the scratchpad (`/tmp/claude-0/-home-user-code/732e9791-0beb-54f9-8126-562ebb6852ac/scratchpad/`),

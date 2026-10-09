@@ -254,7 +254,14 @@
     }
   }
   // dust kicked up off the forest floor: soft grey-green puffs with no outline (cream ones read as spare rocks)
-  const dust = (x, y, r, age, key, o = {}) => puff(x, y, r, age, { col: o.col || '#AEB68F', noInk: true, key, n: o.n ?? 5, life: o.life ?? .42, rise: o.rise ?? .35 });
+  // (flattened: low arcs hugging the ground, gone in under half a second)
+  const dust = (x, y, r, age, key, o = {}) => { if (age < 0 || age > (o.life ?? .42)) return; push(); translate(x, y); scale(1, .7); puff(0, 0, r, age, { col: o.col || '#AEB68F', noInk: true, key, n: o.n ?? 5, life: o.life ?? .42, rise: o.rise ?? .35 }); pop(); };
+  // speed lines behind a dash: n strokes trailing back from (x, y) along dir (+1 = they trail to the right)
+  function speedLines(x, y, len, k, dir, key, n = 4) {
+    if (k <= 0) return;
+    boilSeed('speed' + key);
+    for (let i = 0; i < n; i++) { const yy = y + (i - (n - 1) / 2) * 46 + 10 * hash(i + 7), x0 = x + dir * (20 + 30 * hash(i)), L = len * k * (.6 + .4 * hash(i + 3)); inkLine([[x0, yy], [x0 + dir * L, yy]], 2.2, mixCol(PAL.ink, '#8F9C5F', .25), 'inkfine', 0); }
+  }
 
   // ---------- posing helpers (survivor() maths) ----------
   const dropOf = o => clamp(o.crouch || 0) * 1.2 * U + clamp(o.sit || 0) * 2.05 * U;
@@ -301,7 +308,7 @@
   // ---------- on the head: o.face(u, sw, V, head) hooks (drawn on the head, under the arms). head.pt(lon, lat, k) puts a
   // spot on the turned head (lon 0 = the middle of the face, − = the near side; lat − = up) in every view, and returns
   // [x, y, depth]; depth ≤ 0 has turned away from us.
-  const fore = (head, lon) => clamp(Math.cos(lon + head.th), .3, 1);   // how flat-on a spot of the face is to us
+  const fore = (head, lon) => clamp(Math.cos(lon + head.th) / Math.cos(lon), .3, 1);   // how flat-on a spot is (as heads.js's eyes)
   const BROW = [.05, -.5], XBROW = [.05, -.66], MASKX = [0, .13, 1.12];   // the plaster, the X above it, the X on a facemask
   function plasterOn(u, sw, head, big) {   // the plaster cross; big: the one he wears after the bonk
     const p = head.pt(...BROW); if (p[2] <= .05) return;
@@ -323,7 +330,7 @@
     for (const s of [-1, 1]) {
       const p = head.pt(s * .4, -.02, .84); if (p[2] <= .08) continue;
       const f = fore(head, s * .4), x = p[0] + (o.lookX || 0) * u * .25 * f, y = p[1] + (o.lookY || 0) * u * .15;
-      xMark(x - .08 * u * f, y - .14 * u, .15 * u * k, { key: 'eyex' + s, glow: .35, sx: Math.max(.6, f) });
+      xMark(x - .05 * u * f, y + .02 * u, .13 * u * k, { key: 'eyex' + s, glow: .5, sx: Math.max(.6, f) });
     }
   }
   // dizzy swirl eyes, drawn over blank eyes
@@ -331,8 +338,8 @@
     for (const s of [-1, 1]) {
       const p = head.pt(s * .4, -.02, .84); if (p[2] <= .08) continue;
       const f = fore(head, s * .4), P = [];
-      for (let i = 0; i < 18; i++) { const a = i * .72 + t * 7 * s, r = i * .019 * u; P.push([p[0] + Math.cos(a) * r * f, p[1] + Math.sin(a) * r * 1.35]); }
-      inkLine(P, sw * .8, PAL.ink, 'inkfine', .6);
+      for (let i = 0; i < 18; i++) { const a = i * .72 + t * 7 * s, r = i * .019 * u; P.push([p[0] + Math.cos(a) * r * f, p[1] + Math.sin(a) * r * .95]); }
+      inkLine(P, sw * .9, PAL.ink, 'inkfine', .6);
     }
   }
   // a wide, trembling forced grin of gritted teeth, corners up
@@ -357,8 +364,11 @@
     if (o.xOn > 0) xOnBrow(u, head, o.xOn);
   };
   // a spot on a survivor's turned head, in the world (for aiming things at it)
-  const viewTurn = v => v === 'side' ? HEAD_TURN.side : v === 'q' ? HEAD_TURN.q : v === 'qf' ? .3 : 0;
-  function worldHeadPt(x, y, o, lon, lat, k = 1) { const p = turnPt(0, -10.85 * U + dropOf(o), 2.35 * U, viewTurn(o.view), lon, lat, k); return bodyPt(x, y, o, p[0], p[1]); }
+  function worldHeadPt(x, y, o, lon, lat, k = 1) { const p = headPoint(U, o, lon, lat, k); return bodyPt(x, y, o, p[0], p[1]); }
+  // How the Naked carries his rock: clutched at the chest under the beard (never at the mouth or over the briefs), or
+  // cocked back over his head (charging), so his face stays clear. FAR_CLUTCH: the far hand on the rock too.
+  const CHEST = [-6.9, -.95], RAISED = { aL: -4.45, bendL: -.3, armKL: 1.2 };
+  const clutch = (o, k = 1) => { const [hx, hy] = handLocal(U, o, 'L'), r = reachArm(U, o, 'R', hx - .25 * U, hy + .35 * U); return { aR: lerp(o.aR ?? -1.2, r.aR, k), bendR: lerp(o.bendR ?? .3, r.bendR, k), armKR: lerp(1, r.armKR, k) }; };
 
   // ---------- S1: the X (0–7) ----------
   const XA = [416, 1080], XB = [402, 880], XPEEK = 948, XLOW = 1132;   // chest, head height, the peek, the low exit

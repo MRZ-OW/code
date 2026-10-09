@@ -12,8 +12,9 @@ readable, well-staged draft that follows the script. Don't polish forever.
   those timings, so keep every action time from the script unless you have a strong reason (then list the new times in
   your report).
 - Engine and kit: `src/core.js` (paint, inkLine, shapes, camera, glow, flash, letter, timing helpers such as seg, ease,
-  kf, arcPt, spring), `src/timeline.js` (shots), `src/survivor.js` (the character rig; the header documents its
-  options), `src/rustcast.js` (spawnling = the Naked, geared = the Chad, rockProp, akProp, torchProp), `src/rustsets.js`
+  kf, arcPt, spring), `src/timeline.js` (shots), `src/survivor.js` (the character rig's body; the header documents its
+  options), `src/heads.js` (its head: every view is one turned sphere, see below), `src/gear.js` (hazmat, scientists,
+  facemask, chestplate, kilt), `src/transitions.js` (Rust-themed cover transitions, see TRANSITIONS.md), `src/rustcast.js` (spawnling = the Naked, geared = the Chad, rockProp, akProp, torchProp), `src/rustsets.js`
   (rustSky, seaBeach, hills, grassTufts, pineTree, bush, log, explosion and other sets), `src/props.js`, `src/fx.js`
   (bubble, emote helpers, puff, sparks, respawn, notePop, lightning, xray, smolder), `src/animals.js` (boar, chicken,
   feathers) and `src/heli.js` (patrolHeli, searchCone, scanLine, tracers, rocket).
@@ -75,3 +76,19 @@ pops between frames, unreadable gestures, anything that looks broken. Fix, then 
 
 Shot list as built (times), new assets, anything you deviated from in the script and why, known weak spots, any rig
 changes you'd want, and the paths of your 2 or 3 best review sheets.
+
+## Marks on a character's head
+
+Anything you draw on a survivor's head (plasters, sunglasses, swirl eyes, a target on the forehead, paint) must sit on
+the turned head, so it stays put in every view (front, qf, q, side, back) and through turns:
+
+- Pass `face: (u, sw, V, head) => { ... }` in the survivor's options. It's drawn on the head after hair and gear, under
+  the arms, in the body frame. `head.pt(lon, lat, k)` returns `[x, y, depth]`: lon 0 = the middle of the face,
+  − = the near side, + = the far side; lat − = up, + = down; k > 1 pushes the point out from the skull. Skip a point
+  whose depth is ≤ .08 (it has turned away). Landmarks: eyes lon ±.4, lat −.02, k .84; brows lat −.36; nose tip lon 0,
+  lat .2, k 1.17; mouth lat .64; forehead lat −.45; ears lon ±π/2, lat .1. `head.th` is the turn (HEAD_TURN: front 0,
+  qf .3, q .62, side π/2, back π).
+- From a `draw` / `under` / `behind` hook, `headPoint(u, o, lon, lat, k)` gives the same point for the survivor whose
+  options are `o`.
+- Model sheet for heads: `node render.mjs --ep=0 --loop=heads ...` (see src/headsheet.js).
+

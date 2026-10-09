@@ -442,7 +442,7 @@ TRANS_FX.sleepingBag = {
       const L = []; for (let y = top; y <= yf; y += 60) L.push([360 + trBagWave(360, y), y]);
       inkLine(L, 1.8, '#4E3E28', 'inkfine', .3);
       for (let y = -40; y < yf - 20; y += 42) inkLine([[369 + trBagWave(360, y), y], [369 + trBagWave(360, y + 22), y + 22]], 1.4, '#D9C8A2', 'inkfine', 0);
-      for (const sx of [360, zx]) for (let y = 90; y < yf - 40; y += 210) { const yy = y + 60 * hash(y + sx), w = trBagWave(sx, yy); for (const sd of [-1, 1]) { boilSeed('tr-bagc' + sx + y + sd); inkLine([[sx + w + sd * 26, yy], [sx + w + sd * 80, yy - 30], [sx + w + sd * 130, yy - 36]], 1.3, '#5E4C34', 'inkfine', .5); } }
+      for (const sx of [360, zx]) for (let y = 90 + (sx > 400 ? 160 : 0); y < yf - 40; y += 330) { const yy = y + 60 * hash(y + sx), w = trBagWave(sx, yy); for (const sd of [-1, 1]) { boilSeed('tr-bagc' + sx + y + sd); inkLine([[sx + w + sd * 26, yy], [sx + w + sd * 80, yy - 30], [sx + w + sd * 130, yy - 36]], 1.3, '#5E4C34', 'inkfine', .5); } }
       // patches, stitched on askew (reference: the icon's darker brown patches)
       for (const [px, py, pw, ph, rot, c] of [[160, 380, 210, 260, -.08, '#6E4632'], [520, 1180, 230, 190, .1, '#5E4C34'], [905, 600, 180, 230, .06, '#7A4E36'], [190, 1560, 190, 170, .12, '#6A4430']]) {
         if (py + ph / 2 > yf - 10) continue;
@@ -479,8 +479,8 @@ TRANS_FX.sleepingBag = {
 
 // ---------- 7. heliFlyover ----------
 // The patrol heli (heli.js) comes in low and head-on from the distance, its searchlight sweeping the ground before it.
-// It swells as it closes, the view swings under it, its belly fills the frame for the cut, then it whips away over the
-// top with its tail boom last and the rotor blur dragging over the next shot.
+// It swells as it closes, the view swings under it, its belly fills the frame for the cut, then it climbs away off the
+// top, shrinking, its rotor blur dragging over the next shot.
 function trHeliAt(p) {
   if (p <= .5) {
     // a constant zoom (it doubles in size every couple of frames), and the view swings under it as it closes
@@ -488,7 +488,7 @@ function trHeliAt(p) {
     return { s: s * (1 + .04 * seg(k, .86, 1)), elev: Math.atan2(1, zd), yaw: lerp(1.28, Math.PI / 2, ease(kk)), y: lerp(560, 960, ease(kk)), light: 1 - seg(kk, .7, .92), k: kk };
   }
   const q = seg(p, .5, 1);
-  return { s: 13, elev: Math.PI / 2, yaw: Math.PI / 2, y: 960 - 6300 * q * q, light: 0, k: 1 };
+  return { s: 13 * Math.pow(.8 / 13, Math.pow(q, 1.5)), elev: Math.PI / 2, yaw: Math.PI / 2, y: 960 - 1700 * q, light: 0, k: 1 };   // climbs away up the frame
 }
 // Belly details over patrolHeli's hull, in its own model space (so they sit right in every view): panel seams and
 // rivets, the cargo hook, a red beacon, an access hatch, oil streaks.
@@ -502,9 +502,9 @@ function trHeliBelly(x, y, s, o) {
   for (const X of [-92, -40, 30, 96]) { const L = []; for (let z = -hw(X); z <= hw(X); z += 8) L.push(pt(X, z)); inkLine(L, sw, '#3E464E', 'inkfine', 0); L.forEach((q, i) => { if (i % 2) paint(ellPts(q[0], q[1] + s * 1.8, s * 1.1, s * 1.1, 6), { wash: '#9AA3AB', ink: null }); }); }
   paint([pt(48, -18), pt(80, -18), pt(80, 14), pt(48, 14)], { wash: '#4E565E', ink: PAL.ink, sw: sw * .8 });   // access hatch
   paint([pt(60, -6), pt(68, -6), pt(68, 2), pt(60, 2)], { wash: '#2E3238', ink: null });
-  paint([pt(-12, -12), pt(12, -12), pt(12, 12), pt(-12, 12)], { wash: '#454C53', ink: null });   // the cargo hook
-  inkLine([pt(6, 0), pt(-4, 0), pt(-8, 4), pt(-5, 8), pt(0, 7)], sw * 3, '#1E2226', 'ink', .5);
-  inkLine([pt(6, -.5), pt(-4, -.5), pt(-7.5, 3.5)], sw * 1.2, '#8A9096', 'inkfine', .5);
+  const hk = pt(0, 0);   // the cargo hook's round housing
+  paint(ellPts(hk[0], hk[1], s * 12, s * 12, 18), { wash: '#454C53', ink: PAL.ink, sw: sw * .7 });
+  paint(ellPts(hk[0], hk[1], s * 6, s * 6, 14), { wash: '#2A2E33', ink: null });
   const bc = pt(-62, 0); glow(bc[0], bc[1], s * 26, '#FF3048', .9);   // the red beacon
   paint(ellPts(bc[0], bc[1], s * 7, s * 7, 14), { wash: '#E23A3A', ink: PAL.ink, sw: sw * .7 });
   paint(ellPts(bc[0] - s * 2, bc[1] - s * 2, s * 2.4, s * 2, 8), { wash: '#FFB0A0', ink: null });
@@ -519,10 +519,10 @@ TRANS_FX.heliFlyover = {
     if (sh > 0) { boilSeed('tr-heli-shade'); paint(rectPts(-60, -60, W + 120, H + 120), { wash: '#1E2230', washOp: 90 * sh, ink: null }); }
     if (p > .5) {   // the rotor blur dragging over the next shot as it goes: a dark disc, fat blade smears turning
       const C = heliCam(ho), [mx, my] = hWorld(540, S.y, S.s, ho, hProj(C, [0, 134, 0])), R = 280 * S.s * .93, fade = 1 - seg(p, .8, 1);
-      boilSeed('tr-rotor'); paint(ellPts(mx, my, R, R, 48), { wash: '#3C4148', washOp: 80 * fade, ink: null });
+      boilSeed('tr-rotor'); paint(ellPts(mx, my, R, R, 48), { wash: '#3C4148', washOp: 60 * fade, ink: null });
       if (fade > .2) for (let b = 0; b < 4; b++) for (const rk of [.97, .8, .6]) {
         const a1 = (t * 3.3 + .13) * TAU + b * Math.PI / 2, A = Array.from({ length: 12 }, (_, i) => { const a = a1 - .8 * i / 11; return [mx + Math.cos(a) * R * rk, my + Math.sin(a) * R * rk]; });
-        boilSeed('tr-rotor' + b + rk); inkLine(A, rk > .9 ? 8 : 12, rk > .9 ? '#D9AE3E' : '#23272C', 'dry', .5);
+        boilSeed('tr-rotor' + b + rk); inkLine(A, S.s * (rk > .9 ? .4 : .6), rk > .9 ? '#D9AE3E' : '#3A3F46', 'dry', .5);
       }
     }
     patrolHeli(540, S.y, S.s, ho);
@@ -687,10 +687,3 @@ TRANS_FX.wallUpgrade = {
   LOOPS.transitions = loop([beach, base]); LOOPS.transitions.len = ORDER.length * SLOT;
   LOOPS.transitionsKey = loop([keyA, keyB]); LOOPS.transitionsKey.len = ORDER.length * SLOT;
 })();
-// TEMP-DEBUG
-LOOPS.trdbg = t => { boilSeed('bg'); paint(rectPts(-60,-60,W+120,H+120),{wash:'#88AACC',ink:null}); const m=Math.round(t*10);
-  const cy = -1300, R = [3385, 2500, 1800, 1200][m % 4];
-  boilSeed('d'); paint(ellPts(540, cy, R, R, 48), { wash: '#3C4148', washOp: 120, ink: null });
-  for (let b=0;b<4;b++){ const a1=b*Math.PI/2+.3, A=Array.from({length:10},(_,i)=>{const a=a1-.5*i/9; return [540+Math.cos(a)*R*.9, cy+Math.sin(a)*R*.9];}); inkLine(A, 9, '#2E3238', m>=4?'ink':'dry', .5); }
-};
-LOOPS.trdbg.len = 2;

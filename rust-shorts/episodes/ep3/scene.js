@@ -731,7 +731,8 @@
     cobweb(0);
     beanCanAt(CAN_REST[0], CAN_REST[1] + 4, .55, { lying: true, open: true, key: 'tossed' });
     // the Chad: aiming, pinged (20.5), over backwards
-    const ko = t >= 20.5, B = ko ? koChad(t) : chadAimSit(t, 1, { eyes: 'red', dx: .04 * Math.sin(t * 70) });
+    const ko = t >= 20.5, B = ko ? koChad(t) : chadAimSit(t, 1, { eyes: 'red' });
+    if (!ko) B.o.dx = .04 * Math.sin(t * 70);   // trembling with rage
     chadAt(B);
     const [hx, hy] = ptOf(B, 0, -8.8);
     if (!ko) emote('steam', hx, hy - 3.1 * U, U * .9, 1, t - 18.62);

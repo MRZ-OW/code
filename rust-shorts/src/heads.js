@@ -40,18 +40,19 @@ const wrapLon = lon => { while (lon > Math.PI) lon -= TAU; while (lon < -Math.PI
 // strip down to the beard), up over the ear, down behind it to the nape. The sideburn's front edge moves back as the
 // head turns: it reads as a strip beside the cheek from the front and stays a narrow strip in front of the ear in
 // profile (the side of the head is foreshortened from the front).
+const sideburnLon = th => 1.05 + .13 * Math.sin(Math.min(th, Math.PI / 2));   // the sideburn's front edge
 function hairLat(lon, th, style) {
-  const a = Math.abs(wrapLon(lon)), sb = .98 + .2 * Math.sin(Math.min(th, Math.PI / 2));
+  const a = Math.abs(wrapLon(lon)), sb = sideburnLon(th);
   const fr = style === 'messy' ? .08 : style === 'buzz' ? 0 : .035;   // the fringe's edge is a few soft tufts
   const tuft = a < sb - .2 ? fr * (.5 + .5 * Math.cos(a * 13)) * (1 - clamp((a - (sb - .45)) / .25)) : 0;
-  return lerpKeys([[0, -.6], [.6, -.55], [sb - .14, -.44], [sb - .03, -.3], [sb, 0], [sb + .02, .32], [1.36, .32], [1.41, -.12],
+  return lerpKeys([[0, -.6], [.6, -.55], [sb - .14, -.44], [sb - .03, -.3], [sb, 0], [sb + .02, .4], [1.36, .36], [1.41, -.12],
     [1.57, -.22], [1.75, -.12], [1.86, .2], [1.95, .6], [2.4, .62], [Math.PI, .64]], a) - tuft - (style === 'buzz' ? .04 : 0);
 }
 // The beard (a short full beard, as on Rust's default male model): its top edge by |longitude| (under the lower lip,
 // up round the mouth corners to the moustache, over the cheek into the sideburn), and its back edge from the sideburn
 // down past the ear to the jaw corner. The jaw silhouette closes it.
-const BEARD_TOP = [[0, .7], [.2, .7], [.3, .62], [.36, .56], [.55, .47], [.85, .37], [1.0, .3], [1.36, .26]];
-const JAW_BACK = [[1.36, .26], [1.5, .42], [1.62, .62], [1.7, .85]];
+const BEARD_TOP = [[0, .7], [.2, .7], [.3, .62], [.36, .56], [.55, .5], [.85, .45], [1.05, .39], [1.36, .3]];
+const JAW_BACK = [[1.36, .3], [1.5, .44], [1.62, .62], [1.7, .85]];
 const MOUSTACHE = [[-.33, .575], [-.28, .505], [-.15, .47], [-.04, .485], [0, .495], [.04, .485], [.15, .47], [.28, .505], [.33, .575],
   [.3, .61], [.2, .59], [.08, .58], [0, .585], [-.08, .58], [-.2, .59], [-.3, .61]];
 // The profile (head radii from the head centre, +x forward, +y down). PROFILE_FACE runs down the leading edge from the
@@ -61,7 +62,7 @@ const PROFILE_FACE = [[.9, -.43], [.945, -.3], [.972, -.17], [.982, -.1], [.968,
   [.905, .675], [.87, .695], [.868, .745], [.85, .8], [.8, .855], [.7, .9], [.55, .925], [.38, .94], [.2, .96]];
 // the profile beard: top edge (sideburn → cheek → mouth corner → under the lower lip), then the leading edge and the
 // jaw (silhouette, from index PB_SIL to PB_BACK), then the back edge up past the ear
-const PROFILE_BEARD = [[.17, .22], [.36, .27], [.52, .39], [.68, .48], [.79, .55], [.84, .6], [.9, .645], [.915, .7], [.895, .77], [.84, .845],
+const PROFILE_BEARD = [[.17, .25], [.34, .33], [.5, .41], [.66, .48], [.79, .55], [.84, .6], [.9, .645], [.915, .7], [.895, .77], [.84, .845],
   [.74, .91], [.58, .955], [.4, .968], [.2, .985], [0, .99], [-.1, .975], [-.13, .75], [-.07, .5], [-.01, .36], [.08, .27]];
 const PB_SIL = 6, PB_BACK = 15;
 const PROFILE_MOUSTACHE = [[.7, .47], [.8, .452], [.9, .458], [.945, .49], [.962, .53], [.945, .565], [.89, .578], [.8, .57], [.72, .548]];
@@ -239,7 +240,7 @@ function headHair(H) {
   paint([...line, ...arc], { wash: col, ink: null });
   inkLine(arc, sw * .9, PAL.ink, 'ink', 0);
   // the hairline in thin brown, except along the sideburn's foot where a full beard carries on below it
-  const sb = .98 + .2 * Math.sin(Math.min(th, Math.PI / 2)), joins = o.beard && o.beard !== 'stubble';
+  const sb = sideburnLon(th), joins = o.beard && o.beard !== 'stubble';
   let run = [];
   const flush = () => { if (run.length > 1) inkLine(run, sw * .32, hairLine(o), 'inkfine', 0); run = []; };
   for (let i = 0; i <= N; i++) { const a = Math.abs(wrapLon(lerp(loV, hiV, i / N))); if (joins && a > sb + .03 && a < 1.355) { run.push(line[i]); flush(); } else run.push(line[i]); }
@@ -257,10 +258,12 @@ function headHair(H) {
 // mood uses clawd.js's eye shapes. Runs inside the face's eye frame (scaled .5 × .38), so lines are drawn thinner here.
 function humanEye(k, s, u, o, sw) {
   if (k === 'happy') { inkLine([[-.85 * u, .55 * u], [0, -.55 * u], [.85 * u, .55 * u]], sw * .5, EYE_INK, 'ink', .7); return; }
-  if (k === 'sly') {   // half-lidded, looking sideways: scheming
-    const lx = (o.lookX ?? .7) * u * .45, ly = (o.lookY || 0) * u * .3;
-    paint(ellPts(lx, ly + .2 * u, .66 * u, .62 * u, 16), { wash: EYE_INK, ink: null });
-    inkLine([[-.95 * u, -.12 * u], [.95 * u, -.12 * u]], sw * .55, EYE_INK, 'ink', 0);
+  if (k === 'sly') {   // half-lidded, looking sideways: scheming. The lower half of the eye shows under a heavy lid.
+    const lx = (o.lookX ?? .7) * u * .45, lid = -.05 * u + (o.lookY || 0) * u * .2, P = [];
+    for (let i = 0; i <= 12; i++) { const a = i / 12 * Math.PI; P.push([lx + Math.cos(a) * .62 * u, lid + Math.sin(a) * .72 * u]); }
+    paint(P, { wash: EYE_INK, ink: null });
+    if (u > 9) paint(ellPts(lx - .2 * u, lid + .22 * u, .17 * u, .19 * u, 10), { wash: PAL.cream, washOp: 235, ink: null });
+    inkLine([[-.95 * u, lid - .02 * u], [.95 * u, lid - .1 * u]], sw * .6, EYE_INK, 'ink', 0);
     return;
   }
   if (k === 'closed' || k === 'sleep') { inkLine([[-.85 * u, -.1 * u], [0, .55 * u], [.85 * u, -.1 * u]], sw * .5, EYE_INK, 'ink', .7); return; }

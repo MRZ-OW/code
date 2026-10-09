@@ -354,7 +354,7 @@
       if (land) dust(NX - 10, G - 6, 44, age, 'land');
       smoke(p[0] - 6, tipsY(p[1], O), 1.1, a - .62, 'z2');
       // the rock leaves his raised hand and spins off on its own arc, landing beside him
-      const h0 = survivorHand(NA, G, U, J, 'L'), rl = seg(a, .6, .97), rk = 1 - (1 - rl) * (1 - rl) * .6 - (1 - rl) * .4, q = arcPt(h0, RK, 330, rk); q[0] += 200 * Math.sin(rk * Math.PI);
+      const h0 = survivorHand(NA, G, U, J, 'L'), rl = seg(a, .6, .97), rk = 1 - (1 - rl) * (1 - rl) * .6 - (1 - rl) * .4, q = arcPt(h0, RK, 430, rk); q[0] += 300 * Math.sin(rk * Math.PI);
       rockAt(q[0], q[1], 2.6 * rk + 9 * rk * (1 - rk));
       if (a >= .97) dust(RK[0], RK[1], 22, a - .97, 'rockland', .5);
     }
@@ -398,7 +398,7 @@
     };
     naked(NX, G, N); rockAt(...RK);
     smoke(NX - 6, tipsY(G, N), 1.1, t - 5.62, 'z2');
-    if (t > 10.45) { const k = seg(t, 10.45, 11.0); boilSeed('ash'); paint(ellPts(NX - 30 + 14 * Math.sin(k * 8), hy - 2.9 * U + k * 150, 4, 2.6, 8, 0, Math.sin(k * 9)), { wash: '#E4E0DC', ink: null }); }
+    if (t > 10.45) { const k = seg(t, 10.45, 11.0); boilSeed('ash'); paint(ellPts(NX - 30 + 14 * Math.sin(k * 8), hy - 2.9 * U + k * 150, 8, 5, 8, 1, Math.sin(k * 9)), { wash: '#E8E4E0', ink: '#8E8A90', sw: .5 }); }
     dusk();
     camEnd();
   }
