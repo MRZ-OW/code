@@ -438,18 +438,18 @@ TRANS_FX.supplySmoke = {
     const tg = [];
     for (let r = 0; r < 6; r++) for (let c = 0; c < 3; c++) { const i = r * 3 + c; tg.push([170 + c * 370 + 110 * (hash(i) - .5) + (r % 2 ? 70 : -50), 1790 - r * 330 + 60 * (hash(i + 9) - .5), 330 * (.65 + .7 * hash(i + 4))]); }
     const wisps = [[1180, 1760, 100], [1010, 1720, 150], [840, 1680, 200]], deep = [[540, 1600, 950], [540, 960, 950], [540, 320, 950]];
-    const all = [...wisps, ...deep, ...tg], P = [];
+    const all = [...wisps, ...tg, ...deep], P = [], nd = all.length - 3;   // the deep ones last: a hidden safety net behind the column
     all.forEach(([tx, ty, R], i) => {
-      const pe = .03 + i * .0135, age = seg(p, pe, pe + .1); if (p < pe) return;
-      const e = easeOut(age), [nx, ny] = nozzle(pe), h = hash(i + 40), isDeep = i >= 3 && i < 6;
+      const isDeep = i >= nd, pe = isDeep ? .27 + .01 * (i - nd) : .03 + i * .0135, age = seg(p, pe, pe + .1); if (p < pe) return;
+      const e = easeOut(age), [nx, ny] = nozzle(pe), h = hash(i + 40);
       const delay = isDeep ? 0 : clamp(.28 * tx / W + .12 * hash(i + 60), 0, .4), qi = seg(q, delay, 1), f = .6 + .8 * hash(i + 50), m = ease(qi);
       const edge = clamp(Math.hypot((tx - 540) / 540, (ty - 960) / 960) / 1.2);
       const x = lerp(nx, tx, e) - 2100 * m * f, y = lerp(ny, ty, e) - 700 * m * (.6 + .8 * h);
       const rad = lerp(40, R, e) * (isDeep ? clamp(1 - 1.3 * ease(q)) : (1 + .25 * qi) * clamp(1 - Math.pow(qi, 1.4) * (.55 + .5 * edge)));
-      if (rad > 8) P.push([x, y, rad, isDeep ? '#6E4294' : mixCol('#7A4AA0', '#9A70C2', h), i]);
+      if (rad > 8) P.push([x, y, rad, isDeep ? '#6E4294' : mixCol('#7A4AA0', '#9A70C2', h), i, isDeep]);
     });
     const op = 255 * (1 - seg(q, .75, 1)), o = { curl: '#55337A', hi: '#C9A8E4', hiOp: .5 };
-    const back = P.filter(b => b[4] < 6), front = P.filter(b => b[4] >= 6);
+    const back = P.filter(b => b[5] || b[4] < 3), front = P.filter(b => !b[5] && b[4] >= 3);
     trPuffs(back, op, '#3A2350', 5, 'tr-smk', { curl: '#55337A' });
     if (p < .5) { const S = trSignalAt(p); trSignal(S.x, S.y, S.s, S.rot); }   // the canister, until the column engulfs it
     trPuffs(front, op, '#3A2350', 5, 'tr-smk2', o);
@@ -457,7 +457,7 @@ TRANS_FX.supplySmoke = {
     if (q > .25) for (let i = 0; i < 4; i++) {
       const k = seg(q, .25 + .1 * hash(i + 3), 1), x0 = W + 120 - 1700 * ease(k) * (.8 + .4 * hash(i)), y0 = 300 + i * 420 + 80 * hash(i + 7) - 300 * k;
       const L = []; for (let j = 0; j < 6; j++) L.push([x0 + j * 90, y0 + 40 * Math.sin(j * 1.3 + i + q * 4)]);
-      boilSeed('tr-smkw' + i); paint(ribbon(L, 46 * (1 - k * .5), 6), { wash: '#A07ACB', washOp: 150 * Math.sin(Math.PI * k), ink: null });
+      boilSeed('tr-smkw' + i); paint(ribbon(L, 80 * (1 - k * .4), 10), { wash: '#A47ECE', washOp: 100 * Math.sin(Math.PI * k), ink: null });
     }
   },
 };

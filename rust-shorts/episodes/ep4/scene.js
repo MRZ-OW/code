@@ -848,7 +848,7 @@
   }
   // 3B close: the rock comes down on the X (from 15.54) and lands (15.667): his head squashes, a small burst. Cut to
   // black on the THOCK (15.75).
-  const BONK = 15.667;
+  const BONK = 15.66;   // frame 376
   function s3b(t, lt) {
     const No = { ...face(t, [[15.5, 'scared', { mouth: null, emote: 'sweat' }], [15.6, 'scared', { eyes: 'squeeze', mouth: null, emote: 'sweat' }]]), boilKey: NK, seed: 1, prop: 'none', handOver: true, handL: rockHand, view: 'q', flip: true, rawArms: true,
       aL: CHEST[0], bendL: CHEST[1], crouch: .2, dx: N3(), lookX: .3, lookY: -1, emoteDx: 3.4, emoteDy: 1.2 };
@@ -886,7 +886,7 @@
     S.sort((p, q) => p[2] - q[2]);   // the far side of the ring first
     for (const [i, th, front] of S) {
       const pop_ = backOut(clamp((a - i * .035) / .22)); if (pop_ < .02) continue;
-      const x = cx + Math.cos(th) * rx, y = cy + Math.sin(th) * ry, tw = .85 + .15 * Math.sin(a * 14 + i * 2), r = (42 + 12 * front) * tw * pop_;
+      const x = cx + Math.cos(th) * rx, y = cy + Math.sin(th) * ry, tw = .85 + .15 * Math.sin(a * 14 + i * 2), r = (62 + 14 * front) * tw * pop_;
       boilSeed('kostar' + i);
       glow(x, y, r * 2.3, '#FFE7A0', .95);
       paint(starPts(x, y, r, .45, 5, a * 3 + i), { wash: i % 2 ? '#FFD84A' : '#FFF4C8', ink: '#8A6A1E', sw: 2.2 });

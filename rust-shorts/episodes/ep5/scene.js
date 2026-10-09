@@ -534,7 +534,7 @@
     if (t >= 5.55) N.emoteK = ease(seg(t, 5.55, 5.63));   // the bulb pops at once: it has to read before the flyover (5.79)
     const look = t < 3.75 ? { lookX: -.4, lookY: -.3 } : t < 4.3 ? { lookX: -.85, lookY: -.6 } : t < 5.3 ? { lookX: lerp(-.85, .9, seg(t, 4.3, 5.1)), lookY: -.45 } : t < 5.48 ? { lookX: .9, lookY: -.15 } : t < 5.55 ? { lookX: .75, lookY: .9 } : { lookX: .5, lookY: -.3 };
     const up = ease(seg(t, 5.55, 5.7));
-    const No = { ...N, ...look, boilKey: NK, seed: 1, view: 'q', flip: true, crouch: 1 - .45 * up, sq: (N.sq || 0) + .03 * (1 - up), dx: t < 5.3 ? tremble(t, .02) : 0, rot: 0, rawArms: true, prop: 'none', emoteDx: -.5, emoteDy: .9,
+    const No = { ...N, ...look, boilKey: NK, seed: 1.4, view: 'q', flip: true, crouch: 1 - .45 * up, sq: (N.sq || 0) + .03 * (1 - up), dx: t < 5.3 ? tremble(t, .02) : 0, rot: 0, rawArms: true, prop: 'none', emoteDx: -.5, emoteDy: .9,
       face: faces(t > 4.3 && t < 5.3 ? sweatDrops(t, -1) : null, t >= 5.3 && t < 5.62 ? jawDrop(ease(seg(t, 5.3, 5.38)) * (1 - ease(seg(t, 5.5, 5.6)))) : null) };
     clutchQ(No, U, 1 - up);
     if (up > 0) { reach(No, U, 'R', 2.1 * U, lerp(-6.7, -11.6, up) * U + dropOf(No, U)); No.farFront = true; No.handR = (uu, sw2) => fingerTo([0, 0], [.15, -1])(uu, sw2); }
