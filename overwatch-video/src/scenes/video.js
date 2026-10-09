@@ -278,9 +278,10 @@
       if (lt > r1 && lt < r1 + .5) burst(tx, G - u * 4, 120, lt - r1, '#FFE27A', 10, i * 7);
       drawHero(who, tx, G, u, o);
     });
+    // the rez beams pour out from behind Mercy, so they never cut across its face
+    TEAM.forEach(([who, tx, u], i) => { const r0 = D.rez[i]; if (lt > r0 - .2 && lt < r0 + .45 && lt >= 3.9) { const h = staffHead(x, y, 24, mo); healBeam(h[0], h[1], tx, G - 200, t, seg(lt, r0 - .2, r0), '#FFE27A'); } });
     if (!hidden) mercy(x, y, 24, mo);
     if (lt >= 3.9) { const h = staffHead(x, y, 24, mo); glow(h[0], h[1], 200 * gold, '#FFE27A', gold); }
-    TEAM.forEach(([who, tx, u], i) => { const r0 = D.rez[i]; if (lt > r0 - .2 && lt < r0 + .45 && lt >= 3.9) { const h = staffHead(x, y, 24, mo); healBeam(h[0], h[1], tx, G - 200, t, seg(lt, r0 - .2, r0), '#FFE27A'); } });
     camEnd();
     if (lt > 3.9 && lt < 4.15) flash(.6 * (1 - (lt - 3.9) / .25), '#FFF3C8');
   }
