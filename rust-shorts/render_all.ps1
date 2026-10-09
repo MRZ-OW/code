@@ -9,12 +9,13 @@
 # Needs Node.js 20+, ffmpeg and Google Chrome (the script checks and tells you what's missing).
 # Output: final\rock_bottom_epN_<name>.mp4 (1080x1920, 24 fps, -14 LUFS stereo), plus a smaller _720p copy.
 param(
-  [int[]]$Episodes = @(1, 2, 3, 4, 5),
+  [string]$Episodes = '1,2,3,4,5',   # a string: via the .bat, '1,3,4,5' would otherwise arrive as the number 1345
   [int]$Workers = 6,
   [switch]$Fresh
 )
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
+$epList = $Episodes -split '[,\s]+' | Where-Object { $_ } | ForEach-Object { [int]$_ }
 $names = @{ 1 = 'friendly'; 2 = '1234'; 3 = 'eoka'; 4 = 'hit_the_x'; 5 = 'naked_privilege' }
 
 # ── tools ──
@@ -45,7 +46,7 @@ if (-not (Test-Path node_modules\p5.brush)) {
 
 New-Item -ItemType Directory -Force final | Out-Null
 $start = Get-Date
-foreach ($n in $Episodes) {
+foreach ($n in $epList) {
   $name = $names[$n]; $mp4 = "final\rock_bottom_ep${n}_$name.mp4"
   Write-Host "`n=== EP$n $name ===" -ForegroundColor Cyan
   if ($Fresh -and (Test-Path "out\ep$n\frames")) { Remove-Item -Recurse -Force "out\ep$n\frames" }
