@@ -1,6 +1,27 @@
 // ep3 "Eoka": in a standoff the Naked's eoka won't fire. The Chad is so unimpressed that he eats beans and sleeps
 // through a whole day and night. The Naked gives up and tosses it: it fires. Then it fires first try. Then it fires
 // again, mid-hug, into his own foot. Shot list: SCRIPT.md.
+//
+// As built (cameras: STAND = the script's 2S at zoom 1; WIDE = zoom .85, needed once the Chad lies down, since lying
+// he reaches far to the right; N = the Naked waist up, about u 64; C = the Chad's mask):
+//   0    1A STAND  strikes .3 (both flinch) and 1.2 (click, a wisp); the Chad leans in: "?"
+//   2    1B STAND  strikes 2.0 2.4 2.8; the Chad lowers his AK, checks his wrist (ticks 3.3, 3.55), "..."
+//   4    1C N      shakes it, peers down the barrel (4.6–5.2), blows (5.3), dust out of the touch hole (5.6), two taps
+//   6    1D STAND  kiss + heart (6.2), prayer under a halo (6.6–7.6), back to aiming; the Chad sits (6.5), lays his AK
+//                  in the grass, pulls out a can of beans, pops it (7.5)
+//   8    S2 WIDE   the time-lapse: day → sunset → night → dawn, sun arc and cast shadows, racing clouds; strikes every
+//                  .25 s, then .5 s, then two feeble ones at night that light the scene; beans per beat, can tossed
+//                  (9.5–9.6), he lies down (10.0), the chicken walks in and settles on his chest (11.0), sleeps, the
+//                  cobweb (12.2–13.9), crows (14.8); the Naked slumps, sighs (15.5)
+//   16   3A N      heartbroken, sighs, tosses it over his shoulder (17.0)
+//   17.5 3B WIDE   it lands by the barrel and fires (17.6); ping off the mask (17.66); feathers (17.75); the Chad jolts up
+//   18.5 3C C      red eyes, steam; snatches the AK out of the cobweb, swings it up, racks it (19.2)
+//   19.5 3D WIDE   the Naked hops back onto his seat by the eoka, grabs it, eyes shut, strike (20.36), BANG (20.44),
+//                  ping (20.5); the Chad flips over backwards, legs in the air (thud 20.72), KO stars
+//   21   4A N      eyes open, the smoking eoka, "?" (21.5), a look at the Chad, back, love (22.4)
+//   23   4B N      (closer) pulls it into a hug, hearts, heartbeats, a kiss (24.4)
+//   25   4C N      BANG (25.0) into his foot; eyes wide; he springs up
+//   26   4D WIDE   hops in a circle on one foot, toes smoking; the eoka he flung comes down on the Chad's mask (27.6)
 (() => {
   const G = 1330, U = 36, NX = 260, CX = 790, HZ = 1170;   // the two-shot: ground line, unit, the Naked, the Chad, horizon
   const NK = 'naked', CH = 'chad';
@@ -129,7 +150,7 @@
   function castShadow(x, y, len, dir, w, op, key) {
     if (op <= .02 || len < 4) return;
     boilSeed('cast' + key);
-    paint(ellPts(x + dir * len / 2, y + 4, len / 2 + w * .5, w * .3, 20), { wash: '#2B2233', washOp: 220 * op, ink: null });
+    paint(ellPts(x + dir * len / 2, y + 4, len / 2 + w * .5, w * .3, 20), { wash: '#3A3550', washOp: 105 * op, ink: null });
   }
 
   // ---------- the eoka (reference: the pistol.eoka icon) ----------
@@ -324,11 +345,11 @@
     const aimP = chadAim(U), near = armLerp(aimP, { aL: -1.05, bendL: .35 }, lower, 'L'), gunRot = lerp(.03, 1.0, lower);
     const hg = handguard(U, { ...base, ...near, gunRot });
     const tick = [3.3, 3.55].reduce((a, t0) => a + (t > t0 ? Math.exp(-(t - t0) * 12) * Math.sin((t - t0) * 50) : 0), 0);
-    const wr = reachArm(U, base, 'R', 2.15 * U, (-7.55 + .35 * tick) * U);
+    const wr = reachArm(U, base, 'R', 2.35 * U, (-6.95 + .35 * tick) * U);
     let far = armLerp(hg, { aR: -1.32, bendR: .22 }, ease(seg(t, 2.95, 3.12)), 'R');
     if (watch > 0) far = armLerp(far, wr, watch, 'R');
     chad(CX, G, U, { ...C, ...base, ...near, ...far, gunRot, farFront: lower < .5 || watch > .2, lookX: watch > .5 ? .7 : C.lookX, lookY: watch > .5 ? 1 : C.lookY,
-      rot: -.07 * (1 - ease(seg(t, 2.2, 2.6))) - .12 * watch, emote: t < 2.62 ? '?' : null, emoteK: 1 - seg(t, 2.42, 2.62), emoteDx: -.3, emoteDy: -.5 });
+      rot: -.07 * (1 - ease(seg(t, 2.2, 2.6))) - .14 * watch, emote: t < 2.62 ? '?' : t > 3.55 ? 'dots' : null, emoteK: t < 2.62 ? 1 - seg(t, 2.42, 2.62) : seg(t, 3.55, 3.7), emoteAge: (t - 3.55) * 2.4, emoteDx: -.3, emoteDy: -.5 });
     camEnd();
     label(t);
   }
@@ -358,7 +379,6 @@
   // (6.5), puts the AK down on the grass, pulls a can of beans out of his hoodie pocket and opens it (7.5).
   const AKG = [CX - 4.3 * U, G + 14 - 1.35 * U], AKG_ROT = .27;   // the AK lying by the Chad's boots, on its stock and magazine
   function groundAK(sw = 2.25) { boilSeed('groundak'); push(); translate(AKG[0], AKG[1]); rotate(AKG_ROT); scale(-1, 1); akProp(U, sw, 0); pop(); }
-  const SIT = { view: 'side', flip: true, sit: 1, legsOut: true, dy: 2.3, rawArms: true };
   function s1d(t, lt) {
     STAND();
     meadow(t, { tod: 0 });
@@ -414,7 +434,7 @@
   // clouds, how much sunlight there is for cast shadows, and the colour grade.
   function lapse(t) {
     const tod = kf(t, [[8, 0], [9.6, .1], [10.4, .6], [10.9, 1.0], [11.5, 1.4], [12.2, 1.9], [12.5, 2], [14, 2], [14.4, 1.4], [14.9, .9], [15.6, .45], [16, .25], [99, .25]], lin);
-    const sun = t < 12.5 ? kf(t, [[8, [330, 370]], [9, [645, 245]], [10, [990, 395]], [10.7, [1140, 820]], [11.15, [1190, 1250]]], lin) : kf(t, [[14.1, [610, 1270]], [14.6, [622, 1120]], [16, [655, 760]], [99, [655, 760]]], lin);
+    const sun = t < 12.5 ? kf(t, [[8, [120, 330]], [9, [560, 200]], [10, [990, 395]], [10.7, [1140, 820]], [11.15, [1190, 1250]]], lin) : kf(t, [[14.1, [610, 1270]], [14.6, [622, 1120]], [16, [655, 760]], [99, [655, 760]]], lin);
     const moon = kf(t, [[11.6, [250, 1150]], [12.4, [380, 560]], [13.4, [700, 330]], [14.5, [1050, 520]]], lin), mk = seg(t, 11.7, 12.3) * (1 - seg(t, 14.0, 14.5));
     const sky = {
       top: kfCol(t, [[8, '#86C3DD'], [9.6, '#7DB0D8'], [10.2, '#9A9AC8'], [10.7, '#D88A88'], [11.2, '#B05A78'], [11.7, '#5A3A78'], [12.1, '#2C2F66'], [12.5, '#1E2550'], [14.0, '#1E2550'], [14.4, '#5A4080'], [14.9, '#D88A96'], [15.4, '#9EB8DC'], [16, '#8EC4DE']]),
@@ -603,7 +623,7 @@
   }
   // Where the tossed eoka is (grip, aim), 17.45–19.92: falling, hitting the road by the barrel and firing (17.6), kicking
   // back against the barrel and settling. Null once it's back in his hand.
-  const EOKA_LAND = [138, G + 4 - 1.25 * U], EOKA_REST = [112, G + 4 - 1.25 * U, -.06];
+  const EOKA_LAND = [152, G + 4 - 1.25 * U], EOKA_REST = [128, G + 4 - 1.25 * U, -.06];   // just behind his heels
   function eokaFree(t) {
     if (t < 17.45 || t >= 19.92) return null;
     if (t < 17.6) { const k = seg(t, 17.45, 17.6); return { x: lerp(170, EOKA_LAND[0], k), y: lerp(880, EOKA_LAND[1], k * k), aim: -.06 + (1 - k) * 2.2 }; }
@@ -702,7 +722,7 @@
   function koChad(t, extra = {}) {
     const fall = backOut(seg(t, 20.5, 20.72)), wob = spring(t, 20.72, 7, 22) + 1.4 * spring(t, 27.6, 9, 26);
     const B = chadDown(Math.min(1.08, fall), { boilKey: CH, seed: 2, eyes: t < 20.62 ? 'wide' : 'x', ...extra }, true);
-    Object.assign(B.o, { aL: .55 + .3 * wob, bendL: .4, aR: .75 - .3 * wob, bendR: .3 });
+    Object.assign(B.o, { aL: -1.05 + .35 * wob, bendL: .35, aR: -.75 - .3 * wob, bendR: .45 });   // limp, twitching
     return B;
   }
   function s3d(t, lt) {
@@ -715,7 +735,7 @@
     chadAt(B);
     const [hx, hy] = ptOf(B, 0, -8.8);
     if (!ko) emote('steam', hx, hy - 3.1 * U, U * .9, 1, t - 18.62);
-    else { puff(CX + 2.2 * U, G - 14, 58, t - 20.72, { col: '#E2D6BE', key: 'thud', n: 6, life: .7, rise: .5 }); if (t > 20.85) emote('stars', hx + 10, hy - 34, U * .85, seg(t, 20.85, 21.0), t - 20.85); }
+    else { puff(CX + 2.2 * U, G - 14, 58, t - 20.72, { col: '#E2D6BE', key: 'thud', n: 6, life: .7, rise: .5 }); if (t > 20.85) emote('stars', hx + 10, hy - 34, U * .7, seg(t, 20.85, 21.0), t - 20.85); }
     // his AK flies out of his hands and lands behind him
     if (ko) { const k = seg(t, 20.5, 20.95), p = arcPt([CX - 2 * U, G - 4.6 * U], KO_AK, 300, k); boilSeed('flyak'); push(); translate(p[0], p[1]); rotate(-k * (TAU - AKG_ROT)); scale(-1, 1); akProp(U, 2.25, 0); pop(); }
     // the Naked
@@ -814,11 +834,11 @@
     const B = koChad(t);
     chadAt(B);
     const [hx, hy] = ptOf(B, 0, -8.8);
-    emote('stars', hx + 10, hy - 34, U * .85 * (1 + .25 * spring(t, 27.6, 6, 18)), 1, (t - 20.85) * (t > 27.6 ? 1.6 : 1));
+    emote('stars', hx + 10, hy - 34, U * .7 * (1 + .25 * spring(t, 27.6, 6, 18)), 1, t < 27.6 ? t - 20.85 : 6.75 + (t - 27.6) * 1.8);
     // the eoka: up and out of the top of the frame (26.0–26.3), back down onto his mask (27.3–27.6), a bounce, then still
     const top = [hx - 20, hy - 1.4 * U], rest = [hx - 4.2 * U, G + 4 - 1.25 * U];
     if (t < 26.32) { const k = easeOut(seg(t, 25.95, 26.32)); eokaAt(lerp(300, 420, k), lerp(1000, -300, k), -k * 9, 'up'); }
-    else if (t >= 27.3 && t < 27.6) { const k = easeIn(seg(t, 27.3, 27.6)); eokaAt(lerp(top[0] + 60, top[0], k), lerp(-260, top[1], k), 1.2 + k * 6, 'down'); }
+    else if (t >= 27.1 && t < 27.6) { const k = seg(t, 27.1, 27.6), f = .35 * k + .65 * k * k; eokaAt(lerp(top[0] + 70, top[0], k), lerp(-90, top[1], f), 1.2 + k * 6, 'down'); }   // whistling down from the top of the frame
     else if (t >= 27.6) { const k = seg(t, 27.6, 27.86), p = t < 27.86 ? arcPt(top, rest, 110, k) : rest; eokaAt(p[0], p[1], t < 27.86 ? 7.2 + k * 5 : -.06 + TAU * 2, 'bounced'); if (t > 27.86) gunSmoke(...eokaFreePt(rest[0], rest[1], -.06, MUZZLE), .7, t - 27.86, 'last', 1.0); }
     bonk(top[0] + 20, top[1] + 10, 1, t - 27.6, 'd');
     // the Naked, hopping
@@ -845,15 +865,6 @@
     chad(700, 1850, 40, { ...feel('determined', t), view: 'side', flip: true, ...chadAim(40), gunRot: .03, twoHand: true });
   };
   LOOPS.ep3kit.len = 3;
-  LOOPS.ep3fg = t => {
-    boilSeed('bg'); paint(rectPts(-50, -50, W + 100, H + 100), { wash: '#93AE63', ink: null });
-    castShadow(300, 400, 274, -1, 94, .75, 'a');
-    castShadow(300, 700, 274, 1, 94, .75, 'b');
-    boilSeed('c'); paint(ellPts(500, 1000, 184, 30, 18), { fill: PAL.ink, fillOp: 82, bleed: .2, tex: .25, border: .1, ink: null });
-    boilSeed('d'); paint(ellPts(500, 1200, 184, 30, 18), { wash: PAL.ink, washOp: 60, ink: null });
-    boilSeed('e'); paint(ellPts(500, 1400, 60, 12, 18), { fill: PAL.ink, fillOp: 90, bleed: .25, tex: .3, border: .1, ink: null });
-  };
-  LOOPS.ep3fg.len = 1;
 
   shots([[0, s1a], [2, s1b], [4, s1c], [6, s1d], [8, s2], [16, s3a], [17.5, s3b], [18.5, s3c], [19.5, s3d], [21, s4a], [23, s4b], [25, s4c], [26, s4d]]);
 })();

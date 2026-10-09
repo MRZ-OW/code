@@ -17,8 +17,11 @@ function drawWorld(t) {
   else {
     let i = 0; while (i + 1 < SHOTS.length && t >= SHOTS[i + 1][0]) i++;
     const t0 = SHOTS[i][0], end = i + 1 < SHOTS.length ? SHOTS[i + 1][0] : DUR;
+    const shook = typeof transShakeBegin === 'function' && transShakeBegin(t);   // transitions.js: impact shake
     SHOTS[i][1](t, t - t0, end - t0);
     CAM = null;
+    if (typeof drawTransitions === 'function') drawTransitions(t);              // transitions.js: cover transitions
+    if (shook) pop();
   }
   flushLetters();
 }

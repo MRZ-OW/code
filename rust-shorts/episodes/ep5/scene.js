@@ -331,7 +331,7 @@
     if (on > .01) { const [lx, ly] = lens(h); scr(() => searchCone(lx, ly, h.light.aim, h.light.len, on * (o.k ?? 1), { key: (h.key || '') + ' beam', w: o.w })); }
     return h;
   }
-  const light = (tx, ty, r, on) => { if (on > .01) scr(() => glow(tx, ty, r, '#FFF4D6', .55 * on)); };
+  const light = (tx, ty, r, on) => { if (on > .01) scr(() => glow(tx, ty, r, '#FFF4D6', .4 * on)); };
   // the minigun's barrel angle for a spin-up from t0 over ramp s (then full speed), or a spin-down
   const spinUp = (t, t0, ramp) => { const a = t - t0; if (a <= 0) return 0; const w = TAU * 2.1; return a < ramp ? w * a * a / (2 * ramp) : w * (ramp / 2 + a - ramp); };
   const spinDown = (t, t0, ramp) => { const a = clamp(t - t0, 0, ramp), w = TAU * 2.1; return w * (a - a * a / (2 * ramp)); };
@@ -397,14 +397,14 @@
   // an AK lying in the grass
   function akGround(x, y, r = 0, s = 1) { boilSeed('e5akground'); push(); translate(x, y); scale(-1, 1); rotate(r); akProp(U * .8 * s, 2.2 * s, 0); pop(); }   // barrel to the left
 
-  // Both hands hold the rock to his chest (k = 1); as k → 0 his left hand lowers it to his side and the right lets go.
+  // Both hands hold the rock to his chest (k = 1); as k → 0 his right hand lowers it to his side and the left lets go.
   function clutchK(o, u, k = 1) {
     const d = dropOf(o, u), cy = -6.75 * u + d;
-    const side = handLocal(u, { ...o, rawArms: true, aL: -1.25, bendL: .3 }, 'L'), L = [lerp(side[0], -.95 * u, k), lerp(side[1], cy + .3 * u, k)];
-    reach(o, u, 'L', ...L);
-    if (k > .02) reach(o, u, 'R', lerp(1.9 * u, 1.0 * u, k), lerp(-4.2 * u, cy + .1 * u, k));
+    const side = handLocal(u, { ...o, rawArms: true, aR: -1.25, bendR: .3 }, 'R'), R = [lerp(side[0], .95 * u, k), lerp(side[1], cy + .3 * u, k)];
+    reach(o, u, 'R', ...R);
+    if (k > .02) reach(o, u, 'L', lerp(-1.9 * u, -1.0 * u, k), lerp(-4.2 * u, cy + .1 * u, k));
     o.handOver = true;
-    o.handL = (uu, sw) => rockAt(lerp(-.45 * uu, .95 * uu, k), lerp(.25 * uu, -.05 * uu, k), uu * 1.05, sw, lerp(.3, -.08, k));
+    o.handR = (uu, sw) => rockAt(lerp(.45 * uu, -.95 * uu, k), lerp(.25 * uu, -.05 * uu, k), uu * 1.05, sw, lerp(-.3, .08, k));
     return o;
   }
   // The patrol heli's opening scan (1A–1B) and its echo at the end (3F) share this hover, above and right of him.
@@ -475,7 +475,7 @@
     const up = ease(seg(t, 5.8, 6.0));
     const No = { ...N, ...look, boilKey: NK, seed: 1, view: 'front', crouch: 1 - up, sq: (N.sq || 0) + .05 * (1 - up), dx: t < 5.42 ? tremble(t, .02) : 0, rot: 0, rawArms: true, prop: 'none', emoteDx: .4, emoteDy: .9 };
     clutchK(No, U, 1 - up);
-    if (up > 0) { reach(No, U, 'R', lerp(1.0 * U, 2.2 * U, up), lerp(-6.6 * U, -10.4 * U, up)); No.handR = (uu, sw2) => fingerTo([0, 0], [.25, -1])(uu, sw2); }
+    if (up > 0) { reach(No, U, 'L', lerp(-1.0 * U, -2.7 * U, up), lerp(-6.6 * U, -11.5 * U, up)); No.handL = (uu, sw2) => fingerTo([0, 0], [-.2, -1])(uu, sw2); }
     spawnling(NX, G, U, No);
     if (t >= 5.72) clothesPile(PILE[0], PILE[1], .85);
     if (t >= 5.72) puff(PILE[0], PILE[1] - 20, 46, t - 5.72, { col: '#D9CDB4', key: 'pileland', n: 5, life: .45 });
@@ -504,7 +504,7 @@
   const GEAR_ON = t => ({ hat: t >= 6.4 && t < 9.4, hoodie: t >= 7.2 && t < 9.65, pants: t >= 8.4 && t < 9.9 });
   // His clothes as survivor options at time t (the hat and the hood are hooks; the zip runs up at 7.2).
   function dressOpts(t, o) {
-    const g = GEAR_ON(t), d = dropOf(o, U), zipK = ease(seg(t, 7.2, 7.35)), hatDy = t >= 7.08 && t < 7.4 ? -1.6 * Math.sin(Math.PI * seg(t, 7.08, 7.4)) : spring(t, 6.4, 9, 26) * .3;
+    const g = GEAR_ON(t), d = dropOf(o, U), zipK = ease(seg(t, 7.2, 7.35)), hatDy = t >= 7.08 && t < 7.28 ? -1.6 * Math.sin(Math.PI * seg(t, 7.08, 7.28)) : t >= 7.28 ? spring(t, 7.28, 9, 30) * .25 : spring(t, 6.4, 9, 26) * .3;
     return { gear: { hoodie: g.hoodie, pants: g.pants }, behind: g.hoodie ? (u, sw, V) => hoodBehind(u, V, d) : undefined, under: g.hoodie ? (u, sw, V) => zipUnder(u, V, d, zipK) : undefined,
       draw: g.hat ? (u, sw, V) => hatOn(u, V, d, { dy: hatDy }) : undefined };
   }
@@ -560,8 +560,8 @@
         reach(No, U, 'L', ...dr.L); reach(No, U, 'R', ...dr.R);
         Object.assign(No, dressOpts(t, No));
         if (dr.carry === 'hat') No.handL = (uu, sw) => boonie(2.75 * uu, .2 * uu, 1.3 * 2.35 * uu, { rot: .1 });
-        if (dr.carry === 'pants') No.handL = (uu, sw) => flyPants(1.4 * uu, 2.4 * uu, uu / 36 * .95, 0, .1);
-        if (dr.carry === 'hoodieUp') No.handL = (uu, sw) => flyHoodie(1.4 * uu, -.6 * uu, uu / 36 * .9, Math.PI);
+        if (dr.carry === 'pants') No.handL = (uu, sw) => flyPants(1.4 * uu, 1.8 * uu, uu / 36 * 1.95, 0, .1);   // held open by the waistband
+        if (dr.carry === 'hoodieUp') No.handL = (uu, sw) => flyHoodie(1.45 * uu, -2.2 * uu, uu / 36 * 1.9, 0);   // held up by the hem, over his head
         if (dr.carry === 'hoodieOn') {   // mid-pull: the hoodie hangs from his raised fists over his head, sliding down to his shoulders
           No.draw = (uu, sw, V) => {
             const k = seg(t, 7.08, 7.2), hem = lerp(-9.6, -7.9, k) * uu, [lx, ly] = handLocal(uu, No, 'L'), [rx, ry] = handLocal(uu, No, 'R'); boilSeed('midpull');
@@ -569,7 +569,7 @@
             paint(rectPts(-2.7 * uu, hem - .45 * uu, 5.4 * uu, .45 * uu), { wash: '#9A9C98', ink: PAL.ink, sw: sw * .5 });
             inkLine([[-.9 * uu, -11.9 * uu], [-.3 * uu, -10.9 * uu]], sw * .5, '#7A2A22', 'inkfine', .3); inkLine([[.8 * uu, -11.6 * uu], [.35 * uu, -10.6 * uu]], sw * .5, '#7A2A22', 'inkfine', .3);   // his face pushing at the cloth
             for (const [hx, hy] of [[lx, ly], [rx, ry]]) paint(ellPts(hx, hy, .55 * uu, .55 * uu, 14), { wash: SKIN_TONES.light.col, ink: PAL.ink, sw: sw * .7 });
-            hatOn(uu, V, 0, { dy: -1.6 * Math.sin(Math.PI * seg(t, 7.08, 7.4)) - .6 });
+            hatOn(uu, V, 0, { dy: -1.6 * Math.sin(Math.PI * seg(t, 7.08, 7.28)) - .6 });
           };
         }
       } else {
@@ -640,7 +640,8 @@
       spawnling(600, G, U, { ...feel('proud', t), emote: 'spark', emoteK: seg(t, 12.05, 12.25), tint: null, boilKey: NK, seed: 1, view: t < 12.06 ? 'qf' : 'front', rawArms: true, prop: 'none', aL: .05 + .12 * pump, bendL: -1.45, aR: .1 + .12 * pump, bendR: -1.5, sq: -.04 + .05 * pump, emoteDx: .2 });
     } else {   // flopped onto the towel: shades on, beans in hand
       if (t >= 13.03) sunbather(TOWEL[0] + 10, TOWEL[1] - 4, U, t, { lean: .14 + .02 * Math.sin(t * 4), mouth: 'smile', pose: { liftR: .5 + .08 * Math.sin(t * TAU) } });
-      puff(560, G - 60, 80, t - 12.95, { col: '#E8E0C8', key: 'flop', n: 6, life: .4, rise: .3 });
+      puff(600, G - 6 * U, 150, t - 12.95, { col: '#E8E0C8', key: 'flop', n: 7, life: .3, rise: -.6 });
+      puff(TOWEL[0] + 40, TOWEL[1] - 30, 90, t - 13.0, { col: '#E8E0C8', key: 'flop2', n: 6, life: .4, rise: .3 });
     }
     drawHeli(h);
     scr(() => {
@@ -690,28 +691,29 @@
   // (17.6) and hugs it, beaming.
   function s3b(t, lt) {
     HZc = G - 180;
-    const pan = ease(seg(t, 16.0, 17.3));
+    const pan = ease(seg(t, 16.4, 17.35));
     camBegin(lerp(480, 405, pan), 1150, 1.55);
     scr(() => backdrop(t, sc(0, HZc)[1], 30 * pan));
     ground(t);
     busyHeli(t, 840, 420, .22, 'h3b');
-    sack(...SACK, .8, { ak: t < 17.6 });
+    sack(...SACK, .8, { ak: t < 17.6, glint: Math.max(0, Math.sin(Math.PI * seg(t, 15.95, 16.35))) });
     towel(TOWEL[0], TOWEL[1], 380, 66);
     beanCanAt(TOWEL[0] + 20, TOWEL[1] - 4, .55, { key: 'left', lying: true, rot: .3 });
     rockGround(...ROCK3, .9);
-    // the path: tiptoeing on the plucks, paused for the glance
-    const x = kf(t, [[16.0, 470], [16.52, 425], [16.9, 425], [17.18, NX3]]), moving = (t < 16.52) || (t > 16.9 && t < 17.18);
-    const ph = (Math.min(t, 16.52) - 16.0 + Math.max(0, Math.min(t, 17.18) - 16.9)) * 4.2;
-    const glance = t > 16.55 && t < 16.9, hug = t >= 17.75;
-    const N = emotions(t, [[16.0, 'mischief', { eyes: 'sly', mouth: 'grin', lookX: .8, lookY: .5 }], [16.55, 'nervous', { emote: null, lookX: .9, lookY: -.9, mouth: 'flat' }], [16.9, 'mischief', { eyes: 'shine', mouth: 'open', lookY: .6, lookX: .9, gloom: 0 }], [17.62, 'love', { emote: 'hearts' }]], { take: .45 });
+    // first a glance up at the heli (16.05–16.45: busy, far off), then three tiptoe steps planted on the plucks (16.75,
+    // 17.0, 17.25), the drool, the wipe (17.28), the bend (17.45) and the grab (17.6)
+    const st = (t - 16.5) / .25, n = Math.floor(st), f = frac(st), stepping = t >= 16.5 && t < 17.25;
+    const x = t < 16.5 ? 455 : lerp(455, NX3, clamp((Math.min(n, 3) + (stepping ? ease(f) : 0)) / 3));
+    const glance = t > 16.05 && t < 16.45, hug = t >= 17.75, lift = stepping ? Math.sin(Math.PI * f) : 0;
+    const N = emotions(t, [[16.0, 'mischief', { eyes: 'shine', mouth: 'grin', lookX: .8, lookY: .5 }], [16.05, 'nervous', { emote: null, lookX: .9, lookY: -.9, mouth: 'flat' }], [16.45, 'mischief', { eyes: 'sly', mouth: 'grin', lookX: .8, lookY: .5 }], [16.95, 'mischief', { eyes: 'shine', mouth: 'open', lookY: .6, lookX: .9, gloom: 0 }], [17.62, 'love', { emote: 'hearts' }]], { take: .45 });
     let No;
     if (!hug) {
-      const view = glance ? (t < 16.6 || t > 16.85 ? 'qf' : 'front') : 'q', bend = ease(seg(t, 17.38, 17.55)) * (1 - ease(seg(t, 17.62, 17.75)));
-      No = { ...N, boilKey: NK, seed: 1, view, flip: !glance || view === 'qf', rawArms: true, prop: 'none', crouch: .3 + .7 * bend, rot: -.08 - .32 * bend, dy: (N.dy || 0) - (moving ? .25 * Math.abs(Math.sin(ph * Math.PI)) : 0),
-        liftL: moving ? Math.max(0, Math.sin(ph * Math.PI)) * .7 : 0, liftR: moving ? Math.max(0, -Math.sin(ph * Math.PI)) * .7 : 0, aL: -.6, bendL: -1.5, aR: -.5, bendR: -1.6, emoteDx: .3, emoteDy: .6 };
+      const view = glance ? (t < 16.1 || t > 16.4 ? 'qf' : 'front') : 'q', bend = ease(seg(t, 17.45, 17.58)) * (1 - ease(seg(t, 17.62, 17.75)));
+      No = { ...N, boilKey: NK, seed: 1, view, flip: !glance || view === 'qf', rawArms: true, prop: 'none', crouch: .3 + .7 * bend, rot: -.08 - .32 * bend, dy: (N.dy || 0) - .25 * lift,
+        liftL: n % 2 ? 0 : .7 * lift, liftR: n % 2 ? .7 * lift : 0, aL: -.6, bendL: -1.5, aR: -.5, bendR: -1.6, emoteDx: .3, emoteDy: .6 };
       if (glance) Object.assign(No, { aL: -1.2, bendL: .3, aR: -1.2, bendR: .3, rot: 0 });
-      if (t >= 17.15 && t < 17.4) { const k = seg(t, 17.15, 17.38); reach(No, U, 'L', lerp(.55 * U, 1.7 * U, k), lerp(-9.2 * U, -9.7 * U, k)); }   // the wipe
-      if (t >= 17.38 && t < 17.62) { const [tx, ty] = toBody(x, G, U, No, SACK[0] - 22, SACK[1] - 100); reach(No, U, 'L', tx, ty); }
+      if (t >= 17.26 && t < 17.47) { const k = seg(t, 17.26, 17.45); reach(No, U, 'L', lerp(.55 * U, 1.7 * U, k), lerp(-9.2 * U, -9.7 * U, k) + dropOf(No, U)); }   // the wipe
+      if (t >= 17.47 && t < 17.62) { const [tx, ty] = toBody(x, G, U, No, SACK[0] - 22, SACK[1] - 100); reach(No, U, 'L', tx, ty); }
       if (t >= 17.6) { reach(No, U, 'L', lerp(1.2 * U, .9 * U, seg(t, 17.6, 17.75)), lerp(-4.6 * U, -6.4 * U, seg(t, 17.6, 17.75))); No.handOver = true; No.handL = (uu, sw) => { push(); rotate(lerp(-.95, -.32, ease(seg(t, 17.6, 17.75)))); translate(.3 * uu, -.45 * uu); akProp(uu * .8, sw, 0); pop(); }; }   // out by the grip, barrel up and forward, as it lay in the sack
     } else {
       const rock = .05 * Math.sin((t - 17.75) * 9);
@@ -721,7 +723,7 @@
     No.draw = lowShades(No);
     spawnling(x, G, U, No);
     // the drool, wiped away
-    if (t > 16.92 && t < 17.3) { const k = seg(t, 16.92, 17.15), dx = x - .7 * U, dy = G - 9.3 * U + dropOf(No, U); boilSeed('drool'); paint([[dx - 4, dy], [dx + 4, dy], [dx + 7, dy + 10 + 22 * k], [dx, dy + 16 + 26 * k], [dx - 7, dy + 10 + 22 * k]], { wash: PAL.sky, washOp: 230, ink: PAL.ink, sw: .9, curv: .5 }); }
+    if (t > 16.95 && t < 17.38) { const k = seg(t, 16.95, 17.25), dx = x - .7 * U, dy = G - 9.3 * U + dropOf(No, U); boilSeed('drool'); paint([[dx - 4, dy], [dx + 4, dy], [dx + 7, dy + 10 + 22 * k], [dx, dy + 16 + 26 * k], [dx - 7, dy + 10 + 22 * k]], { wash: PAL.sky, washOp: 230, ink: PAL.ink, sw: .9, curv: .5 }); }
     if (t >= 17.6 && t < 17.95) scr(() => sparks(...sc(SACK[0] + 20, SACK[1] - 60), 1, t - 17.6, { n: 6, key: 'akout' }));
     camEnd();
   }
@@ -754,7 +756,7 @@
   // minigun spins up (20.0) and the rocket pods glow (20.5).
   function s3d(t, lt) {
     HZc = G - 180;
-    camBegin(420, 1135, 1.6);
+    camBegin(385, 1135, 1.6);
     scr(() => backdrop(t, sc(0, HZc)[1], 0));
     ground(t);
     sack(...SACK, .8, { ak: false });
@@ -855,6 +857,23 @@
     if (t >= 22.4 && fade > 0) scr(() => scanLine(sc(NX3, 0)[0], sc(0, G - 13.0 * U)[1], sc(0, G + .2 * U)[1], ease(k), 250 * CAM.zoom, { from: lens(h), a: fade, key: 'scan3' }));
     camEnd();
   }
+
+  // ---------- asset sheet (render with --ep=5 --loop=e5kit): the episode's new props, for review ----------
+  LOOPS.e5kit = t => {
+    HZc = 760; camBegin(540, 960, 1);
+    backdrop(t, 760, 0);
+    staticSeed('kitground'); paint(rectPts(-100, 757, W + 200, 1300), { wash: '#8DAA62', ink: null });
+    clothesPile(170, 905, .9); boilSeed('kithat'); boonie(470, 860, 80, {}); boilSeed('kithat2'); boonie(700, 860, 80, { view: 'q' }); shadesProp(930, 860, 2);
+    towel(300, 1065, 420, 110); sack(780, 1110, 1.1, { glint: .8 + .2 * Math.sin(t * 6) });
+    crater(280, 1260, 120); twistedAK(780, 1265, 1.2);
+    flyHoodie(170, 1460, 1.1, .3); flyPants(450, 1460, 1.1, -.4, .6); fightCloud(820, 1440, 130, t);
+    spawnling(170, 1880, 30, { ...feel('cool', t), view: 'front', prop: 'none', eyes: 'normal', gear: { hoodie: true, pants: true }, behind: (u, sw, V) => hoodBehind(u, V), under: (u, sw, V) => zipUnder(u, V), draw: (u, sw, V) => { hatOn(u, V); shadesOn(u, sw, V); } });
+    spawnling(420, 1880, 30, { ...feel('happy', t), view: 'q', prop: 'none', draw: (u, sw, V) => { hatOn(u, V); shadesOn(u, sw, V, 0, .5 + .5 * Math.sin(t * 3)); } });
+    spawnling(680, 1880, 30, { ...feel('neutral', t), view: 'side', prop: 'none', draw: (u, sw, V) => { hatOn(u, V); shadesOn(u, sw, V); } });
+    spawnling(930, 1880, 30, { eyes: 'blank', mouth: 'flat', ...SOOT, view: 'front', prop: 'none' });
+    camEnd();
+  };
+  LOOPS.e5kit.len = 2;
 
   shots([[0, s1], [2.5, s1], [3.5, s1c], [6, s2], [8, s2], [10, s2], [11, s2d], [14, s3a], [16, s3b], [18, s3c], [19, s3d], [21, s3e], [22, s3f]]);
 })();

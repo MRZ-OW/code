@@ -623,12 +623,6 @@
     P.push([cx + far, cy], [cx + far, cy - far], [cx - far, cy - far], [cx - far, cy + far], [cx + far, cy + far], [cx + far, cy + .01]);
     paint(P, { wash: col, washOp: op, ink: null });
   }
-  // like irisShape (everything outside a star-shaped hole), but a translucent wash: stack a few for a soft vignette
-  function softOutside(pts, col, op, far = 4000) {
-    const n = pts.length; let cx = 0, cy = 0; for (const p of pts) { cx += p[0]; cy += p[1]; } cx /= n; cy /= n;
-    const out = p => { const dx = p[0] - cx, dy = p[1] - cy, d = Math.hypot(dx, dy) || 1; return [cx + dx / d * far, cy + dy / d * far]; };
-    for (let i = 0; i < n; i++) { const a = pts[i], b = pts[(i + 1) % n]; paint([a, b, out(b), out(a)], { wash: col, washOp: op, ink: null }); }
-  }
 
   // 2D/2E two-shot: the swing, CLANG (12.0): the mask dents, the X pops off, ring lines, his arm buzzes. Freeze. The
   // Chad's eyes narrow; the Naked looks at the X, at the Chad, sweats; the X hops onto his forehead (13.6).
