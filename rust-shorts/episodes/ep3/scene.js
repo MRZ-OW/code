@@ -2,26 +2,34 @@
 // through a whole day and night. The Naked gives up and tosses it: it fires. Then it fires first try. Then it fires
 // again, mid-hug, into his own foot. Shot list: SCRIPT.md.
 //
-// As built (cameras: STAND = the script's 2S at zoom 1; WIDE = zoom .85, needed once the Chad lies down, since lying
-// he reaches far to the right; N = the Naked waist up, about u 64; C = the Chad's mask):
-//   0    1A STAND  strikes .3 (both flinch) and 1.2 (click, a wisp); the Chad leans in: "?"
-//   2    1B STAND  strikes 2.0 2.4 2.8; the Chad lowers his AK, checks his wrist (ticks 3.3, 3.55), "..."
-//   4    1C N      shakes it, peers down the barrel (4.6–5.2), blows (5.3), dust out of the touch hole (5.6), two taps
-//   6    1D STAND  kiss + heart (6.2), prayer under a halo (6.6–7.6), back to aiming; the Chad sits (6.5), lays his AK
-//                  in the grass, pulls out a can of beans, pops it (7.5)
-//   8    S2 WIDE   the time-lapse: day → sunset → night → dawn, sun arc and cast shadows, racing clouds; strikes every
-//                  .25 s, then .5 s, then two feeble ones at night that light the scene; beans per beat, can tossed
-//                  (9.5–9.6), he lies down (10.0), the chicken walks in and settles on his chest (11.0), sleeps, the
-//                  cobweb (12.2–13.9), crows (14.8); the Naked slumps, sighs (15.5)
-//   16   3A N      heartbroken, sighs, tosses it over his shoulder (17.0)
-//   17.5 3B WIDE   it lands by the barrel and fires (17.6); ping off the mask (17.66); feathers (17.75); the Chad jolts up
-//   18.5 3C C      red eyes, steam; snatches the AK out of the cobweb, swings it up, racks it (19.2)
-//   19.5 3D WIDE   the Naked hops back onto his seat by the eoka, grabs it, eyes shut, strike (20.36), BANG (20.44),
-//                  ping (20.5); the Chad flips over backwards, legs in the air (thud 20.72), KO stars
-//   21   4A N      eyes open, the smoking eoka, "?" (21.5), a look at the Chad, back, love (22.4)
-//   23   4B N      (closer) pulls it into a hug, hearts, heartbeats, a kiss (24.4)
-//   25   4C N      BANG (25.0) into his foot; eyes wide; he springs up
-//   26   4D WIDE   hops in a circle on one foot, toes smoking; the eoka he flung comes down on the Chad's mask (27.6)
+// As built (cameras: STAND = the script's 2S at zoom 1; WIDE = zoom .93, from S2 on, with the Chad seated closer in at SX
+// (lying, he reaches far to the right); N = the Naked, about u 64, pushed in to u ~97 for 1C's peer and blow; C = the
+// Chad's mask; SCAM / HCAM = N on the seated Naked). The eoka is drawn 1.3× in the two-shots (ES).
+//   0    1A STAND  strikes .3 (both flinch, the Chad's head jerks back) and 1.2 (click, a wisp); the Chad leans in: "?"
+//   2    1B STAND  strikes 2.0 2.4 2.8; the Chad lowers his AK, raises a wristwatch to his chest and leans over it, a flick
+//                  on each tick (3.3, 3.55), "..."
+//   4    1C N      shakes it, muzzle to his eye (4.46); insert up the barrel at his eye (4.64–5.1); blows into it (5.3);
+//                  dust rings out of the touch hole (5.45); two taps
+//   6    1D STAND  kiss + heart at his lips (6.2); drops the rock, prays, palms round the upright eoka, under a halo (6.6–);
+//                  the Chad sits (6.3), lays his AK in the grass, holds up a can of beans and pops it (7.12, the lid flips)
+//   8    wallUpgrade transition (7.37–8.27; hammer bonks 7.56 7.69 7.82 7.95, raid ~8.0)
+//   8    S2 WIDE   the time-lapse: day → sunset → night → dawn, sun arc left to right and cast shadows, racing clouds;
+//                  strikes every .25 s from 8.5, then .5 s, then two feeble ones at night that light the scene (bloodshot
+//                  eyes); beans per beat (spoon in the can 8.5, 9.0), can tossed (9.5–9.6), he lies down (10.0), the
+//                  chicken walks in and settles on his chest (11.0), sleeps (a z), the cobweb with its spider
+//                  (12.2–13.9), crows (14.8); the Naked slumps, sighs (15.5)
+//   16   3A N      heartbroken, sighs, tosses it over his shoulder (arm over his head 16.86–17.24, release 17.0)
+//   17.5 3B WIDE   it drops in and lands upright behind his heels, fires (17.6) behind his legs; ping off the mask (17.66);
+//                  feathers (17.75); the Chad jolts up; the Naked jumps and turns to look
+//   18.5 3C C      red eyes, steam rising off the mask; snatches the AK out of the cobweb, swings it up, racks it (19.2)
+//   19.5 3D WIDE   the Naked throws his hands up, drops onto his backside by the eoka, grabs it (19.9), eyes shut, strike
+//                  (20.36), BANG (20.44), ping (20.5); the Chad flips over backwards, legs in the air (thud 20.72), KO stars
+//   21   4A N      eyes open (wide), the smoking eoka, "?" (21.5), a look at the Chad, back, love (22.4); his rock set down
+//                  behind his hip
+//   23   4B N      hugs it upright to his cheek, hearts, heartbeats, kisses its tape (24.4); cradles it, barrel down (24.62)
+//   25   4C N      BANG (25.0) into his foot; eyes wide; flings it up (25.82) and springs up
+//   26   4D WIDE   hops in a circle on one foot, clutching it, toes smoking, crying; the eoka he flung comes down on the
+//                  Chad's mask (27.6)
 (() => {
   const G = 1330, U = 36, NX = 260, CX = 790, HZ = 1170;   // the two-shot: ground line, unit, the Naked, the Chad, horizon
   // Where the Chad sits: SX1 in 1D; after the wall transition (8.0) at SX, closer in, so the wide shots can frame tighter
@@ -319,7 +327,7 @@
   const ROCK_DOWN = [.75, -4.75];                       // the rock hand resting in front of his hip (body, u)
   const kick = (t, t0, k = 6) => t > t0 ? Math.exp(-(t - t0) * k) * Math.min(1, (t - t0) / .04) : 0;   // a flinch, a recoil
   // Blend two eoka holds; the y-scale passes through 0 when it turns over, so the gun flips in his hand.
-  const eBlend = (A, B, k) => ({ g: [lerp(A.g[0], B.g[0], k), lerp(A.g[1], B.g[1], k)], aim: lerp(A.aim, B.aim, k), ys: lerp(A.ys ?? 1, B.ys ?? 1, clamp((k - .44) / .12)) });   // the turn-over is a quick flip
+  const eBlend = (A, B, k) => ({ g: [lerp(A.g[0], B.g[0], k), lerp(A.g[1], B.g[1], k)], aim: lerp(A.aim, B.aim, k), ys: k < .5 ? A.ys ?? 1 : B.ys ?? 1 });   // turning it over is a snap (an in-between squashes it flat)
   // The Chad's far hand on the AK's handguard, for a near-arm pose o (with o.gunRot).
   const handguard = (u, o) => { const [hx, hy] = handLocal(u, o, 'L'), g = o.gunRot || 0; return reachArm(u, o, 'R', hx + Math.cos(g) * 2.1 * u - Math.sin(g) * .05 * u, hy + Math.sin(g) * 2.1 * u + Math.cos(g) * .05 * u); };
   const armLerp = (A, B, k, w) => ({ ['a' + w]: lerp(A['a' + w], B['a' + w], k), ['bend' + w]: lerp(A['bend' + w], B['bend' + w], k), ['armK' + w]: lerp(A['armK' + w] ?? 1, B['armK' + w] ?? 1, k) });
@@ -668,7 +676,7 @@
   // ---------- S3: gave up (16–21) and S4: true faith (21–28), the next morning ----------
   const morning = t => meadow(t, { tod: .25, sun: MSUN, sky: MORNING, ct: 216 + (t - 16) });
   // After his dive he sits at SEATX, by the eoka. SCAM / HCAM: the N framings for that (HCAM keeps his feet above the captions).
-  const SEATX = 262, SCAM = () => { ES = 1; camBegin(SEATX + 55, 1160, 1.78); }, HCAM = () => { ES = 1; camBegin(SEATX + 80, 1232, 1.8); };
+  const SEATX = 262, SCAM = () => { ES = 1; camBegin(SEATX + 55, 1160, 1.78); }, HCAM = () => { ES = 1; camBegin(SEATX + 80, 1272, 1.8); };
   const SEAT = { sit: 1, legsOut: true, dy: 2.3 };
   const akHook = g => (uu, sw) => { push(); rotate(g); akProp(uu, sw, 0); pop(); };
   // the eoka on its own: grip at (x, y)
@@ -905,7 +913,7 @@
     if (kiss > 0) e = eBlend(e, KISSH, kiss);
     if (cradle > 0) e = eBlend(e, CRADLE, cradle);
     const No = nakedPose(U, { ...N, ...SEAT, view: 'q', swMul: .8, farFront: true, rot: .1 * pull * (1 - cradle) + .06 * kiss, dx: 0, dy: 2.3, sq: .05 * beat, lookX: .6, lookY: .5 + .4 * cradle, ...o }, e, { at: [lerp(lerp(1.75, 2.0, pull), 2.4, cradle), lerp(lerp(-2.55, -5.6, pull), -4.4, cradle)], rock: false, elbowDown: true });
-    No.emoteK = 1; No.emoteAge = t - 23; No.emoteDx = .3; No.emoteDy = .2;
+    No.emoteK = 1; No.emoteAge = t - 23; No.emoteDx = .3; No.emoteDy = .7;
     return No;
   }
   function s4b(t, lt) {
@@ -933,7 +941,7 @@
     survivor(SEATX, G, U, No);
     if (No._e) {
       const [mx, my] = eokaPt(SEATX, G, U, No, No._e, MUZZLE);
-      muzzleFlash(mx, my, 1.2, clamp(1 - (t - 25.0) / .12), No._e.aim, 'c');
+      muzzleFlash(mx, my, .95, clamp(1 - (t - 25.0) / .12), No._e.aim - .6, 'c');   // splayed forward along his shin, clear of the captions
       gunSmoke(mx, my, .9, t - 25.0, 'c', 1.2);
     } else { const k = seg(t, 25.84, 26.0); eokaAt(SEATX + 1.2 * U + 40 * k, G - 12 * U - 700 * k, -1.2 - 5 * k, 'fling'); }
     // smoke curling up from his toes

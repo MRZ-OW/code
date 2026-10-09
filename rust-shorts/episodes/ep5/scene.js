@@ -973,22 +973,22 @@
     // falls flat on his face like a plank, forward onto his towel (23.38–23.6): his back up, his face in the dirt
     const view = t < 23.24 ? 'front' : t < 23.29 ? 'qf' : t < 23.34 ? 'q' : 'side', fall = easeIn(seg(t, 23.38, 23.6)), down = t >= 23.6;
     const blink = t > 22.7 && t < 22.78, ang = Math.PI / 2 * fall - (down ? .05 * Math.exp(-(t - 23.6) * 9) * Math.abs(Math.sin((t - 23.6) * 30)) : 0);
-    const Nf = { eyes: blink || fall > .3 ? 'closed' : 'blank', mouth: t < 23.2 ? 'flat' : 'o', ...SOOT, boilKey: NK, seed: 1, view, rawArms: true, prop: 'none', aL: -1.2, bendL: .2, aR: -1.22, bendR: .2,
+    const Nf = { eyes: blink || fall > .3 ? 'closed' : 'blank', mouth: t < 23.2 ? 'flat' : 'o', ...SOOT, frizz: 1 - seg(t, 23.38, 23.6),   // the spikes settle into a solid dark afro as he goes down
+      boilKey: NK, seed: 1, view, rawArms: true, prop: 'none', aL: -1.2, bendL: .2, aR: -1.22, bendR: .2,
       rot: ang, dy: -1.2 * Math.sin(ang), noShadow: fall > .3 };
     if (t >= 23.34) { reach(Nf, U, 'L', .55 * U, -4.6 * U); reach(Nf, U, 'R', .25 * U, -4.8 * U); }   // arms stiff at his sides
+    softSmoke(NX3 - 3.3 * U, G - 3 * U, 95, t - 21.62, 'clear3f', 4, .6);   // the blast's smoke, small and behind/beside him so the sooty face reads, gone by ~22.2
     spawnling(NX3, G, U, Nf);
-    if (down) {   // his face buried in a heap of dirt where his head hit: only the back of his head shows
-      const hx = NX3 + 10.9 * U, k = easeOut(seg(t, 23.6, 23.66)), top = [[hx - 3.3 * U, G + 1.15 * U], [hx - 2.6 * U, G + .1 * U], [hx - 1.6 * U, G - .75 * U * k], [hx - .3 * U, G - 1.15 * U * k], [hx + 1.0 * U, G - 1.0 * U * k], [hx + 2.3 * U, G - .45 * U * k], [hx + 3.1 * U, G + .35 * U], [hx + 3.5 * U, G + 1.15 * U]];
+    if (down) {   // his face buried in a small heap of dirt where his head hit: the back of his dark afro sits on top of it
+      const hx = NX3 + 10.9 * U, k = easeOut(seg(t, 23.6, 23.66)), top = [[hx - 1.2 * U, G + 1.1 * U], [hx - .6 * U, G + .45 * U], [hx + .5 * U, G + .1 * U - .55 * U * k], [hx + 1.6 * U, G + .2 * U - .35 * U * k], [hx + 2.6 * U, G + .7 * U], [hx + 3.0 * U, G + 1.1 * U]];
       boilSeed('faceplant dirt');
       paint(top, { wash: '#7A5E42', ink: null, curv: .45 });
       inkLine(top, 1.1, PAL.ink, 'ink', .45);
-      paint(ellPts(hx - .2 * U, G - .5 * U * k, 2.0 * U, .35 * U * k, 12), { wash: '#94765A', washOp: 160, ink: null });   // the loose top
-      for (const [ox, oy, r] of [[-2.0, .3, .32], [.4, -.9, .28], [2.2, -.2, .26], [-3.8, .8, .22], [3.9, .7, .2]]) paint(ellPts(hx + ox * U, G + oy * U * k, r * U, r * .8 * U, 9), { wash: '#5E4A36', ink: PAL.ink, sw: .8 });
+      for (const [ox, oy, r] of [[1.3, .75, .24], [2.9, .95, .18]]) paint(ellPts(hx + ox * U, G + oy * U, r * U, r * .8 * U, 9), { wash: '#5E4A36', ink: PAL.ink, sw: .8 });
+      dust(hx + 2.6 * U, G + .9 * U, 34, t - 23.6, 'faceplant', .3, '#D8CCAE');   // one small soft puff
     }
-    if (down) dust(NX3 + 10.9 * U, G - .3 * U, 110, t - 23.6, 'faceplant', .34);   // the thud raises dust at his head and along him
     wisps(AKDROP[0] - 60, AKDROP[1] - 40, .9, t, 'akwisp');
     wisps(NX3 + 6, G - 12.6 * U, 1.1, t, 'him', 1 - seg(t, 23.0, 23.3));   // thinning out before he turns and falls
-    softSmoke(NX3 - 40, G - 5 * U, 170, t - 21.62, 'clear3f', 5, .9);   // the blast's smoke, thinning off him as the shot opens
     light(tx, ty, 170, on);
     drawHeli(h);
     snort(h, t - 23.28);
