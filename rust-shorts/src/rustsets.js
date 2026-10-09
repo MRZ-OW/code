@@ -94,9 +94,9 @@ function pineTree(x, y, s = 1, o = {}) {
   }
   paint([[-16 * s, -560 * s], [16 * s, -560 * s], [0, -640 * s]], { wash: dk, ink: PAL.ink, sw: .8 });
   if (o.mark) {   // the red X that tells you where to hit next
-    const mk = backOut(clamp(o.markK ?? 1)), mx = (o.markX ?? 4) * s, my = (o.markY ?? -80) * s;
-    glow(mx, my, 50 * s, '#FF5A4A', .6 * mk);
-    for (const d of [1, -1]) inkLine([[mx - 16 * s * mk, my - 16 * s * mk * d], [mx + 16 * s * mk, my + 16 * s * mk * d]], 3.2 * s, '#E0283F', 'ink', 0);
+    const mk = backOut(clamp(o.markK ?? 1)), mx = o.markX ?? 0, my = o.markY ?? -250, ms = (o.markSize ?? 18) * mk;
+    glow(mx, my, ms * 3, '#FF5A4A', .5 * mk);
+    for (const d of [1, -1]) inkLine([[mx - ms, my - ms * d], [mx + ms, my + ms * d]], clamp(ms / 9, 1, 3), '#E0283F', 'ink', 0);
   }
   pop();
 }
@@ -122,8 +122,10 @@ function oreNode(x, y, s = 1, kind = 'stone', o = {}) {
 
 function bush(x, y, s = 1, o = {}) {
   boilSeed('bush' + Math.round(x));
-  const sway = Math.sin(T * 1.3 + x) * 4 * s, night = clamp((o.tod ?? 0) - 1);
-  for (let i = 0; i < 4; i++) paint(ellPts(x + (-60 + i * 40) * s + sway, y - (40 + 18 * Math.sin(i * 2)) * s, (55 - 6 * i) * s, 45 * s, 16, 2), { wash: mixCol(i % 2 ? RUST.grassDk : RUST.grass, '#1C2A3E', night), ink: PAL.ink, sw: .8 });
+  const sway = Math.sin(T * 1.3 + x) * 4 * s, night = clamp((o.tod ?? 0) - 1), P = [];
+  for (let i = 0; i <= 16; i++) { const a = Math.PI + i / 16 * Math.PI, r = (1 + .18 * Math.sin(i * 2.7 + x)) * (i % 2 ? .86 : 1); P.push([x + Math.cos(a) * 110 * s * r + sway * (1 - Math.sin(a)), y + Math.sin(a) * 80 * s * r]); }
+  paint(P, { wash: mixCol(RUST.grassDk, '#1C2A3E', night), ink: PAL.ink, sw: .9, curv: .3 });
+  for (let i = 0; i < 5; i++) { const lx = x + (-70 + i * 35) * s + sway, ly = y - (30 + 30 * hash(i + x)) * s; paint(ellPts(lx, ly, 26 * s, 14 * s, 10, 1, -.6 + i * .3), { wash: mixCol(RUST.grass, '#2A3A50', night), washOp: 200, ink: null }); }
 }
 function grassTufts(x0, x1, y, t, n = 12, col = RUST.grassDk) {
   for (let i = 0; i < n; i++) {
@@ -155,15 +157,26 @@ function wallPanel(x, y, w, h, grade = 'wood', o = {}) {
   boilSeed('wall' + Math.round(x) + ',' + Math.round(y) + grade);
   if (grade === 'twig') {   // a see-through frame of sticks
     const sticks = [[[x0, y0], [x0, y]], [[x0 + w, y0], [x0 + w, y]], [[x0, y0], [x0 + w, y0]], [[x0, y], [x0 + w, y]], [[x0, y0], [x0 + w, y]], [[x0 + w, y0], [x0, y]], [[x0, y0 + h / 2], [x0 + w, y0 + h / 2]]];
-    for (const [a, b] of sticks) paint(ribbon([a, [lerp(a[0], b[0], .5) + jit(4), lerp(a[1], b[1], .5) + jit(4)], b], 9, 7), { wash: g.col, ink: PAL.ink, sw: .7 });
+    sticks.forEach(([a, b], i) => {
+      const m = [lerp(a[0], b[0], .5) + (hash(i + x) - .5) * 14, lerp(a[1], b[1], .5) + (hash(i + 3 + x) - .5) * 14];
+      const L = Math.hypot(b[0] - a[0], b[1] - a[1]), nx = -(b[1] - a[1]) / L, ny = (b[0] - a[0]) / L, bend = (hash(i * 5 + x) - .5) * .12 * L;
+      paint(ribbon([a, [lerp(a[0], b[0], .33) + nx * bend, lerp(a[1], b[1], .33) + ny * bend], [lerp(a[0], b[0], .66) + nx * bend * .6, lerp(a[1], b[1], .66) + ny * bend * .6], b], 11, 7), { wash: g.col, ink: PAL.ink, sw: .7 });
+      paint(ellPts(lerp(a[0], b[0], .3 + .4 * hash(i)), lerp(a[1], b[1], .3 + .4 * hash(i)), 7, 5, 8), { wash: g.dk, ink: PAL.ink, sw: .5 });   // a knot
+    });
+    for (const [cx, cy] of [[x0, y0], [x0 + w, y0], [x0, y], [x0 + w, y], [x0 + w / 2, y0 + h / 2]]) for (let k = 0; k < 3; k++) inkLine([[cx - 9, cy - 6 + k * 5], [cx + 9, cy - 2 + k * 5]], 1.1, '#D9C79A', 'ink', 0);   // rope lashing
     return;
   }
   paint(rectPts(x0, y0, w, h, 1.5), { wash: g.col, ink: PAL.ink, sw });
   if (grade === 'wood') for (let k = 1; k < 6; k++) inkLine([[x0 + w * k / 6, y0 + 4], [x0 + w * k / 6 + jit(2), y - 4]], .7, g.dk, 'inkfine', 0);
   if (grade === 'stone') for (let r = 0; r < 5; r++) { const yy = y0 + h * (r + 1) / 5; inkLine([[x0 + 4, yy], [x0 + w - 4, yy]], .6, g.dk, 'inkfine', 0); for (let c = 0; c < 3; c++) { const xx = x0 + w * (c + (r % 2 ? .5 : .25)) / 3; if (yy - h / 5 > y0) inkLine([[xx, yy - h / 5], [xx, yy]], .6, g.dk, 'inkfine', 0); } }
   if (grade === 'metal') { for (let k = 1; k < 9; k++) inkLine([[x0 + w * k / 9, y0 + 3], [x0 + w * k / 9, y - 3]], .6, g.dk, 'inkfine', 0); for (const yy of [y0 + 16, y - 16]) for (let k = 0; k < 6; k++) paint(ellPts(x0 + 14 + (w - 28) * k / 5, yy, 4, 4, 6), { wash: '#C9D0D6', ink: null }); paint(ellPts(x0 + w * .7, y0 + h * .35, 26, 14, 10, 2), { wash: '#B5653A', washOp: 140, ink: null }); }
-  if (grade === 'armor') { paint(rectPts(x0 + 14, y0 + 14, w - 28, h - 28), { wash: g.dk, washOp: 140, ink: PAL.ink, sw: .7 }); for (const [ax, ay] of [[x0 + 24, y0 + 24], [x0 + w - 24, y0 + 24], [x0 + 24, y - 24], [x0 + w - 24, y - 24]]) paint(ellPts(ax, ay, 7, 7, 8), { wash: '#A3ABB3', ink: PAL.ink, sw: .5 }); }
-  if (o.damage) for (let i = 0; i < 3 * o.damage; i++) { const cx = x0 + w * (.3 + .4 * hash(i + x)), cy = y0 + h * (.2 + .6 * hash(i + 3 + x)); inkLine([[cx, cy], [cx + 30, cy + 22], [cx + 12, cy + 50]], 1, PAL.ink, 'inkfine', 0); }
+  if (grade === 'armor') {
+    paint(rectPts(x0 + 14, y0 + 14, w - 28, h - 28), { wash: g.dk, washOp: 140, ink: PAL.ink, sw: .7 });
+    for (const yy of [y0 + h * .3, y0 + h * .7]) { paint(rectPts(x0 + 6, yy - 12, w - 12, 24), { wash: '#4A5058', ink: PAL.ink, sw: .7 }); for (let k = 0; k < 7; k++) paint(ellPts(x0 + 18 + (w - 36) * k / 6, yy, 4.5, 4.5, 8), { wash: '#A3ABB3', ink: null }); }
+    for (const [ax, ay] of [[x0 + 24, y0 + 24], [x0 + w - 24, y0 + 24], [x0 + 24, y - 24], [x0 + w - 24, y - 24]]) paint(ellPts(ax, ay, 7, 7, 8), { wash: '#A3ABB3', ink: PAL.ink, sw: .5 });
+    paint(ellPts(x0 + w * .3, y0 + h * .5, 22, 12, 10, 2), { wash: '#8E5A3A', washOp: 110, ink: null });   // a rust stain
+  }
+  if (o.damage) { const cx = x0 + w * .55, cy = y0 + h * .25, C = [[cx, cy], [cx - 18, cy + 34], [cx + 10, cy + 62], [cx - 14, cy + 104], [cx + 6, cy + 140]]; inkLine(C.slice(0, Math.max(2, Math.round(5 * o.damage))), 1.2, PAL.ink, 'inkfine', 0); inkLine([[cx + 10, cy + 62], [cx + 40, cy + 80]], .9, PAL.ink, 'inkfine', 0); }
 }
 // A door in a w × h doorway (reference: the in-game icons). kind: wood (pale planks, Z brace) | metal (sheet metal: a
 // scrap patchwork of rusty, painted sheets) | garage (corrugated roll-up) | armor (dark riveted steel with a vent slot).
@@ -220,13 +233,13 @@ function toolCupboard(x, y, s = 1) {
   pop();
 }
 // Sleeping bag (reference icon): a tan canvas roll-mat with patches.
-function sleepingBag(x, y, s = 1, col = '#B3A07C') {
+function sleepingBag(x, y, s = 1, col = '#B39A72') {
   boilSeed('bag' + Math.round(x));
   push(); translate(x, y); scale(s);
-  paint(rrPts(-130, -30, 260, 30, 14), { wash: col, ink: PAL.ink, sw: 1 });
-  paint(rrPts(-130, -38, 60, 38, 16), { wash: mixCol(col, '#FFFFFF', .2), ink: PAL.ink, sw: .8 });
-  paint(rectPts(10, -26, 50, 18), { wash: '#8E5A3A', washOp: 140, ink: null });
-  inkLine([[-60, -28], [120, -28]], .6, mixCol(col, PAL.ink, .4), 'inkfine', 0);
+  paint(rrPts(-140, -34, 280, 34, 15), { wash: col, ink: PAL.ink, sw: 1 });
+  paint(rrPts(-140, -44, 70, 44, 18), { wash: mixCol(col, '#E8E0C8', .35), ink: PAL.ink, sw: .8 });   // the pillow end
+  for (let k = 0; k < 5; k++) inkLine([[-50 + k * 38, -32], [-54 + k * 38, -3]], .6, mixCol(col, PAL.ink, .45), 'inkfine', 0);   // quilting
+  paint(rectPts(30, -28, 46, 16), { wash: '#6E5A3A', washOp: 150, ink: PAL.ink, sw: .5 });   // a patch
   pop();
 }
 // Furnace (reference: the devblog photo and icon): a bottle-shaped clay kiln on a ring of dark stones, glowing inside.
@@ -273,7 +286,8 @@ function beancan(x, y, s = 1, fuse = 1, lit = true) {
   push(); translate(x, y); scale(s);
   paint(rrPts(-26, -64, 52, 64, 6), { wash: '#7A4A34', ink: PAL.ink, sw: 1 });
   paint(ellPts(0, -64, 26, 7, 12), { wash: '#9A6A50', ink: PAL.ink, sw: .6 });
-  inkLine([[-16, -40], [-8, -28], [0, -42], [8, -27], [16, -40]], 1.6, '#F2EFE6', 'ink', .3);   // the white scrawl
+  paint(starPts(0, -34, 15, .5, 7, .3), { wash: '#E9E2D2', ink: null });   // the painted splat on the label
+  paint(ellPts(-3, -36, 6, 4, 8), { wash: '#7A4A34', ink: null });
   inkLine([[0, -66], [6, -66 - 30 * fuse], [-4, -72 - 34 * fuse]], 1.6, '#C9B48A', 'ink', .5);
   if (lit && fuse > 0) { const fx = -4, fy = -72 - 34 * fuse; glow(fx, fy, 30, '#FFC85A', .9); paint(starPts(fx, fy, 10 + 3 * Math.sin(T * 40), .4, 6, T * 20), { wash: '#FFE08A', ink: null }); }
   pop();
@@ -283,23 +297,30 @@ function beancan(x, y, s = 1, fuse = 1, lit = true) {
 function explosion(x, y, r, age, o = {}) {
   if (age < 0 || age > 1.8) return;
   boilSeed('boom' + Math.round(x));
-  if (age < .14) { glow(x, y, r * 3.2, '#FFF1C0', 1 - age / .14); paint(starPts(x, y, r * 1.5 * easeOut(age / .1), .45, 9, x), { wash: '#FFF3B8', ink: PAL.ink, sw: 1.2 }); }
+  if (age < .14) { glow(x, y, r * 3.2, '#FFF1C0', 1 - age / .14); paint(starPts(x, y, r * 1.5 * easeOut(age / .1), .45, 9, x), { wash: '#FFF6CC', ink: null }); }
   if (age < .3) inkLine(ellPts(x, y, r * (1 + 5 * age), r * (.7 + 3.5 * age), 28), 2.2 * (1 - age / .3), '#FFF3D0', 'ink', .4);   // shockwave
-  // fireball: overlapping puffs, yellow → orange, gone by .55 s
+  // Puffs are painted as one silhouette: every puff's dark rim first, then every fill on top, so only the outer edge
+  // keeps an outline (no see-through circles).
+  const blob = (P, col, op, rim) => { if (rim) for (const [px, py, pr] of P) paint(ellPts(px, py, pr + 2.6, pr * .88 + 2.6, 16), { wash: PAL.ink, washOp: op, ink: null }); for (const [px, py, pr] of P) paint(ellPts(px, py, pr, pr * .88, 16), { wash: col(px, py, pr), washOp: op, ink: null }); };
+  // fireball: yellow → orange → red, gone by .55 s, with a white-hot core
   const fk = clamp(age / .55), fire = 1 - fk;
   if (fire > 0) {
     glow(x, y, r * 2.2, '#FF9A3A', .9 * fire);
-    for (let i = 0; i < 7; i++) {
-      const a = i / 7 * TAU + x, d = r * .55 * easeOut(clamp(age / .25)), pr = r * (.55 + .2 * hash(i + 3)) * easeOut(clamp(age / .2)) * (1 - .3 * fk);
-      paint(ellPts(x + Math.cos(a) * d, y + Math.sin(a) * d * .8 - age * 80, pr, pr * .9, 16, 2), { wash: mixCol('#FFE48A', '#F27A2E', fk + .3 * hash(i)), washOp: 255 * clamp(fire * 1.6), ink: fk < .5 ? PAL.ink : null, sw: 1 });
-    }
+    const P = []; for (let i = 0; i < 7; i++) { const a = i / 7 * TAU + x, d = r * .55 * easeOut(clamp(age / .25)), pr = r * (.55 + .2 * hash(i + 3)) * easeOut(clamp(age / .2)) * (1 - .3 * fk); P.push([x + Math.cos(a) * d, y + Math.sin(a) * d * .8 - age * 80, pr]); }
+    blob(P, (px, py, pr) => mixCol('#FFC24A', '#D8452A', fk + .2 * hash(Math.round(px))), 255 * clamp(fire * 1.6), fk < .6);
+    if (age < .32) paint(ellPts(x, y - age * 80, r * .5 * (1 - age / .32), r * .42 * (1 - age / .32), 14), { wash: '#FFF6D8', ink: null });
   }
-  // smoke: puffs that take over from the fire, rise, swell and fade
+  // charcoal smoke: puffs that take over from the fire, rise, swell, lighten and fade
+  const S = [], ops = [];
   for (let i = 0; i < 6; i++) {
     const st = .18 + .04 * i, a2 = age - st; if (a2 < 0) continue;
     const k = clamp(a2 / 1.3), ang = -Math.PI / 2 + (hash(i + 11) - .5) * 2.2, d = r * (.4 + 1.1 * easeOut(k));
-    const px = x + Math.cos(ang) * d, py = y + Math.sin(ang) * d * .7 - a2 * 120, pr = r * (.45 + .5 * easeOut(k)) * (.8 + .4 * hash(i));
-    paint(ellPts(px, py, pr, pr * .85, 16, 2), { wash: mixCol('#8E8A90', '#C9C4C8', k), washOp: 230 * (1 - k * k) * clamp(a2 * 6), ink: k < .35 ? PAL.ink : null, sw: .8 });
+    S.push([x + Math.cos(ang) * d, y + Math.sin(ang) * d * .7 - a2 * 120, r * (.45 + .5 * easeOut(k)) * (.8 + .4 * hash(i))]); ops.push(k);
+  }
+  if (S.length) {   // two-tone smoke: a charcoal body with lighter tops, thinning as it rises
+    const k = ops.reduce((a, b) => a + b, 0) / ops.length, op = 225 * (1 - k * k) * (1 - .35 * k);
+    blob(S, () => mixCol('#4A4650', '#8E8A94', k), op, k < .45);
+    for (const [px, py, pr] of S) paint(ellPts(px - pr * .2, py - pr * .3, pr * .55, pr * .4, 12), { wash: mixCol('#8E8A94', '#C4C0C8', k), washOp: op * .8, ink: null });
   }
   for (let i = 0; i < (o.debris ?? 8); i++) {   // chunks flying out on arcs
     const a = -Math.PI / 2 + (hash(i + x) - .5) * 2.6, sp = r * (2.2 + 2 * hash(i + 7)), dx = Math.cos(a) * sp * age, dy = Math.sin(a) * sp * age + 900 * age * age;
