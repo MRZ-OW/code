@@ -9,7 +9,8 @@
 //   dur    length in s, clamped to 0.4..0.9 (each has its own default, below; the busy ones read best at their default)
 //   flip   true mirrors it left ↔ right (the rock comes from the lower right, the door hinges on the right, ...)
 //   shake  scales the screen shake (0 = none)
-//   in     the share of dur before the cut (default .5; e.g. .3 covers fast so the beat just before the cut stays visible)
+//   in     the share of dur before the cut (default .5, or the transition's own: sleepingBag .6, wallUpgrade .7; e.g. .3
+//          covers fast so the beat just before the cut stays visible). Every combination covers the cut ±1 frame.
 //
 //   rockSpin    .7  the hero's cream rock with its red smear tumbles at the lens from the lower left, fills the frame (THOCK),
 //                   and tumbles away to the upper right
@@ -19,15 +20,16 @@
 //   c4Blast     .9  a C4 brick slaps onto the lens, blinks twice, BOOM: one flash, a fireball fills the frame, the smoke
 //                   clears from the middle out
 //   supplySmoke .9  a supply signal tumbles in and billows violet smoke that fills the frame, then drifts off to the left
-//   sleepingBag .8  a burlap sleeping bag unrolls down like a blind, zips down and back up, and rolls back up
-//   heliFlyover .7  the patrol heli comes in low with its searchlight sweeping, its belly fills the frame, its tail and
-//                   rotor blur whip off the top
-//   wallUpgrade .9  a twig wall rises, the hammer bonks it up twig → wood → stone → sheet metal → armoured, then it is
-//                   raided apart and the chunks crumble away
+//   sleepingBag .8  a quilted burlap sleeping bag unrolls down like a blind, zips down and back up, and rolls back up (in .6)
+//   heliFlyover .7  the patrol heli comes in low with its searchlight sweeping; for the cut we're under it (dark belly,
+//                   skids, rocket pods, the rotor blur blotting out the sky), then it climbs away off the top
+//   wallUpgrade .9  a twig wall rises, the hammer bonks it up twig → wood → stone → sheet metal → armoured (3 frames
+//                   each), then it is raided apart and the chunks crumble away (in .7)
 //
 // Pure functions of time. The demo loop plays all eight over two alternating backgrounds:
 //   node render.mjs --ep=0 --loop=transitions --strip=0:12 ...     (cuts at 0.75 + 1.5 i s)
-// and --loop=transitionsKey swaps the backgrounds for flat magenta / green, to check coverage pixel by pixel.
+// --loop=transitionsEp plays the option combinations the episodes use, and the ...Key twins swap the backgrounds for
+// flat magenta / green, to check coverage pixel by pixel.
 
 const TRANS = [], TRANS_FX = {};
 function transitions(list) {
