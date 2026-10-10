@@ -42,7 +42,7 @@
     const No = { ...N, boilKey: NK, seed: 1, view, rawArms: true, prop: 'none', walk: t < .8 ? .12 * (1 - seg(t, .4, .8)) : t >= 5.0 ? walkK * 3 : undefined, dy: (N.dy || 0) + hop, heelL: liftL, emoteDx: .9, emoteDy: 2.6,
       aL: L.a + tremble, bendL: L.b, aR: R.a - tremble, bendR: R.b, openL: upL > .6 && downL < .6, openR: upR > .6 && downR < .6,
       lookX: t > 2.6 && t < 4.4 ? (Math.floor(t * 1.6) % 2 ? .9 : .35) : N.lookX, lookY: t > 2.6 && t < 4.4 ? (Math.floor(t * 1.6) % 2 ? .5 : 0) : N.lookY };
-    if (t < 1.22) { No.aL = lerp(-1.2, -1.32, ease(seg(t, .5, 1.15))); No.bendL = .25; No.hold = { L: 'rock' }; }   // (the rock by his thigh, not held over his briefs)
+    if (t < 1.22) { No.aL = -1.32; No.bendL = .25; No.hold = { L: 'rock' }; }   // (the rock by his thigh, not held over his briefs)
     if (liftL > 0) {   // the hurt foot bent up behind him, held in his near hand; the far arm flails for balance
       const [ax, ay] = footLocal(U, No, 0), gl = reachArm(U, No, 'L', ax + .1 * U, ay - .1 * U);
       Object.assign(No, { aL: lerp(No.aL, gl.aL, liftL), bendL: lerp(No.bendL, gl.bendL, liftL), armKL: lerp(1, gl.armKL, liftL), aR: lerp(No.aR, .95 + .25 * Math.sin(t * 22), liftL), bendR: lerp(No.bendR, .35, liftL) });
@@ -449,7 +449,7 @@
       spawnling(NX, G, U, Ns);
     } else {
       const N = emotions(t, [[26.35, 'neutral'], [27.2, 'surprised', { emote: '!' }]], { take: .45 });
-      spawnling(NX, G, U, { ...N, boilKey: NK, seed: 1, view: 'q', walk: t < 26.5 ? undefined : .12 * seg(t, 26.5, 26.85), emoteDx: .9, emoteDy: 2.6, rawArms: true, aL: lerp(-1.32, -1.2, seg(t, 26.9, 27.2)), bendL: .25, aR: -1.32, bendR: .22, prop: 'none', hold: { L: 'rock' } });
+      spawnling(NX, G, U, { ...N, boilKey: NK, seed: 1, view: 'q', walk: t < 26.5 ? undefined : .12 * seg(t, 26.5, 26.85), emoteDx: .9, emoteDy: 2.6, rawArms: true, aL: -1.32, bendL: .25, aR: -1.32, bendR: .22, prop: 'none', hold: { L: 'rock' } });
     }
     if (t < 26.1) { boilSeed('respawnrock'); push(); translate(rockAt[0], rockAt[1]); rotate(3.5); rockProp(U, 2.2); pop(); }
     if (t >= 25.3 && t < 25.7) respawn(NX + .3 * U, G - 4.6 * U, 1.2, (t - 25.3) * 3);   // on his chest as the sleeping bag lifts, gone by 25.7
