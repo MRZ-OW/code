@@ -307,7 +307,7 @@
   function s3a(t, lt) {
     camBegin(520, 1170, 1.3);
     nightCamp(t);
-    const k = ease(seg(t, 14, 15.1)), nx = lerp(770, 640, k);
+    const k = ease(seg(t, 14, 15.1)), nx = lerp(780, 700, k);
     const N = { ...feel('nervous', t, { emote: null }), eyes: 'look', lookX: .7, lookY: .8, boilKey: NK, seed: 1, view: 'q', flip: true, crouch: .35, walk: k < 1 ? (t - 14) * 1.4 : undefined, rot: -.12 * k, prop: 'none', rawArms: true, aL: -1.2, bendL: .4, farFront: true, openR: true };
     const hover = 128 - 18 * ease(seg(t, 15.1, 15.6)), tremble = t > 15.1 ? 5 * Math.sin(t * 40) : 0;   // fingertips stay ~40 px above the receiver
     // the hand comes out toward the grip as he arrives (reaching for it the whole walk, the arm stretched into a long tube)
@@ -350,7 +350,7 @@
     const fl = [442, 1462], bloomY = fl[1] - 48 * .7 * 1.4;   // the flower growing in the sand in front of his knees
     const N = emotions(t, [[17, 'nervous', { emote: null }], [17.3, 'hopeful', { emote: 'hearts' }]], { take: 0 });
     const rise = ease(seg(t, 17.65, 17.9)), bow = ease(seg(t, 17.05, 17.3)) * (1 - ease(seg(t, 17.5, 17.65)));
-    const No = { ...N, boilKey: NK, seed: 1, view: 'q', flip: true, sit: .8 * (1 - rise), crouch: .2 * (1 - rise), rot: -.07 * bow, prop: 'none', rawArms: true, aL: -1.25, bendL: .3, farFront: true, openR: t >= 18.1 && t < 18.75,
+    const No = { ...N, boilKey: NK, seed: 1, view: 'q', flip: true, sit: .8 * (1 - rise), crouch: .2 * (1 - rise), rot: -.07 * bow, prop: 'none', rawArms: true, aL: -1.25, bendL: .3, farFront: true, openR: t >= 18.1 && t < 18.75, palmR: 'down',
       lookX: t < 17.6 ? .6 : .9, lookY: t < 17.6 ? .9 : .1 };
     const pats = t > 18.15 && t < 18.65 ? Math.abs(Math.sin((t - 18.15) * TAU * 2)) : 0;
     const path = [[17.0, [NXc - 60, 1330]], [17.3, [fl[0] + 8, bloomY + 4]], [17.5, [fl[0] + 8, bloomY + 4]], [17.68, [NXc - 90, 1235]], [17.95, [ear[0] + 26, ear[1] + 6]], [18.05, [ear[0] + 16, ear[1] + 4]], [18.15, [shoulder[0] + 6, shoulder[1] + 16]], [18.65, [shoulder[0] + 6, shoulder[1] + 16]], [18.9, [NXc - 60, 1250]]];

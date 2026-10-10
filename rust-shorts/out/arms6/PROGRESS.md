@@ -22,3 +22,10 @@ a6/base): before_epN.txt.
 - Thumbs: armGeom returns G.thumb (signed side + size) from the 3D palm normal and which hand it is; open palms use it.
   Default palm: forward (raised/waving/pushing), turning down below the chest, a little inward. o.palmL/o.palmR override
   ('fwd','back','up','down','in','out', or [X,y,Z]). Torture pages 12-15 (thumbs) in src/armsheet.js.
+- Thumbs: hands laid on his front (pats, hand on heart) turn the palm to the body (back of the hand to us); seated
+  hands on the lap/knees stay palm down. EP1 18.1-18.75 shoulder pat: palmR 'down'. EP3 6.5-8 prayer: palmL/R 'in'.
+- EP1 s3a (14-16) restaged: creep ends at nx 700 (was 640), so the gun's grip is ahead of him and the far arm reaches
+  forward-down over it, open hand clear of his body (it used to sit on his belly/waistband). Times unchanged.
+- Scans (a6/before_epN.txt vs after_epN.txt): see table below. Old a5 scan.js: FACE/BEARD frames identical, no
+  CROT/SHRK, POPs 22 -> 1 (EP4 0.5 strike, asked hand moves 4.1u in that frame: deliberate smear).
+- Open-hand moments listed by a6/open.js; before/after crops out/arms6/palms_*.jpg (top row before, bottom after).

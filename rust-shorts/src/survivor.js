@@ -774,7 +774,7 @@ function armGeom(u, o, which) {
   // 6. which side of an open hand its thumb is on (signed: + = the hand's local +x, see survivor()'s open palm; its size
   // is how square-on the thumb is to us, so it shrinks to nothing and grows back on the other side, never jumps). The palm
   // faces forward (raised, waving, pushing out: hands up, palms to us), turning down as the hand goes below the chest (on
-  // a knee, over a grip), a little toward the body's middle; o.palmL / o.palmR set it: 'fwd', 'back', 'up', 'down', 'in'
+  // a knee, over a grip), a little toward the body's middle, and toward his body when the hand lies on his front; o.palmL / o.palmR set it: 'fwd', 'back', 'up', 'down', 'in'
   // (toward his middle), 'out', or a body-frame [X, y, Z]. The thumb is on the palm's side given by which hand it is: his
   // right hand (the 'L' arm; seen from behind, the 'R' arm, as the back view is drawn mirrored) has it at palm x fingers.
   // So palms to us with the hands up, both thumbs point in, toward his head; backs of the hands to us, out.
@@ -782,7 +782,10 @@ function armGeom(u, o, which) {
   {
     const PALM = { fwd: [0, 0, 1], out: [s, 0, 0], back: [0, 0, -1], up: [0, -1, 0], down: [0, 1, 0], in: [-s, 0, 0] };
     const pw = which === 'L' ? o.palmL : o.palmR, dn = ease(clamp((H[1] - ys - .3) / 1.8));
-    let n0 = Array.isArray(pw) ? pw : PALM[pw] || [-s * .35, 1.6 * dn, 1];
+    // (a hand laid on the front of his chest or belly, a pat or a hand on the heart, faces his body: eased by how far
+    // inside the torso's outline it is and how close to its front)
+    const [Ab, Cb] = svBodyAx(H[1], dr, seat), onB = Ab > 1e-4 ? clamp((Ab - Math.abs(H[0])) / .6) * (1 - clamp((H[2] - Cb - .5) / 1.0)) * clamp(H[2] / .5) * (1 - sitK * clamp((H[1] - ys - 1.2) / .8)) : 0;   // (seated, a hand on the lap or a knee: palm down)
+    let n0 = Array.isArray(pw) ? pw : PALM[pw] || [-s * .35, 1.6 * dn, 1 - 2.5 * onB];
     const f = nz(sub(H, E)), nl = Math.hypot(n0[0], n0[1], n0[2]) || 1; n0 = n0.map(v => v / nl);
     const k = dot(n0, f), nP = [n0[0] - k * f[0], n0[1] - k * f[1], n0[2] - k * f[2]];
     const vw = p => { const [px, pw2] = toV(p[0], p[2]); return [px, p[1], pw2]; }, a3 = vw(nP), b3 = vw(f);

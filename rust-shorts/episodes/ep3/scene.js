@@ -526,7 +526,7 @@
     const pray = ease(seg(t, 6.42, 6.62)), drop = t >= 6.42;
     const e = t < 6.42 ? eBlend(REST, KISS, ease(seg(t, 6.0, 6.17))) : eBlend(KISS, PRAY, pray);
     const N = emotions(t, [[5.74, 'determined', { emote: null }], [6.08, 'love', { eyes: 'closed', mouth: 'pout', emote: null }], [6.45, 'proud', { eyes: 'closed', mouth: 'smile', emote: null }]], { take: .25 });
-    const No = nakedPose(U, { ...N, view: 'side', farFront: true, rot: .07 * pray, lookX: N.lookX, lookY: pray > .5 ? .9 : N.lookY, openL: pray > .5, openR: pray > .5 }, e,
+    const No = nakedPose(U, { ...N, view: 'side', farFront: true, rot: .07 * pray, lookX: N.lookX, lookY: pray > .5 ? .9 : N.lookY, openL: pray > .5, openR: pray > .5, palmL: 'in', palmR: 'in' }, e,
       { at: drop ? [lerp(ROCK_DOWN[0], PALM[0] + .12, pray), lerp(ROCK_DOWN[1], PALM[1] + .04, pray)] : ROCK_DOWN, rock: !drop, rot: -1.2 * pray });
     if (drop) {   // the eoka hand slides from the grip to the palm position; the eoka stays where e puts it
       const hR = [lerp(e.g[0], PALM[0], pray), lerp(e.g[1], PALM[1], pray)];
