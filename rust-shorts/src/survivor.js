@@ -631,11 +631,11 @@ function armGeom(u, o, which) {
     if (!far || back) return [px, py];
     const R = HEAD_R + .55, dy = py - hy, kh = raisedK(py);
     if (Math.abs(dy) >= R || kh <= 0) return [px, py];
-    const hw = Math.sqrt(R * R - dy * dy), cM = V === SV.side ? .6 : -1.0, sd = uRef >= cM ? 1 : -1, xb = sd * hw;
+    const hw = Math.sqrt(R * R - dy * dy), cM = V === SV.side ? 1.0 : -1.0, sd = uRef >= cM ? 1 : -1, xb = sd * hw;
     if ((px - xb) * sd >= 0) return [px, py];
     // (a projection, not a step: pushed to the point k of the way from the asked x to the outline, never further, so
     // applying it again, as the loop below does after each reach clamp, doesn't add up into a snap)
-    const k = kh * ease(clamp(Math.abs(uRef - cM) / 1.0)), tx = lerp(uRef, xb, k);
+    const k = kh * ease(clamp(Math.abs(uRef - cM) / .5)), tx = lerp(uRef, xb, k);
     return [(px - tx) * sd >= 0 ? px : tx, py];
   };
   // the hand's depth
@@ -712,10 +712,13 @@ function armGeom(u, o, which) {
   const x0 = x;
   for (let i = 0; i < 10; i++) {
     [x, y] = unface(x, y, FACE, HAND_HW, x0);
-    [x, y] = unhead(x, y, x0);
+    const xh = x; [x, y] = unhead(x, y, x0);
     const mx = 0;
     const d2 = Math.hypot(x - xs, y - ys), rm = reach(ak) * .97;
-    if (d2 > rm) { x = xs + (x - xs) * rm / d2; y = ys + (y - ys) * rm / d2; } else if (Math.abs(mx) < .01) break;
+    // (a hand slid out past the head keeps that x and comes down the reach circle; pulled straight in toward the
+    // shoulder it would slip back behind the head)
+    if (d2 > rm && x !== xh && Math.abs(x - xs) < rm && y < ys) y = ys - Math.sqrt(rm * rm - (x - xs) * (x - xs));
+    else if (d2 > rm) { x = xs + (x - xs) * rm / d2; y = ys + (y - ys) * rm / d2; } else if (Math.abs(mx) < .01) break;
   }
   w = pullIn();
   [X, Z] = toB(x, w);
