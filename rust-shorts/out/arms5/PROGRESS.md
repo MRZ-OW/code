@@ -35,8 +35,9 @@ more than the asked hand, CROT = front hand over the briefs). Output scratchpad 
 
 - EP4 12.0 CLANG restaged the same way (target level with his face): a hop (jump 11.78-12.3, apex 12.04), rock swung
   down behind him (11.78), then straight across his chest onto the mask X from the side. CLANG time unchanged.
-- EP1 0-1.2 and 26.9-27.2 (loop match): rock arm aL -.95 -> -1.2 so the rock hangs by his thigh, not over his briefs.
-- Sweeps reviewed: ep3 a/b, ep4 a/b, ep5 a/b, ep1 a (before the rock fix).
+- EP1 0-1.2 and 26.9-27.2 (loop match): rock arm aL -.95 -> -1.32 (hanging) so the rock is by his hip, not over his
+  briefs (check sheet fix_ep1_rock.jpg; sweep_ep1_a's 0.0-1.0 frames were rendered with an intermediate -1.2).
+- Sweeps reviewed: ep2 a/b, ep3 a/b, ep4 a/b, ep5 a/b, ep1 a (before the rock fix). Regression reg_ep1..5.jpg done.
 
 ## Left
 - full torture sheet (8 pages) -> final_p0..7.jpg; regression reg_ep*.jpg (times in scratchpad/times.txt + fixed shots);
