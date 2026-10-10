@@ -24,7 +24,16 @@ more than the asked hand, CROT = front hand over the briefs). Output scratchpad 
   far arm now shows behind the head holding the eoka (unhead). Toss time unchanged.
 - EP3 22.4: LOOKAT (s4a and s4b) moved forward to [3.2, -5.6]: the far arm holds the eoka out in front, whole arm shows.
 
+- Rig: `onFace: 'L'|'R'|true` option: that hand goes ON the face on purpose (no face push / guard). Used by EP1 eye rub
+  (25.45-25.95), which the push had moved to the ear.
+- EP4 3.3 bark chop restaged like 1.6: rock swung down behind him (3.15), then straight across his belly into the bark at
+  chest height (HITB y 1010 -> 1085), in hand space (angle tween dipped through the crotch). Time unchanged.
+- EP5 12.95-13.08 flop: near arm flung up-back (aL 2.45) instead of up-forward across his face.
+- scan.js over all eps: remaining flags reviewed: EP2 3.0-3.6 hand on chin (deliberate), EP1 6.7 Chad drinking (mouth),
+  EP5 17.3 drool wipe (deliberate), far-arm POPs in fast swings/runs (hidden arms).
+- final torture pages out/arms5/final_p0..7.jpg + final_thumbs.jpg.
+
 ## Left
-- item 5 (raise tweens across face, all eps): scan.js running -> fix each flagged span, verify with --strip.
 - full torture sheet (8 pages) -> final_p0..7.jpg; regression reg_ep*.jpg (times in scratchpad/times.txt + fixed shots);
   0.5 s sweeps per episode (sweep_epN_*.jpg).
+- final.sh (scratchpad a5) renders reg_ep*.jpg and sweep_epN_{a,b}.jpg; then review sweeps, fix, re-render touched.
