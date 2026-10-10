@@ -712,6 +712,9 @@ function armGeom(u, o, which) {
   // once the bone would go into the body
   const pen = (p, m) => { const d = gap(p); return 2 * Math.max(0, m - d) ** 2 + 40 * Math.max(0, .12 - d); };
   const rbH = rayBody(x, y, 0), wrapF = far && wantFront && rbH && rbH[2] ? clamp((w - rbH[1] + .1) / .3) * clamp((rbH[4] - Math.abs(x)) / .4) : 0;
+  // (a near hand behind the back: its elbow stands out well past the body's edge, so a good length of forearm shows going
+  // behind it, not just a round elbow)
+  const wrapB = !far && back && rbH && rbH[2] ? clamp((rbH[0] + .1 - w) / .3) : 0;
   const cost = f => {
     const E = elbowAt(f), rad = [(E[0] - C0[0]) / (r || 1), (E[1] - C0[1]) / (r || 1), (E[2] - C0[2]) / (r || 1)];
     let p = 0;
@@ -721,7 +724,7 @@ function armGeom(u, o, which) {
     // the point of the elbow: never well forward or turned in across the body
     const fw = Math.max(0, rad[2] - .35), inw = Math.max(0, -s * rad[0] - .25);
     // a far hand laid on the front of the body: the elbow stands out past the body's edge, so the arm reads whole
-    let wr = 0; if (wrapF > 0) { const [ex] = toV(E[0], E[2]); wr = wrapF * Math.max(0, .55 - svOcc(V, ex, E[1], dr, hy)) ** 2; }
+    let wr = 0; if (wrapF > 0 || wrapB > 0) { const [ex] = toV(E[0], E[2]), oc = svOcc(V, ex, E[1], dr, hy); wr = wrapF * Math.max(0, .55 - oc) ** 2 + wrapB * Math.max(0, .9 - oc) ** 2; }
     // and no bone in front of the face (above the mouth)
     let fc = 0;
     if (GUARD) for (const q of [at(S, E, .6), at(S, E, .85), E, at(E, H, .25), at(E, H, .5)]) {
@@ -777,7 +780,8 @@ function armGeom(u, o, which) {
   // (eased by how much of it would show, so it slides, never pops). It shows when a good length of it (a forearm) clears
   // the silhouettes.
   let tuck = [0, 0], tuckE = [0, 0];
-  if (far && !wrapped) {
+  // (never a hand holding something: the prop must stay where the scene put it)
+  if (far && !wrapped && !(which === 'L' ? (o.handL || o.armL) : (o.handR || o.armR))) {
     const hwA = (o.gear && (o.gear.hoodie || o.gear.hazmat || o.gear.scientist) ? .55 : .45);
     const occ = (px, py) => svOcc(V, px, py, dr, hy), l2 = Math.hypot(Hx - Ex, y - E[1]) || 1;
     const P = [];
