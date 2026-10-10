@@ -546,6 +546,19 @@ function svRayEll(x, A, C, m, c, sn) {
   if (Math.abs(x) < hw && disc > 0) { const r = Math.sqrt(disc) / (2 * qa); return [wt - r, wt + r, true, 0, hw]; }
   const out = 2.5 * (Math.abs(x) - hw); return [wt + out, wt - out, false, 0, hw];
 }
+// Signed distance (u, on screen) outside the torso, the briefs and the head as drawn in view V (negative inside): what a
+// far arm hides behind.
+const SV_OCC = [[-8.6, 0], [-8.13, .95], [-7.73, 1], [-6.55, .98], [-5.05, .89], [-4.28, .95], [-4.04, .9], [-3.9, 0]];
+function svOcc(V, px, py, dr, hy) {
+  const yy = py - dr, tw = 2.1 * V.torsoW;
+  let dT = Infinity;
+  if (yy > SV_OCC[0][0] && yy < SV_OCC[SV_OCC.length - 1][0]) {
+    let i = 1; while (SV_OCC[i][0] < yy) i++;
+    const [y0, k0] = SV_OCC[i - 1], [y1, k1] = SV_OCC[i], hw = tw * lerp(k0, k1, (yy - y0) / (y1 - y0));
+    dT = Math.abs(px) - hw;
+  }
+  return Math.min(dT, Math.hypot(px, py - hy) - HEAD_R);
+}
 function armGeom(u, o, which) {
   const V = SV[o.view] || SV.front, far = V.far.includes(which), sideSign = V.side ? 1 : (which === 'R' ? 1 : -1), s = which === 'R' ? 1 : -1;
   const dr = clamp(o.crouch || 0) * 1.2 + clamp(o.sit || 0) * 2.05, ys = -7.75 + dr, hy = HEAD_Y + dr;
@@ -568,8 +581,9 @@ function armGeom(u, o, which) {
   if (!far) {
     const R = HEAD_R + .55, dy = y - hy;
     if (dy > -R && dy < R) {
-      const rr = Math.sqrt(R * R - dy * dy), sd = V.side ? -1 : xs < 0 ? -1 : 1, k = 1 - ease(clamp((dy / HEAD_R - .25) / .3));
-      if (k > 0 && x * sd < rr) x = lerp(x, sd * rr, k);
+      // (in profile the face is the head's front half: a hand above the back half stays there, over the hair and ear)
+      const rd = Math.sqrt(R * R - dy * dy), rr = V === SV.side ? .2 : rd, sd = V.side ? -1 : xs < 0 ? -1 : 1, k = 1 - ease(clamp((dy / HEAD_R - .25) / .3));
+      if (k > 0 && Math.abs(x) < rd && x * sd < rr) x = lerp(x, sd * rr, k);
     }
   }
   // the hand's depth
@@ -581,7 +595,8 @@ function armGeom(u, o, which) {
     // the body: a near hand in front of it, a far one behind it (with farFront: in front where it's well inside the
     // body's outline, a hand on the chest or belly; round its edge it stays behind)
     if (rb) { const rt = rayBody(px, py, 0), deep = rt && rt[2] && Math.abs(px - (rt[3] || 0)) < .78 * rt[4];
-      ww = wantFront && (!far || deep) ? Math.max(ww, rb[1]) : Math.min(ww, rb[0]); }
+      if (back && rb[2]) { const zOf = q => { const [Xq, Zq] = toB(px, q); return Zq - .3 * s * Xq; }; ww = zOf(rb[0]) < zOf(rb[1]) ? rb[0] : rb[1]; }   // behind his back (in profile: on his own side)
+      else ww = wantFront && (!far || deep) ? Math.max(ww, rb[1]) : Math.min(ww, rb[0]); }
     // the head: a near hand in front of it (only ever at the chin or mouth, see above); a far one behind it unless it
     // reaches across (farFront) to the mouth
     if (rh) ww = (!back && (!far || (o.farFront && py - hy > .3 * HEAD_R))) ? Math.max(ww, rh[1]) : Math.min(ww, rh[0]);
@@ -611,10 +626,15 @@ function armGeom(u, o, which) {
   for (let i = 0; i < 16; i++) {
     const L = lim(x, w); if (Math.hypot(x - xs, y - ys, w - ws) <= L) break;
     const d2 = Math.hypot(x - xs, y - ys);
-    if (i === 0 && d2 >= reach(ak)) {
-      w = ws; ak = Math.min(ak * 1.1, d2 / reach(1));
+    if (i === 0 && d2 >= reach(ak)) {   // out of reach on screen: stretch, pull in, then fit its depth as below
+      ak = Math.min(ak * 1.1, d2 / reach(1));
       if (d2 > reach(ak)) { x = xs + (x - xs) * reach(ak) / d2; y = ys + (y - ys) * reach(ak) / d2; }
-      break;
+      w = place(x, y);
+      if (Math.hypot(x - xs, y - ys, w - ws) <= lim(x, w)) break;
+      const wr = ws + Math.sign(w - ws) * Math.sqrt(Math.max(0, lim(x, w) ** 2 - Math.hypot(x - xs, y - ys) ** 2));
+      if (Math.abs(wr - w) < .25) { w = wr; break; }
+      x = xs + (x - xs) * .94; y = ys + (y - ys) * .94; w = place(x, y);
+      continue;
     }
     if (d2 < L) {
       const wr = ws + Math.sign(w - ws) * Math.sqrt(L * L - d2 * d2), [X2, Z2] = toB(x, wr), [A, C] = svBodyAx(y, dr, seat);
@@ -649,6 +669,7 @@ function armGeom(u, o, which) {
   // the cost of a clearance: soft inside the arm's own half width (m: an arm laid on the body only just touches it), steep
   // once the bone would go into the body
   const pen = (p, m) => { const d = gap(p); return 2 * Math.max(0, m - d) ** 2 + 40 * Math.max(0, .12 - d); };
+  const rbH = rayBody(x, y, 0), wrapF = far && wantFront && rbH && rbH[2] && w > rbH[1] - .1;
   const cost = f => {
     const E = elbowAt(f), rad = [(E[0] - C0[0]) / (r || 1), (E[1] - C0[1]) / (r || 1), (E[2] - C0[2]) / (r || 1)];
     let p = 0;
@@ -657,7 +678,9 @@ function armGeom(u, o, which) {
     for (const t of [.15, .3, .45, .6, .75]) p += pen(at(E, H, t), ARM_HW * (1 - .8 * t));
     // the point of the elbow: never well forward or turned in across the body
     const fw = Math.max(0, rad[2] - .35), inw = Math.max(0, -s * rad[0] - .25);
-    return .5 * f * f + 10 * p + 6 * (fw * fw + inw * inw);
+    // a far hand laid on the front of the body: the elbow stands out past the body's edge, so the arm reads whole
+    let wr = 0; if (wrapF) { const [ex] = toV(E[0], E[2]); wr = Math.max(0, .55 - svOcc(V, ex, E[1], dr, hy)) ** 2; }
+    return .5 * f * f + 10 * p + 6 * (fw * fw + inw * inw) + 8 * wr;
   };
   let bf = 0, bc = cost(0);
   if (r > 1e-4) {
@@ -700,30 +723,31 @@ function armGeom(u, o, which) {
       if (far && split <= .3) { split = null; up = fo = 'F'; }   // in front from the shoulder on (it came forward): drawn whole, in front
     }
   }
-  // a far arm that would only peek out past the body or head as a sliver is tucked fully behind it (eased: a quick slide,
-  // never a pop). Its outer edge's reach past the silhouettes, in u:
-  let tuck = [0, 0];
+  // A far arm that would only peek out past the body or head as a sliver, a stub or a lone fist is tucked fully behind it
+  // (eased by how much of it would show, so it slides, never pops). It shows when a good length of it (a forearm) clears
+  // the silhouettes.
+  let tuck = [0, 0], tuckE = [0, 0];
   if (far && split == null) {
     const hwA = (o.gear && (o.gear.hoodie || o.gear.hazmat || o.gear.scientist) ? .55 : .45);
-    const occ = (px, py) => {   // signed distance outside the torso (to the bottom of the briefs) and the head, on screen
-      const hw = 2.1 * V.torsoW, y0 = -8.35 + dr, y1 = -3.7 + dr, dx = Math.abs(px) - hw, dy = Math.max(y0 - py, py - y1);
-      const dT = Math.hypot(Math.max(dx, 0), Math.max(dy, 0)) + Math.min(Math.max(dx, dy), 0);
-      return Math.min(dT, Math.hypot(px, py - hy) - HEAD_R);
+    const occ = (px, py) => svOcc(V, px, py, dr, hy), l2 = Math.hypot(Hx - Ex, y - E[1]) || 1;
+    const P = [];
+    for (let i = 3; i <= 8; i++) P.push([lerp(Sx, Ex, i / 8), lerp(ys, E[1], i / 8)]);
+    for (let i = 1; i <= 8; i++) P.push([lerp(Ex, Hx, i / 8), lerp(E[1], y, i / 8)]);
+    for (const k of [.25, .5]) P.push([Hx + (Hx - Ex) / l2 * k, y + (y - E[1]) / l2 * k]);   // the fist
+    let vis = 0;
+    P.forEach((q, i) => { if (i && occ(q[0], q[1]) > -.1) vis += Math.hypot(q[0] - P[i - 1][0], q[1] - P[i - 1][1]); });
+    const k = 1 - ease((vis - 1.2) / 1.4);
+    // each joint (and the fist, for the hand) is drawn in just behind the silhouette's edge, by its own amount
+    const pull = (px, py, ext) => {
+      const d = occ(px, py) + ext + .2; if (d <= 0 || k <= 0) return [0, 0];
+      const g = .02, gx = (occ(px + g, py) - occ(px - g, py)) / (2 * g), gy = (occ(px, py + g) - occ(px, py - g)) / (2 * g), gl = Math.hypot(gx, gy) || 1;
+      return [-gx / gl * d * k, -gy / gl * d * k];
     };
-    let pm = -Infinity, pp = null;
-    const samp = (px, py) => { const v = occ(px, py) + hwA; if (v > pm) { pm = v; pp = [px, py]; } };
-    for (const t of [.4, .6, .8, 1]) samp(lerp(Sx, Ex, t), lerp(ys, E[1], t));
-    for (const t of [.25, .5, .75, 1]) samp(lerp(Ex, Hx, t), lerp(E[1], y, t));
-    { const l = Math.hypot(Hx - Ex, y - E[1]) || 1; samp(Hx + (Hx - Ex) / l * .45, y + (y - E[1]) / l * .45); }   // the fist
-    const full = 2 * hwA, p0 = .3 * full;
-    if (pm > 0 && pm < full) {
-      const shown = pm * ease((pm - p0) / (full - p0)), amt = pm - shown, g = .02;
-      const gx = (occ(pp[0] + g, pp[1]) - occ(pp[0] - g, pp[1])) / (2 * g), gy = (occ(pp[0], pp[1] + g) - occ(pp[0], pp[1] - g)) / (2 * g), gl = Math.hypot(gx, gy) || 1;
-      tuck = [-gx / gl * amt, -gy / gl * amt];
-    }
+    const fx = Hx + (Hx - Ex) / l2 * .45, fy = y + (y - E[1]) / l2 * .45, pH = pull(fx, fy, .5), pH2 = pull(Hx, y, hwA), pE = pull(Ex, E[1], hwA);
+    tuck = Math.hypot(...pH) > Math.hypot(...pH2) ? pH : pH2; tuckE = pE;
   }
-  Hx += tuck[0]; Ex += tuck[0];
-  const Hy = y + tuck[1], Ey = E[1] + tuck[1];
+  Hx += tuck[0]; Ex += tuckE[0];
+  const Hy = y + tuck[1], Ey = E[1] + tuckE[1];
   const fl = Math.hypot(Hx - Ex, Hy - Ey) || 1;
   return { S: [Sx * u, ys * u], E: [Ex * u, Ey * u], H: [Hx * u, Hy * u], d2: [(Hx - Ex) / fl, (Hy - Ey) / fl], wS: Sw, wE: Ew, wH: w, ak, far, up, fo, split,
     front: split != null || (far && fo === 'F'), back: fo === 'B' && !far, sideSign };
