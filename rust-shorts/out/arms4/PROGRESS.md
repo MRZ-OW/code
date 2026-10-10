@@ -27,6 +27,12 @@ in a node vm and print armGeom for armsheet poses, and scan the motion sequences
 - Final torture pages: out/arms4/final_p0..7.jpg, thumbs out/arms4/final_thumbs.jpg.
 - Motion strips queued (scratchpad/strips.sh) -> out/arms4/motion_*.jpg; regression after2 (scratchpad/reg2.sh).
 
-## Left
-- regression review, side-by-side sheets out/arms4/reg_epN.jpg, list of scene shots needing pose changes
-- final torture pages, motion strips, EP1 14.9 before/after
+- DONE: final pages final_p0..7.jpg + final_thumbs.jpg; motion strips motion_{q_near,q_far,q_foldraise,side_foldraise,front_near}.jpg;
+  regression reg_ep1..5.jpg (before cf315f2 top / after bottom); ep1_149_before_after.jpg.
+
+## Known remaining (scene-side)
+- ep4 1.6 jump-hit: rock at the X is in front of his face; rig keeps hand clear-ish but strike aims through face.
+- ep3 17.0 eoka toss wind-up and ep3 22.4 seated eoka: far hand holds the eoka behind the head/shoulder with the arm
+  hidden; scene should use the near hand or farFront.
+- Motion: a near arm swept straight up across the face (fold -> raise in pose space) passes over the face for ~4
+  frames (continuity wins over clearance); scenes should arc raises out to the side.
