@@ -654,7 +654,13 @@ function armGeom(u, o, which) {
     return wf ?? place(x, y);
   };
   pullIn();
-  [x, y] = unface(x, y);   // then off the face (see 2. above), and in reach again
+  // then off the face (see 2. above) and in reach on screen, alternately (it settles where both hold: a raised arm
+  // splays out beside the head), and its depth fitted again
+  for (let i = 0; i < 8; i++) {
+    [x, y] = unface(x, y);
+    const d2 = Math.hypot(x - xs, y - ys), rm = reach(ak) * .97;
+    if (d2 > rm) { x = xs + (x - xs) * rm / d2; y = ys + (y - ys) * rm / d2; } else break;
+  }
   w = pullIn();
   [X, Z] = toB(x, w);
   // an arm hanging down is never locked dead straight: it lengthens a hair (up to 6%) to keep a soft bend at the elbow
