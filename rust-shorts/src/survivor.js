@@ -710,7 +710,7 @@ function armGeom(u, o, which) {
   // a near upper arm is in front, unless its elbow is well behind the torso (then the arm goes back from the shoulder)
   const [Exx, , Eww] = P3(E, E, 0), rbE = rayBody(Exx, E[1], -.45);
   let up = far || (rbE && rbE[2] && Eww < rbE[0] + .05) ? 'B' : 'F';
-  let fo = hasB ? 'B' : hasH ? 'H' : far && !handF ? 'B' : 'F', split = null;
+  let fo = hasB ? 'B' : hasH ? (far ? 'B' : 'H') : far && !handF ? 'B' : 'F', split = null;   // (a far arm behind the head is behind the torso too)
   // A hand in front whose arm comes from behind the torso or head wraps round its edge: the arm is drawn whole behind,
   // and from the edge on (found by halving between the last point not in front and the first in front) again in front.
   if (handF && (far || fo !== 'F')) {
@@ -745,6 +745,17 @@ function armGeom(u, o, which) {
     };
     const fx = Hx + (Hx - Ex) / l2 * .45, fy = y + (y - E[1]) / l2 * .45, pH = pull(fx, fy, .5), pH2 = pull(Hx, y, hwA), pE = pull(Ex, E[1], hwA);
     tuck = Math.hypot(...pH) > Math.hypot(...pH2) ? pH : pH2; tuckE = pE;
+    // still showing between the joints (past the neck, between the head and the shoulder): fold it down out of sight
+    if (k > 0) {
+      const E2 = [Ex + tuckE[0], E[1] + tuckE[1]], H2 = [Hx + tuck[0], y + tuck[1]];
+      let shows = 0;
+      for (const t of [.35, .55, .75]) shows = Math.max(shows, occ(lerp(Sx, E2[0], t), lerp(ys, E2[1], t)) + hwA, occ(lerp(E2[0], H2[0], t), lerp(E2[1], H2[1], t)) + hwA);
+      const f = k * ease(clamp((shows + .2) / .3));
+      if (f > 0) {
+        const Er = [Sx * .8, ys + 1.6], Hr = [Sx * .7, ys + 3.1];
+        tuckE = [lerp(tuckE[0], Er[0] - Ex, f), lerp(tuckE[1], Er[1] - E[1], f)]; tuck = [lerp(tuck[0], Hr[0] - Hx, f), lerp(tuck[1], Hr[1] - y, f)];
+      }
+    }
   }
   Hx += tuck[0]; Ex += tuckE[0];
   const Hy = y + tuck[1], Ey = E[1] + tuckE[1];
