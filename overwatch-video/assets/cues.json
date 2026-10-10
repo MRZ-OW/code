@@ -1,0 +1,37 @@
+{
+  "bpm": 120,
+  "duration": 50.0,
+  "sections": [
+    { "name": "A spawn room", "start": 0.0, "end": 6.0, "mood": "low pad + ticking arp building; gate opens with a big hit at 3.5, drums and heroic riff start" },
+    { "name": "B main street", "start": 6.0, "end": 15.0, "mood": "upbeat heroic electro-orchestral groove, main theme; playful" },
+    { "name": "B->C turn", "start": 15.0, "end": 16.0, "mood": "groove filters down and drops out under the bell" },
+    { "name": "C high noon", "start": 16.0, "end": 24.0, "mood": "spaghetti-western tension: tremolo drone, lonely whistle melody, ticking clock 19-21.5, silence after the shots" },
+    { "name": "D heroes never die", "start": 24.0, "end": 32.0, "mood": "sad music-box 24-26, heartbeat 26, swell 26.5-27.5, triumphant choir chord 27.5, angelic shimmer, drums return with a roll 31-32" },
+    { "name": "E push", "start": 32.0, "end": 38.0, "mood": "full-energy main theme variation; victory fanfare at 36.0" },
+    { "name": "F play of the game", "start": 38.0, "end": 44.0, "mood": "big sting at 38, slam at 39, triumphant brass + choir statement of the theme" },
+    { "name": "G outro", "start": 44.0, "end": 50.0, "mood": "cute plucky version of the theme; music stops dead at 47.0 (scratch), bonk 47.5, final chord 48.0 ringing out, fade to silence by 50.0" }
+  ],
+  "cues": [
+    [2.0, "beep", { "pitch": 72 }], [2.5, "beep", { "pitch": 76 }], [3.0, "beep", { "pitch": 79 }],
+    [3.5, "clank"], [3.5, "crash"], [3.6, "whoosh"], [3.75, "whoosh"], [3.9, "whoosh"],
+    [4.2, "boing"], [5.0, "flap"], [5.3, "flap"], [5.6, "whoosh"],
+    [6.0, "whoosh"], [6.8, "thud"],
+    [7.5, "bloop", { "pitch": 79 }], [8.5, "bloop", { "pitch": 81 }], [9.0, "bloop", { "pitch": 84 }],
+    [9.5, "bloop", { "pitch": 79 }], [9.75, "bloop", { "pitch": 84 }], [10.0, "bloop", { "pitch": 81 }], [10.25, "bloop", { "pitch": 86 }],
+    [10.5, "whoosh"], [11.0, "ding"], [11.0, "beam", { "dur": 0.5 }],
+    [11.5, "whoosh"], [12.0, "ding"], [12.0, "beam", { "dur": 0.5 }],
+    [12.5, "whoosh"], [13.0, "ding"], [13.0, "beam", { "dur": 0.5 }],
+    [13.5, "bloop", { "pitch": 84 }], [13.75, "grr"],
+    [15.0, "bell"],
+    [16.0, "bell"], [17.0, "bell"], [17.5, "rustle", { "dur": 2.0 }], [18.25, "shing"],
+    [19.0, "sting"], [20.0, "pop"], [20.25, "pop"], [20.5, "pop"], [20.5, "whine", { "dur": 1.0 }],
+    [21.0, "whoosh"], [21.5, "gunshot"], [22.0, "gunshot"], [22.5, "gunshot"], [23.0, "smoke"],
+    [26.5, "whoosh"], [27.5, "fwoosh"], [27.5, "choirhit"], [28.0, "shimmer", { "dur": 1.8 }], [29.0, "pop"], [29.2, "pop"], [29.4, "pop"],
+    [30.0, "boing"], [30.3, "tick"], [31.6, "whoosh"],
+    [32.0, "charge"], [32.6, "boom"], [32.5, "whoosh"], [33.0, "slash"], [33.1, "boom"], [34.0, "twinkle"],
+    [34.0, "rumble", { "dur": 2.0 }], [36.0, "fireworks"], [36.0, "crash"], [36.4, "fireworks"], [36.8, "fireworks"], [37.5, "swoosh"],
+    [38.0, "boom"], [39.0, "slam"], [41.0, "cheer", { "dur": 1.5 }], [41.0, "pop"], [41.2, "pop"], [43.7, "swoosh"],
+    [44.5, "heartpop"], [45.0, "heartpop"], [45.5, "heartpop"], [46.5, "bloop", { "pitch": 84 }],
+    [47.0, "scratch"], [47.5, "bonk"], [48.0, "crash"]
+  ]
+}
