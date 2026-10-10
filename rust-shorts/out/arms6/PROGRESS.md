@@ -1,0 +1,24 @@
+# Arm stability + thumbs (arms6) — progress log
+
+Render: `node render.mjs --xvfb ...` → out/arms6/. Scanner: scratchpad a6/scan6.js EP [t0 t1] (per character, per arm,
+per frame: layer state up/fo/split/tuck, visible length, hand/elbow position; flags STATE, FLIP (A>B>A in 0.5 s), VIS
+(visible length jump > .7 + 1.6 x asked motion), JUMP (hand/elbow jump > asked + 1u)). Baseline = git 7ab46c0 (worktree
+a6/base): before_epN.txt.
+
+## Root cause of the popping
+- armGeom's far-arm "tuck": a far arm whose visible length (measured from its own solved pose) was under ~2u was folded
+  down behind the torso, k = 1 - ease(vis - 1). Visible length depends on the hand, which walks/trembles, and folding
+  changes it: a feedback with a steep threshold, so the arm flicked between shown and hidden (EP1 14.9-15.8, runs).
+- farFront "deep" gate: a far hand inside the outline went in front only if well inside (<.78 of the half width) and on
+  his front (Z > .5); otherwise behind. A hand near that line jumped between behind him and on his belly.
+
+## Done
+- Tuck removed: far arms are always drawn, behind the torso/head where they are behind it (natural occlusion).
+- deep gate removed: a farFront hand is in front wherever it is inside the outline; it changes side only at the
+  outline's edge (both depths meet there; the forearm's front piece grows from the edge).
+- Crotch push ramps widened (kY over .8u eased, kZ over 1u eased): hands sweeping down past the briefs no longer jump.
+- EP1 s2c Chad yawn-stretch (11.45-11.75, back view): arms go up through the sides instead of folding in front of his
+  chest (the forearms dropped out of sight behind his back for 2 frames). Scene pose only, no timing change.
+- Thumbs: armGeom returns G.thumb (signed side + size) from the 3D palm normal and which hand it is; open palms use it.
+  Default palm: forward (raised/waving/pushing), turning down below the chest, a little inward. o.palmL/o.palmR override
+  ('fwd','back','up','down','in','out', or [X,y,Z]). Torture pages 12-15 (thumbs) in src/armsheet.js.

@@ -338,10 +338,11 @@ function survivor(x, y, u, o = {}) {
         return;
       }
       // an open palm, fingers spread along the forearm, thumb out to the side: ONE silhouette with one outline. Small hands
-      // are a mitten: the four fingers as one rounded block, the thumb out.
-      const fa = Math.atan2(d2[1], d2[0]), mitten = small, ts = sideSign;
+      // are a mitten: the four fingers as one rounded block, the thumb out. The thumb's side and length come from armGeom
+      // (G.thumb: which hand it is and which way the palm faces; it shrinks to nothing as it turns toward or away from us).
+      const fa = Math.atan2(d2[1], d2[0]), mitten = small, ts = G.thumb >= 0 ? 1 : -1, tl = Math.abs(G.thumb);
       const Hh = [[-.42, .43], [.42, .43]];
-      const thumb = sd => sd > 0 ? [[.5, .12], [.8, .0], [.88, -.1], [.8, -.2], [.5, -.16]] : [[-.5, -.16], [-.8, -.2], [-.88, -.1], [-.8, .0], [-.5, .12]];
+      const thumb = sd => (sd > 0 ? [[.5, .12], [.8, .0], [.88, -.1], [.8, -.2], [.5, -.16]] : [[-.5, -.16], [-.8, -.2], [-.88, -.1], [-.8, .0], [-.5, .12]]).map(([a, b]) => [Math.sign(a) * (.5 + (Math.abs(a) - .5) * tl), b]);
       Hh.push([.5, .3]); if (ts > 0) Hh.push(...thumb(1)); Hh.push([.48, -.32]);
       if (mitten) Hh.push([.42, -.78], [.2, -.9], [-.2, -.9], [-.42, -.78]);
       else for (let f = 3; f >= 0; f--) {
@@ -642,13 +643,15 @@ function armGeom(u, o, which) {
   const place = (px, py) => {
     let ww = toV(s * 1.95, .35 + 1.5 * sitK * clamp((py - (ys + 1.2)) / 1.2))[1];
     const rb = rayBody(px, py, HAND_HW), rh = rayHead(px, py, HAND_HW);
-    // the body: a near hand in front of it, a far one behind it (with farFront: in front where it's well inside the
-    // body's outline, a hand on the chest or belly; round its edge it stays behind)
-    // (deep: well inside the outline, on the front of him: in profile the far hand can't come round to our side of him)
-    if (rb) { const rt = rayBody(px, py, 0), deep = rt && rt[2] && Math.abs(px - (rt[3] || 0)) < .78 * rt[4] && toB(px, rt[1])[1] > .5;
+    // the body: a near hand in front of it, a far one behind it (with farFront: in front inside the body's outline, a hand
+    // on the chest or belly; round its edge it goes behind)
+    // (a far hand with farFront is in front wherever it is inside the outline: it changes sides only at the outline's edge,
+    // where both depths meet, so the change can't be seen. Gating it on how deep inside the outline the hand is made a
+    // hand near that line, or one that trembles, flick between behind him and on his belly.)
+    if (rb) {
       // ("in front" is his front: seen from behind, that's the far side of him, and a hand behind his back is on the near side)
       if (back && rb[2] && V.side) { const zOf = q => { const [Xq, Zq] = toB(px, q); return Zq - .3 * s * Xq; }; ww = zOf(rb[0]) < zOf(rb[1]) ? rb[0] : rb[1]; }   // behind his back, in 3/4 and profile: on his own side
-      else ww = ((wantFront && (!far || deep)) !== !!V.back) !== alt ? Math.max(ww, rb[1]) : Math.min(ww, rb[0]); }
+      else ww = (wantFront !== !!V.back) !== alt ? Math.max(ww, rb[1]) : Math.min(ww, rb[0]); }
     // the head: a near hand in front of it (only ever at the chin or mouth, see above); a far one behind it unless it
     // reaches across (farFront) to the mouth
     if (rh) ww = (!back && (!far || (o.farFront && py - hy > .3 * HEAD_R))) ? Math.max(ww, rh[1]) : Math.min(ww, rh[0]);
@@ -658,7 +661,7 @@ function armGeom(u, o, which) {
   let [X, Z] = toB(x, w);
   // 3. no hand in front of the briefs
   if (!o.freeHands && !back) {
-    const yy = y - dr, kY = clamp((yy + 5.3) / .35) * clamp((-2.3 - yy) / .4), kS = (1 - clamp(o.sit || 0)) * (1 - .85 * clamp(o.crouch || 0)), kZ = 1 - clamp((Z - 1.4) / .6), k = kY * kS * kZ;
+    const yy = y - dr, kY = ease(clamp((yy + 5.6) / .8)) * clamp((-2.3 - yy) / .4), kS = (1 - clamp(o.sit || 0)) * (1 - .85 * clamp(o.crouch || 0)), kZ = 1 - ease(clamp((Z - 1.2) / 1.0)), k = kY * kS * kZ;
     if (k > 0) { X = lerp(X, s * Math.max(s * X, 2.35), k); Z = lerp(Z, Math.min(Z, .45), k); [x, w] = toV(X, Z); }
   }
   // the shoulder comes forward (and a little in) as the hand reaches out in front or across the chest
@@ -768,6 +771,26 @@ function armGeom(u, o, which) {
   }
   let E = elbowAt(bf);
   if (o._dbg) o._dbg({ cost, elbowAt, bf, S, H, gap });
+  // 6. which side of an open hand its thumb is on (signed: + = the hand's local +x, see survivor()'s open palm; its size
+  // is how square-on the thumb is to us, so it shrinks to nothing and grows back on the other side, never jumps). The palm
+  // faces forward (raised, waving, pushing out: hands up, palms to us), turning down as the hand goes below the chest (on
+  // a knee, over a grip), a little toward the body's middle; o.palmL / o.palmR set it: 'fwd', 'back', 'up', 'down', 'in'
+  // (toward his middle), 'out', or a body-frame [X, y, Z]. The thumb is on the palm's side given by which hand it is: his
+  // right hand (the 'L' arm; seen from behind, the 'R' arm, as the back view is drawn mirrored) has it at palm x fingers.
+  // So palms to us with the hands up, both thumbs point in, toward his head; backs of the hands to us, out.
+  let thumb = 0;
+  {
+    const PALM = { fwd: [0, 0, 1], out: [s, 0, 0], back: [0, 0, -1], up: [0, -1, 0], down: [0, 1, 0], in: [-s, 0, 0] };
+    const pw = which === 'L' ? o.palmL : o.palmR, dn = ease(clamp((H[1] - ys - .3) / 1.8));
+    let n0 = Array.isArray(pw) ? pw : PALM[pw] || [-s * .35, 1.6 * dn, 1];
+    const f = nz(sub(H, E)), nl = Math.hypot(n0[0], n0[1], n0[2]) || 1; n0 = n0.map(v => v / nl);
+    const k = dot(n0, f), nP = [n0[0] - k * f[0], n0[1] - k * f[1], n0[2] - k * f[2]];
+    const vw = p => { const [px, pw2] = toV(p[0], p[2]); return [px, p[1], pw2]; }, a3 = vw(nP), b3 = vw(f);
+    const cr = (p, q) => [p[1] * q[2] - p[2] * q[1], p[2] * q[0] - p[0] * q[2], p[0] * q[1] - p[1] * q[0]];
+    const right = (which === 'L') !== !!V.back, tv = right ? cr(a3, b3) : cr(b3, a3);
+    const [Ex2] = toV(E[0], E[2]), dx = x - Ex2, dy = y - E[1], dl = Math.hypot(dx, dy) || 1;
+    thumb = clamp((tv[0] * -dy / dl + tv[1] * dx / dl) * 2.2, -1, 1);
+  }
   // project
   const [Sx, Sw] = toV(S[0], S[2]);
   let [Ex, Ew] = toV(E[0], E[2]), Hx = x;
@@ -803,32 +826,15 @@ function armGeom(u, o, which) {
       wrapped = true;
     }
   }
-  // A far arm that would only peek out past the body or head as a sliver, a stub or a lone fist is tucked fully behind it
-  // (eased by how much of it would show, so it slides, never pops). It shows when a good length of it (a forearm) clears
-  // the silhouettes.
-  let tuck = [0, 0], tuckE = [0, 0];
-  // (never a hand holding something: the prop must stay where the scene put it)
-  if (far && !wrapped && !(which === 'L' ? (o.handL || o.armL) : (o.handR || o.armR))) {
-    const hwA = (o.gear && (o.gear.hoodie || o.gear.hazmat || o.gear.scientist) ? .55 : .45);
-    const occ = (px, py) => svOcc(V, px, py, dr, hy), l2 = Math.hypot(Hx - Ex, y - E[1]) || 1;
-    const P = [];
-    for (let i = 3; i <= 8; i++) P.push([lerp(Sx, Ex, i / 8), lerp(ys, E[1], i / 8)]);
-    for (let i = 1; i <= 8; i++) P.push([lerp(Ex, Hx, i / 8), lerp(E[1], y, i / 8)]);
-    for (const k of [.25, .5]) P.push([Hx + (Hx - Ex) / l2 * k, y + (y - E[1]) / l2 * k]);   // the fist
-    let vis = 0;
-    // (how much shows: its length past the silhouettes, by the share of its width that clears them, outline included)
-    P.forEach((q, i) => { if (i) vis += Math.hypot(q[0] - P[i - 1][0], q[1] - P[i - 1][1]) * clamp((occ(q[0], q[1]) + hwA - .25) / (2 * hwA - .25)); });
-    // (a raised far arm is never folded away: it shows rising from behind the head, see unhead)
-    const k = (1 - ease((vis - 1.0) / 1.0)) * (1 - raisedK(y0r));
-    // folded down out of sight behind the torso, as far as the sliver needs (a hidden arm's pose doesn't matter)
-    if (k > 0) { const Er = [Sx * .5, ys + 1.6], Hr = [Sx * .4, ys + 3.1]; tuckE = [(Er[0] - Ex) * k, (Er[1] - E[1]) * k]; tuck = [(Hr[0] - Hx) * k, (Hr[1] - y) * k]; }
-  }
+  // (A far arm is never folded away or hidden: it is drawn behind the torso and head wherever it is behind them, and the
+  // body covers it naturally. Hiding it by how much of it would show switched it on and off from frame to frame.)
+  const tuck = [0, 0], tuckE = [0, 0];
   if (o._trace) o._trace({ x, y, w, E: [Ex, E[1]], tuck, tuckE, up, fo, split, wrapped });
   Hx += tuck[0]; Ex += tuckE[0];
   const Hy = y + tuck[1], Ey = E[1] + tuckE[1];
   const fl = Math.hypot(Hx - Ex, Hy - Ey) || 1;
   return { S: [Sx * u, ys * u], E: [Ex * u, Ey * u], H: [Hx * u, Hy * u], d2: [(Hx - Ex) / fl, (Hy - Ey) / fl], wS: Sw, wE: Ew, wH: w, ak, far, up, fo, split,
-    front: split != null || (far && fo === 'F'), back: fo === 'B' && !far, sideSign };
+    front: split != null || (far && fo === 'F'), back: fo === 'B' && !far, sideSign, thumb };
 }
 // Where a survivor's hand is, in its upright body frame (before flip, scale and rotation).
 function handLocal(u, o, which) { return armGeom(u, o, which).H; }

@@ -8,6 +8,7 @@
 //            a hand on the head (the other on the hip), reaching forward + pointing up
 //     row 4  seated: hands on the knees, a can at the chest; the old EP1 14.9 pose; the geared Chad: hanging, a can hugged
 //            at the belly, the AK shouldered
+//   t = 12..15: thumbs (open hands up, backs to us, waving, pushing out, presenting, on the knees...) in every view.
 //   t = 8..12: motion. Rows of front, qf, q and side figures whose hands travel continuously through the row-1 targets
 //   (near arm, then the far arm with farFront, then both arms folding and rising) for --strip checks.
 //   node render.mjs --soft-gl --loop=arms --sheet=2 --cols=1 --w=1080 --out=out/arms3/sheet_q.jpg
@@ -69,13 +70,43 @@
       survivor(x, 1800, uu, { ...HERO, seed: 3, ...o });
     });
   }
+  // thumbs: open hands in every view, both facings, bigger (U2) so the fingers are drawn. Palms to us with the hands up,
+  // the thumbs point in (toward the head); the backs of the hands to us, out.
+  //   pages 12, 14: front, qf, q, side; 13, 15: back, front flip, q flip, side flip.
+  //   columns, pages 12-13: hands up, backs to us, wave, push out; 14-15: present (palm up), seated hands on the knees,
+  //   a hand on the head (the other hanging open), the EP1 grip reach (open hand over a low point ahead).
+  function thumbs(t) {
+    const U2 = 30, p = Math.floor(t);
+    const rows = p % 2 === 0 ? [['front', false], ['qf', false], ['q', false], ['side', false]] : [['back', false], ['front', true], ['q', true], ['side', true]];
+    const pose = (o, ...pairs) => { for (const [w, n] of pairs) Object.assign(o, armPose(U2, o, w, n)); return o; };
+    // a point ahead of his chest (body frame: X across, Y height, Z forward) on screen
+    const fwdPt = (o, X, Z, Y) => { const th = { front: 0, qf: .3, q: .62, side: Math.PI / 2, back: 0 }[o.view], zs = o.view === 'back' ? -1 : 1; return [(X * Math.cos(th) + Z * zs * Math.sin(th)) * U2, Y * U2]; };
+    const cols = p < 14 ? [
+      ['hands up', o => { pose(o, ['L', 'raise'], ['R', 'raise']); o.openL = o.openR = true; }],
+      ['backs to us', o => { pose(o, ['L', 'raise'], ['R', 'raise']); o.openL = o.openR = true; o.palmL = o.palmR = 'back'; }],
+      ['wave', o => { pose(o, ['L', 'point']); o.openL = true; }],
+      ['push out', o => { Object.assign(o, reachArm(U2, o, 'R', ...fwdPt(o, 1.7, 3.0, -8.4))); o.openR = true; }],
+    ] : [
+      ['present', o => { Object.assign(o, reachArm(U2, o, 'R', ...fwdPt(o, 1.9, 2.8, -6.2))); o.openR = true; o.palmR = 'up'; }],
+      ['sit: knees', o => { o.sit = 1; pose(o, ['L', 'knee'], ['R', 'knee']); o.openL = o.openR = true; }],
+      ['head + hang', o => { pose(o, ['L', 'head']); o.openL = o.openR = true; }],
+      ['grip reach', o => { o.crouch = .35; o.aL = -1.2; o.bendL = .4; Object.assign(o, reachArm(U2, o, 'R', ...fwdPt(o, 1.0, 2.0, -3.6))); o.openR = true; }],
+    ];
+    for (let r = 1; r < 4; r++) inkLine([[0, r * 480], [W, r * 480]], .6, PAL.ink, 'inkfine', 0);
+    letter('thumbs', 540, 24, 22, '#3A3040', { ink: false, screen: true });
+    rows.forEach(([view, flip], row) => cols.forEach(([lab, f], i) => {
+      const x = 135 + i * 270, y = 462 + row * 480, o = { view, flip, boilKey: `th ${p} ${view} ${flip} ${i}`, farFront: true };
+      f(o); survivor(x, y, U2, { ...HERO, eyes: 'normal', seed: 3, rawArms: true, ...o }); label(x, y - 8, `${view}${flip ? ' F' : ''} ${lab}`);
+    }));
+  }
   LOOPS.arms = t => {
     boilSeed('bg'); paint(rectPts(-50, -50, W + 100, H + 100), { wash: '#EFE6D6', ink: null });
+    if (t >= 12) return thumbs(t);
     if (t >= 8) return motion(t);
     const p = Math.floor(t), view = VIEWS[p >> 1], flip = !!(p & 1);
     for (let r = 1; r < 4; r++) inkLine([[0, r * 480], [W, r * 480]], .6, PAL.ink, 'inkfine', 0);
     letter(`${view}${flip ? ' (flip)' : ''}`, 540, 24, 22, '#3A3040', { ink: false, screen: true });
     page(view, flip);
   };
-  LOOPS.arms.len = 12;
+  LOOPS.arms.len = 16;
 })();

@@ -241,7 +241,7 @@
     spawnling(400, 1580, 52, { ...feel('happy', t), boilKey: NK, seed: 1, view: 'back', sit: 1, prop: 'none', rawArms: true, aL: lerp(-1.3, 1.2, point), bendL: lerp(.22, -.15, point), aR: -1.25, bendR: .3, rot: -.05 * point,
       handL: (u, sw) => { push(); scale(-1, 1); rockProp(u, sw); pop(); } });   // his rock, in hand all along
     const yawn = ease(seg(t, 11.45, 11.75));   // held through the cut
-    const st = k => k < .5 ? { a: lerp(-1.25, -.75, k * 2), b: lerp(.3, 2.1, k * 2) } : { a: lerp(-.75, 1.45, k * 2 - 1), b: lerp(2.1, 0, k * 2 - 1) }, S2 = st(yawn);
+    const st = k => ({ a: lerp(-1.25, 1.45, k), b: lerp(.3, 0, k) + .45 * Math.sin(Math.PI * k) }), S2 = st(yawn);   // up through the sides (in front of his chest, his forearms would drop out of sight behind his back for a frame or two)
     survivor(710, 1560, 52, { ...feel('happy', t, { emote: null }), ...CHAD_GEAR, boilKey: CH, seed: 2, view: 'back', sit: 1, rawArms: true, aL: S2.a, bendL: S2.b, aR: S2.a, bendR: S2.b, sy: 1 + .05 * yawn });
     grade('#1A2348', 58);
     glow(560, 1240, 300, '#FF8A3A', .55);
