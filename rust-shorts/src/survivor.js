@@ -576,12 +576,12 @@ function svOcc(V, px, py, dr, hy) {
 // (in rx)]. FACE: where no hand goes above the mouth (front-on, the whole head: a hand on the head is on its side or top;
 // turned, the face and beard: a hand may rest on the hair at the back or top);
 // GUARD: the face and the beard, which no bone crosses.
-const SV_FACE = { front: [0, 0, 2.35, 2.35, 0], qf: [.2, 0, 2.35, 2.35, .05], q: [.3, .6, 2.1, 1.6, .3], side: [1.25, .6, 1.35, 1.6, .4] };
+const SV_FACE = { front: [0, 0, 2.35, 2.35], qf: [.2, 0, 2.35, 2.35], q: [.3, .6, 2.1, 1.6], side: [1.25, .6, 1.35, 1.6] };
 const SV_GUARD = { front: [0, .45, 1.9, 1.75], qf: [.5, .45, 1.85, 1.75], q: [.3, .6, 2.1, 1.6], side: [1.25, .6, 1.35, 1.6] };
 const svFaceKey = V => V === SV.side ? 'side' : V === SV.q ? 'q' : V === SV.qf ? 'qf' : V.back ? null : 'front';
 function svFace(V, hy, guard = false) {
   const k = svFaceKey(V), f = k && (guard ? SV_GUARD : SV_FACE)[k];
-  return f ? [f[0], hy + f[1], f[2], f[3], f[4] || 0] : null;
+  return f ? [f[0], hy + f[1], f[2], f[3]] : null;
 }
 function armGeom(u, o, which) {
   const V = SV[o.view] || SV.front, far = V.far.includes(which), sideSign = V.side ? 1 : (which === 'R' ? 1 : -1), s = which === 'R' ? 1 : -1;
@@ -605,13 +605,18 @@ function armGeom(u, o, which) {
   // front of the face (eating, a hand at the chin).
   const FACE = svFace(V, hy), GUARD = svFace(V, hy, true);
   // (pushed along the line from a point at the chin, so the push never flips side as a hand passes over the face)
-  const unface = (px, py, F = FACE, m = HAND_HW) => {
+  // Pushed sideways, to the arm's own side of the face (turned: toward the back of the head), at the same height: a
+  // continuous map with no side flips. Over the face's far third the push fades out, so a hand reaching across to the
+  // far side, or out ahead past the face (a strike, a point), passes over it rather than jump round the head.
+  const sdF = V.side ? -1 : xs < 0 ? -1 : 1;
+  const unface = (px, py, F = FACE, m = HAND_HW, uRef = px) => {
     if (!F || (far && !o.farFront)) return [px, py];
-    const FACE = F, a = FACE[2] + m, b = FACE[3] + m, cx = FACE[0] + FACE[4] * FACE[2], cy = hy + 1.9, dx = px - cx, dy = py - cy;
-    const qa = (dx / a) ** 2 + (dy / b) ** 2, qb = 2 * ((cx - FACE[0]) * dx / (a * a) + (cy - FACE[1]) * dy / (b * b)), qc = ((cx - FACE[0]) / a) ** 2 + ((cy - FACE[1]) / b) ** 2 - 1;
-    if (qa < 1e-9) return [px, py];
-    const t = (-qb + Math.sqrt(Math.max(0, qb * qb - 4 * qa * qc))) / (2 * qa), k = 1 - ease(clamp((py - hy - .5) / 1.0));
-    return t > 1 && k > 0 ? [lerp(px, cx + dx * t, k), lerp(py, cy + dy * t, k)] : [px, py];
+    const a = F[2] + m, b = F[3] + m, ey = (py - F[1]) / b;
+    if (Math.abs(ey) >= 1) return [px, py];
+    const hw = a * Math.sqrt(1 - ey * ey), xb = F[0] + sdF * hw, un = (uRef - F[0]) * -sdF / a;   // un: -1 own edge .. +1 far edge
+    if ((px - xb) * sdF >= 0) return [px, py];
+    const k = (1 - ease(clamp((py - hy - .5) / 1.0))) * (1 - ease((un + .1) / 1.0));
+    return [lerp(px, xb, k), py];
   };
   // the hand's depth
   // (seated or crouched, a hand below the chest rests forward, on the lap or the knees)
@@ -672,16 +677,10 @@ function armGeom(u, o, which) {
   // splays out beside the head), and its depth fitted again
   const x0 = x;
   for (let i = 0; i < 10; i++) {
-    [x, y] = unface(x, y);
-    // (a straight arm from the shoulder to the hand mustn't cross the face and beard either: the hand moves out further)
-    // (only for a hand on the arm's own side of the face: one reaching up in front of the face to the far side may cross
-    // it, as it must on its way, rather than jump)
-    let mx = 0, my = 0;
-    const od = V.side ? -1 : xs < 0 ? -1 : 1, wB = GUARD ? clamp((x0 - GUARD[0]) * od / 1.2 + .5) : 0;
-    if (wB > 0) for (const t of [.4, .55, .7, .85]) { const px = lerp(xs, x, t), py = lerp(ys, y, t), [qx, qy] = unface(px, py, GUARD, ARM_HW); if (Math.hypot(qx - px, qy - py) > Math.hypot(mx, my) * t) { mx = (qx - px) / t; my = (qy - py) / t; } }
-    x += mx * wB; y += my * wB;
+    [x, y] = unface(x, y, FACE, HAND_HW, x0);
+    const mx = 0;
     const d2 = Math.hypot(x - xs, y - ys), rm = reach(ak) * .97;
-    if (d2 > rm) { x = xs + (x - xs) * rm / d2; y = ys + (y - ys) * rm / d2; } else if (Math.hypot(mx, my) * wB < .01) break;
+    if (d2 > rm) { x = xs + (x - xs) * rm / d2; y = ys + (y - ys) * rm / d2; } else if (Math.abs(mx) < .01) break;
   }
   w = pullIn();
   [X, Z] = toB(x, w);
@@ -728,16 +727,20 @@ function armGeom(u, o, which) {
     // and no bone in front of the face (above the mouth)
     let fc = 0;
     if (GUARD) for (const q of [at(S, E, .6), at(S, E, .85), E, at(E, H, .25), at(E, H, .5)]) {
-      const [qx, qw] = toV(q[0], q[2]); if (qw < 0) continue;
-      const e = Math.hypot((qx - GUARD[0]) / (GUARD[2] + ARM_HW), (q[1] - GUARD[1]) / (GUARD[3] + ARM_HW)); if (e < 1) fc += (1 - e) ** 2;
+      const [qx, qw] = toV(q[0], q[2]), inF = clamp((qw + .3) / .8) * (1 - ease(clamp((q[1] - hy - .5) / 1.0)));   // in front of the head, above the mouth
+      const e = Math.hypot((qx - GUARD[0]) / (GUARD[2] + ARM_HW), (q[1] - GUARD[1]) / (GUARD[3] + ARM_HW)); if (e < 1) fc += inF * (1 - e) ** 2;
     }
-    return .5 * f * f + 10 * p + 6 * (fw * fw + inw * inw) + 8 * wr + 30 * fc;
+    return .5 * f * f + 10 * p + 6 * (fw * fw + inw * inw) + 8 * wr + 10 * fc;
   };
-  let bf = 0, bc = cost(0);
+  // A soft minimum (the circular mean of the swivel angles weighted by exp(-cost / T)), not the single best sample: where
+  // two poses cost about the same the elbow swings smoothly between them instead of jumping, so it never pops in motion.
+  let bf = 0;
   if (r > 1e-4) {
-    const N = 144; for (let i = 1; i < N; i++) { const f = -Math.PI + i * TAU / N, cc = cost(f); if (cc < bc - 1e-9) { bc = cc; bf = f; } }
-    const h = TAU / N, cm = cost(bf - h), cp = cost(bf + h), den = cm - 2 * bc + cp;   // a parabola through the best sample and its neighbours
-    if (den > 1e-9) bf += clamp(.5 * h * (cm - cp) / den, -h, h);
+    const N = 144, C = [], T = 3; let cmin = Infinity;
+    for (let i = 0; i < N; i++) { const c = cost(-Math.PI + i * TAU / N); C.push(c); if (c < cmin) cmin = c; }
+    let sx = 0, sy = 0;
+    C.forEach((c, i) => { const f = -Math.PI + i * TAU / N, wgt = Math.exp(-(c - cmin) / T); sx += Math.cos(f) * wgt; sy += Math.sin(f) * wgt; });
+    bf = Math.atan2(sy, sx);
   }
   let E = elbowAt(bf);
   if (o._dbg) o._dbg({ cost, elbowAt, bf, S, H, gap });
