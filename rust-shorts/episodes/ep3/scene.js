@@ -740,11 +740,11 @@
 
   // 3A (N): he looks at the eoka, heartbroken, sighs (16.0) and tosses it over his shoulder without looking: the arm
   // swings up past his face (16.86), lets go above and behind his head (17.0), and follows through before it falls.
-  const LOOK3 = { g: [2.45, -5.6], aim: .12, ys: 1 }, DIP = { g: [2.7, -5.2], aim: .3, ys: 1 }, BACK = { g: [-.6, -11.7], aim: -2.6, ys: 1 }, SLUMP = { g: [1.5, -4.5], aim: 1.15, ys: 1 };
+  const LOOK3 = { g: [2.45, -5.6], aim: .12, ys: 1 }, DIP = { g: [2.7, -5.2], aim: .3, ys: 1 }, BACK = { g: [-.6, -11.7], aim: -2.6, ys: 1 }, SLUMP = { g: [1.5, -4.5], aim: 1.15, ys: 1 }, SWINGBK = { g: [-2.5, -6.2], aim: -1.3, ys: 1 };
   function pose3a(t) {
     const N = emotions(t, [[16, 'sad', { eyes: 'teary', mouth: 'frown', emote: null, gloom: 0 }], [16.62, 'sad', { eyes: 'closed', mouth: 'frown', emote: null, gloom: 0 }]], { take: .2 });
     const sigh = t < 16.6 ? Math.sin(seg(t, 16.0, 16.6) * Math.PI) : 0;
-    const e = t < 16.5 ? eBlend(SLUMP, LOOK3, ease(seg(t, 16.05, 16.4))) : t < 16.86 ? eBlend(LOOK3, DIP, ease(seg(t, 16.7, 16.86))) : eBlend(DIP, BACK, easeIn(seg(t, 16.86, 17.0)));
+    const e = t < 16.5 ? eBlend(SLUMP, LOOK3, ease(seg(t, 16.05, 16.4))) : t < 16.86 ? eBlend(LOOK3, DIP, ease(seg(t, 16.7, 16.86))) : t < 16.93 ? eBlend(DIP, SWINGBK, easeIn(seg(t, 16.86, 16.93))) : eBlend(SWINGBK, BACK, seg(t, 16.93, 17.0));   // swung down and round behind him, then up behind his head (never across his face)
     const up = t < 17.24;   // over the top and through the follow-through his arm is drawn over his head; dropping, it goes behind him
     const No = nakedPose(U, { ...N, view: 'side', farFront: up, swMul: .8, sq: (N.sq || 0) + .07 * sigh, rot: t > 16.86 ? -.06 * Math.sin(seg(t, 16.86, 17.3) * Math.PI) : 0, lookX: t < 16.62 ? .5 : -.2, lookY: t < 16.62 ? .6 : .2 }, t < 17.0 ? e : null, { at: ROCK_DOWN });
     if (t >= 17.0) Object.assign(No, armLerp(reachArm(U, No, 'R', BACK.g[0] * U, BACK.g[1] * U), { aR: TAU - 1.32, bendR: .25 }, ease(seg(t, 17.2, 17.45)), 'R'));   // held up behind his head, then down the back way
@@ -929,7 +929,7 @@
     const N = emotions(t, [[21.0, 'scared', { eyes: 'squeeze', mouth: 'wobble', emote: null }], [21.14, 'surprised', { eyes: 'wide', mouth: 'o', emote: null }], [21.5, 'confused', { eyes: ['narrow', 'wide'], mouth: 'wobble', emote: '?' }], [22.4, 'love', { eyes: 'shine', mouth: 'cat', emote: 'spark' }]], { take: .35 });
     if (t > 21.72 && t < 22.4) N.eyes = 'wide';   // narrow only for the "?"
     const atChad = t > 21.82 && t < 22.18, pull = ease(seg(t, 21.15, 21.45));
-    const LOOKAT = { g: [2.05, -5.4], aim: -.3, ys: 1 }, e = eBlend(AIMS, LOOKAT, pull);
+    const LOOKAT = { g: [3.2, -5.6], aim: -.3, ys: 1 }, e = eBlend(AIMS, LOOKAT, pull);   // held out in front of him (the whole arm shows), not up by his far shoulder
     const down = ease(seg(t, 21.15, 21.45));   // the rock hand goes down behind his hip and lets go
     const No = nakedPose(U, { ...N, ...SEAT, view: 'q', swMul: .8, farFront: true, rot: (N.rot || 0) + .06 * Math.sin(seg(t, 21.5, 22.0) * Math.PI), lookX: atChad ? 1 : .55, lookY: atChad ? -.1 : .45, emoteDx: .4, emoteDy: 1.2 },
       e, { at: [lerp(REST_SIT[0], ROCK_T[0], down), lerp(REST_SIT[1], ROCK_T[1], down)], rot: 0, rock: t < 21.45 });
@@ -947,7 +947,7 @@
     const beat = [23.0, 23.5, 24.0].reduce((a, b) => a + (t > b ? Math.exp(-(t - b) * 9) : 0), 0);
     const N = feel('love', t, { eyes: 'closed', mouth: t > 24.25 && t < 24.6 ? 'pout' : 'cat', emote: 'hearts', blush: 1 });
     const pull = ease(seg(t, 23.0, 23.3)), kiss = ease(seg(t, 24.22, 24.36)) * (1 - ease(seg(t, 24.5, 24.62))), cradle = ease(seg(t, 24.62, 24.9));
-    const LOOKAT = { g: [2.05, -5.4], aim: -.3, ys: 1 }, HUG = holdAt(KISSPT, [2.0, -8.15], -Math.PI / 2 - .08, -1), KISSH = holdAt(KISSPT, [1.62, -7.55], -Math.PI / 2 - .2, -1), CRADLE = { g: [2.0, -5.0], aim: 1.22, ys: 1 };
+    const LOOKAT = { g: [3.2, -5.6], aim: -.3, ys: 1 }, HUG = holdAt(KISSPT, [2.0, -8.15], -Math.PI / 2 - .08, -1), KISSH = holdAt(KISSPT, [1.62, -7.55], -Math.PI / 2 - .2, -1), CRADLE = { g: [2.0, -5.0], aim: 1.22, ys: 1 };
     let e = eBlend(LOOKAT, HUG, pull);
     if (kiss > 0) e = eBlend(e, KISSH, kiss);
     if (cradle > 0) e = eBlend(e, CRADLE, cradle);

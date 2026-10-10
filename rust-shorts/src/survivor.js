@@ -622,8 +622,8 @@ function armGeom(u, o, which) {
   // the same height, past the head's outline, so the forearm and hand rise into view from behind the head. It goes to the
   // far shoulder's side (in 3/4 and profile: ahead, past the brow), or, for a hand well back of the head's middle (a
   // wind-up behind the head), out past the back of the head; the push fades to nothing between the two (continuous).
-  // It fades in from the chin up, so a far hand at the mouth or below is left alone.
-  const raisedK = py => 1 - ease(clamp((py - (hy + .1)) / 1.3));
+  // It fades in from the eyes up (full a little above them), so a far hand at the cheek, the mouth or below is left alone.
+  const raisedK = py => 1 - ease(clamp((py - (hy - .9)) / 1.0));
   const unhead = (px, py, uRef) => {
     if (!far || back) return [px, py];
     const R = HEAD_R + .55, dy = py - hy, kh = raisedK(py);
