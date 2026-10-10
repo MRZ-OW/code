@@ -755,13 +755,16 @@
   function naked2D(t) {
     const target = maskPt(chad2D(CLANG));
     const base = { view: 'q', flip: true, rawArms: true };
-    const hit = strike(NX2, G, { ...base, rot: -.06, aL: -6.2, bendL: .02, armKL: 1.2 }, target[0] + 8, target[1]);
+    // the mask is level with his face: he hops (apex 12.04) so the swing comes in from the side at shoulder height
+    const J = jump(t, 11.78, 12.3, 3.08), HOPD = -3.0;
+    const hit = strike(NX2, G, { ...base, dy: HOPD, rot: -.06, aL: -6.2, bendL: .02, armKL: 1.2 }, target[0] + 8, target[1]);
     const buzz = t > CLANG + HOLD ? .09 * Math.exp(-(t - CLANG - HOLD) * 3.2) * (Math.floor(t * 24) % 2 ? 1 : -1) : 0;
     let aL, bendL, dx, rot, armK, hug = 0;
-    if (t < CLANG) {   // winds up from his chest (11.5–11.78), swings (11.85–12.0)
-      aL = t < 11.85 ? kf(t, [[11.5, CHEST[0] + TAU], [11.78, COCK[0]], [11.85, -4.55]]) : lerp(-4.55, hit.aL, easeIn(seg(t, 11.85, CLANG)));
-      bendL = t < 11.85 ? kf(t, [[11.5, CHEST[1]], [11.78, COCK[1]], [11.85, -1.25]]) : lerp(-1.25, .02, easeIn(seg(t, 11.85, CLANG)));
-      dx = kf(t, [[11.8, 0], [CLANG, hit.dx]]); rot = kf(t, [[11.5, 0], [11.8, .16], [CLANG, -.06]]); armK = lerp(1, 1.2, easeIn(seg(t, 11.85, CLANG)));
+    if (t < CLANG) {   // winds up from his chest, the rock swung down behind him (11.5–11.78), hops and swings it round
+      // and in from the side (11.85–12.0): never down across his face
+      aL = t < 11.85 ? kf(t, [[11.5, CHEST[0] + TAU], [11.78, LOWBACK], [11.85, LOWBACK - .1]]) : hit.aL;
+      bendL = t < 11.85 ? kf(t, [[11.5, CHEST[1]], [11.78, .35], [11.85, .3]]) : .02;
+      dx = kf(t, [[11.8, 0], [CLANG, hit.dx]]); rot = kf(t, [[11.5, 0], [11.8, .1], [CLANG, -.06]]); armK = t < 11.85 ? 1 : 1.2;
     } else {   // the rock sits on the mask for two frames (hit-stop), then bounces off: he recoils back past his mark (by 12.3),
       // arm buzzing; then pulls the rock in and hugs it (13.0–13.5)
       const rec = easeOut(seg(t, CLANG + HOLD, 12.3)), back = ease(seg(t, 13.0, 13.5));
@@ -771,7 +774,11 @@
     const F = face(t, [[11.5, 'determined', { eyes: 'determined', mouth: 'teeth' }], [12.05, 'surprised', { emote: null, mouth: 'flat' }], [12.6, 'neutral', { eyes: 'look' }], [13.05, 'nervous', { emote: 'sweat', mouth: 'wobble' }]]);
     const look = t < 12.6 ? [.9, 0] : t < 13.0 ? [.45, -1] : t < 13.6 ? [.9, -.3] : [.2, -1];
     const out = seg(t, 11.88, CLANG) * (1 - seg(t, CLANG + HOLD, 12.2));
-    const o = { ...F, boilKey: NK, seed: 1, prop: 'none', handOver: true, handL: out > 0 ? rockOut(out) : rockHand, ...base, aL, bendL, armKL: armK, dx, rot, aR: -1.2, bendR: .3, lookX: look[0], lookY: look[1], crouch: t > 13.1 ? .12 * ease(seg(t, 13.1, 13.5)) : 0, emoteDx: 4.8, emoteDy: .3 };
+    const o = { ...F, boilKey: NK, seed: 1, prop: 'none', handOver: true, handL: out > 0 ? rockOut(out) : rockHand, ...base, aL, bendL, armKL: armK, dx, rot, dy: J.dy, sq: J.sq, aR: -1.2, bendR: .3, lookX: look[0], lookY: look[1], crouch: t > 13.1 ? .12 * ease(seg(t, 13.1, 13.5)) : 0, emoteDx: 4.8, emoteDy: .3 };
+    if (t >= 11.85 && t < CLANG) {   // the swing: the hand straight from behind his hip to the mask, across his chest
+      const k = easeIn(seg(t, 11.85, CLANG)), a = handLocal(U, { ...o, aL: LOWBACK - .1, bendL: .3, armKL: 1 }, 'L'), b = handLocal(U, { ...o, aL: hit.aL, bendL: .02, armKL: 1.2 }, 'L');
+      Object.assign(o, reachArm(U, o, 'L', lerp(a[0], b[0], k), lerp(a[1], b[1], k)));
+    }
     if (t < 12.45) {   // the far hand: on the rock at his chest, then out in front as a guard through the wind-up and swing,
       // back to his side after the recoil (hanging, its lone fist floated by the AK's barrel)
       const cl = clutch(o), gd = reachArm(U, o, 'R', 3.0 * U, -6.7 * U), g = ease(seg(t, 11.5, 11.75)), rel = ease(seg(t, 12.15, 12.45));
