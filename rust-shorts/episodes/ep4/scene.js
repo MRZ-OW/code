@@ -402,6 +402,8 @@
     return { ...base, aL: A[0], bendL: A[1], rot, dx, aR: kf(t, [[-.5, -.9], [0, -.45], [.5, -1.05], [.8, -1.2]]), bendR: kf(t, [[0, .5], [.5, .25]]),
       openR: t < .42, walk: t > .32 && t < .55 ? .12 * seg(t, .32, .5) : undefined, lookX: .45, lookY: .45 };
   }
+  // the jump-hit on the X at head height (1.6): a high hop, the rock swung up from below onto it at shoulder level
+  const HOP = 4.6, LOWBACK = -2.35, HITPOSE = { view: 'q', flip: true, rawArms: true, dy: -HOP, rot: -.06, crouch: 0, bendL: .05, aL: .15 };
   function nakedS1(t) {
     // returns { x, behind (drawn before the trunk), o }
     const F = face(t, N1), S = { ...F, boilKey: NK, seed: 1, prop: 'none', handOver: true, handL: rockHand };
@@ -409,16 +411,17 @@
     if (t < 1.0) return { x: NX, o: { ...S, ...swing1(t) } };
     const x0 = NX + swing1(1).dx * U;   // where the first swing left him
     if (t < 2.0) {
-      // looks up at it, crouches, jumps and hits it at the top of the hop (1.6), lands with the rock back at his chest
-      const J = jump(t, 1.4, 1.8, 2.2), crouch = .35 * ease(seg(t, 1.15, 1.38)) * (1 - seg(t, 1.38, 1.42));
-      const pre = { view: 'q', flip: true, rawArms: true, crouch, dy: J.dy, rot: kf(t, [[1.38, 0], [1.6, -.12], [1.85, 0]]), bendL: kf(t, [[1.0, CHEST[1]], [1.3, -.5], [1.6, .05], [1.67, .2], [1.8, CHEST[1]]]) };
-      const hitPose = { ...pre, dy: -2.2, rot: -.12, crouch: 0, bendL: .05, aL: -5.75 };
-      const hit = strike(x0, G, hitPose, XB[0] + 6, XB[1] + 4);
-      const aL = t < 1.3 ? kf(t, [[1.0, CHEST[0] + TAU], [1.3, COCK[0]]]) : t < 1.6 ? lerp(COCK[0], hit.aL, easeIn(seg(t, 1.42, 1.6))) : kf(t, [[1.6, hit.aL], [1.67, hit.aL + .22], [1.8, CHEST[0]]]);
+      // looks up at it, crouches with the rock swung down behind him, jumps high and, at the top of the hop (1.6), swings
+      // the rock up from below and in from the side onto the X (level with his shoulder, so it never crosses his face),
+      // then lands with the rock back at his chest
+      const J = jump(t, 1.4, 1.8, HOP), crouch = .35 * ease(seg(t, 1.15, 1.38)) * (1 - seg(t, 1.38, 1.42));
+      const pre = { view: 'q', flip: true, rawArms: true, crouch, dy: J.dy, rot: kf(t, [[1.38, .08], [1.6, -.06], [1.85, 0]]), bendL: kf(t, [[1.0, CHEST[1]], [1.3, .35], [1.45, .3], [1.6, .05], [1.67, .2], [1.8, CHEST[1]]]) };
+      const hit = strike(x0, G, HITPOSE, XB[0] + 6, XB[1] + 4);
+      const aL = t < 1.3 ? kf(t, [[1.0, CHEST[0] + TAU], [1.3, LOWBACK]]) : t < 1.6 ? lerp(LOWBACK, hit.aL, easeIn(seg(t, 1.4, 1.6))) : kf(t, [[1.6, hit.aL], [1.67, hit.aL - .3], [1.8, CHEST[0] + TAU]]);   // it rebounds down and out, clear of his face
       const dx = kf(t, [[1.4, 0], [1.6, hit.dx], [2.0, hit.dx]]);
-      return { x: x0, o: { ...S, ...pre, aL, dx, sq: J.sq, aR: kf(t, [[1.0, -1.2], [1.4, -.2], [1.8, -1.0]]), bendR: .4, lookX: t < 1.66 ? .2 : kf(t, [[1.66, .2], [1.9, 1]]), lookY: t < 1.66 ? -1 : kf(t, [[1.66, -1], [1.9, 0]]) } };
+      return { x: x0, o: { ...S, ...pre, aL, dx, sq: J.sq, aR: kf(t, [[1.0, -1.2], [1.4, -.2], [1.8, -1.0]]), bendR: .4, lookX: t < 1.66 ? .6 : kf(t, [[1.66, .6], [1.9, 1]]), lookY: t < 1.66 ? kf(t, [[1.0, -1], [1.5, -.3]]) : kf(t, [[1.66, -.3], [1.9, 0]]) } };
     }
-    const x1 = x0 + strike(x0, G, { view: 'q', flip: true, rawArms: true, dy: -2.2, rot: -.12, bendL: .05, aL: -5.75 }, XB[0] + 6, XB[1] + 4).dx * U;
+    const x1 = x0 + strike(x0, G, HITPOSE, XB[0] + 6, XB[1] + 4).dx * U;
     if (t < 2.9) {
       // tiptoes behind the trunk, then leans out from its left edge to look for it
       const k = ease(seg(t, 2.0, 2.35)), x = lerp(x1, 404, k), lean = ease(seg(t, 2.35, 2.5)) * (1 - ease(seg(t, 2.84, 2.9)));

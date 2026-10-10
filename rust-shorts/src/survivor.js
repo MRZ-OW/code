@@ -636,15 +636,17 @@ function armGeom(u, o, which) {
   // the hand's depth
   // (seated or crouched, a hand below the chest rests forward, on the lap or the knees)
   const sitK = clamp(Math.max(clamp(o.sit || 0), .6 * clamp(o.crouch || 0)));
+  let alt = false;
   const place = (px, py) => {
     let ww = toV(s * 1.95, .35 + 1.5 * sitK * clamp((py - (ys + 1.2)) / 1.2))[1];
     const rb = rayBody(px, py, HAND_HW), rh = rayHead(px, py, HAND_HW);
     // the body: a near hand in front of it, a far one behind it (with farFront: in front where it's well inside the
     // body's outline, a hand on the chest or belly; round its edge it stays behind)
-    if (rb) { const rt = rayBody(px, py, 0), deep = rt && rt[2] && Math.abs(px - (rt[3] || 0)) < .78 * rt[4];
+    // (deep: well inside the outline, on the front of him: in profile the far hand can't come round to our side of him)
+    if (rb) { const rt = rayBody(px, py, 0), deep = rt && rt[2] && Math.abs(px - (rt[3] || 0)) < .78 * rt[4] && toB(px, rt[1])[1] > .5;
       // ("in front" is his front: seen from behind, that's the far side of him, and a hand behind his back is on the near side)
       if (back && rb[2] && V.side) { const zOf = q => { const [Xq, Zq] = toB(px, q); return Zq - .3 * s * Xq; }; ww = zOf(rb[0]) < zOf(rb[1]) ? rb[0] : rb[1]; }   // behind his back, in 3/4 and profile: on his own side
-      else ww = (wantFront && (!far || deep)) !== !!V.back ? Math.max(ww, rb[1]) : Math.min(ww, rb[0]); }
+      else ww = ((wantFront && (!far || deep)) !== !!V.back) !== alt ? Math.max(ww, rb[1]) : Math.min(ww, rb[0]); }
     // the head: a near hand in front of it (only ever at the chin or mouth, see above); a far one behind it unless it
     // reaches across (farFront) to the mouth
     if (rh) ww = (!back && (!far || (o.farFront && py - hy > .3 * HEAD_R))) ? Math.max(ww, rh[1]) : Math.min(ww, rh[0]);
@@ -678,11 +680,15 @@ function armGeom(u, o, which) {
     return (A < 1e-4 || Math.hypot(X2 / (A + .1), Z2 / (C + .1)) >= 1) && !thru(px, py, wr) ? wr : null;
   };
   { const d0 = Math.hypot(x - xs, y - ys); if (d0 >= reach(ak)) ak = Math.min(ak * 1.1, d0 / reach(1)); }
+  // (if the hand can't get there on its side of the body at all, it would shrink onto the shoulder: it goes round the
+  // other side of the body instead)
   const pullIn = () => {
+    alt = false;
     let wf = fit(x, y);
     if (wf == null) {
-      let lo = 0, hi = 1;
-      for (let i = 0; i < 14; i++) { const m = (lo + hi) / 2; if (fit(xs + (x - xs) * m, ys + (y - ys) * m) != null) lo = m; else hi = m; }
+      const halve = () => { let lo = 0, hi = 1; for (let i = 0; i < 14; i++) { const m = (lo + hi) / 2; if (fit(xs + (x - xs) * m, ys + (y - ys) * m) != null) lo = m; else hi = m; } return lo; };
+      let lo = halve();
+      if (lo < .35) { alt = true; const lo2 = fit(x, y) != null ? 1 : halve(); if (lo2 > lo + .15) lo = lo2; else alt = false; }
       x = xs + (x - xs) * lo; y = ys + (y - ys) * lo; wf = fit(x, y);
     }
     return wf ?? place(x, y);
