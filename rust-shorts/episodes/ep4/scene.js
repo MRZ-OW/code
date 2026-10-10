@@ -384,7 +384,7 @@
 
   // ---------- S1: the X (0–7) ----------
   const XA = [416, 1080], XB = [402, 880], XPEEK = 780, XLOW = 1132;   // chest, head height, the peek (over his head), the low exit
-  const RX = 600, HITB = [edgeR(1010) + 3, 1010];   // where he swings at the peek from; where his chop ends on the bark (below it)
+  const RX = 600, HITB = [edgeR(1085) + 3, 1085];   // where he swings at the peek from; where his chop ends on the bark (below it)
   const BOARO = { boilKey: BO, seed: 3, coat: 'charcoal' };
   const COCK = [-4.43, -1.1];   // elbow up, forearm cocked back, the rock behind his head (≡ 1.85 rad): frame 0
   const N1 = [[0, 'determined', { eyes: 'determined', mouth: 'flat' }], [.46, 'determined', { eyes: 'determined', mouth: 'teeth' }], [.62, 'surprised', { emote: null }],
@@ -428,8 +428,8 @@
       return { x, behind: true, o: { ...S, view: 'q', flip: true, rawArms: true, crouch: .3 * (1 - .4 * lean), walk: (x1 - x) / (3 * U), dy: -.25 * Math.pow(Math.sin(k * Math.PI * 3), 2), rot: -.4 * lean,
         aL: CHEST[0], bendL: CHEST[1], aR: -.9 + .5 * lean, bendR: 1.0, lookX: .9, lookY: .1 } };
     }
-    // he senses it behind him: dashes back round the trunk (2.9–3.04, smeared), skids round, and chops overhead at the X
-    // peeking over his head: it ducks (3.2), the chop comes on down through where it was and thuds into the bark (3.3)
+    // he senses it behind him: dashes back round the trunk (2.9–3.04, smeared), skids round, and swings at the X peeking
+    // over his head: it ducks (3.2) and the swing thuds into the bark below it (3.3)
     const side = { view: 'q', flip: true, rawArms: true };
     const hitBark = strike(RX, G, { ...side, rot: -.12, aL: -6.0, bendL: .02 }, HITB[0], HITB[1]);
     if (t < 3.6) {
@@ -438,13 +438,22 @@
         return { x, behind: x < RX - 4, dash: k, o: { ...S, view: 'side', flip: false, rawArms: true, walk: (x - 404) / (2.4 * U), smear: .85 * Math.sin(Math.PI * Math.min(1, k * 1.1)), smearDir: -1,
           rot: .14, ...RAISED, aR: -.3, bendR: 1.2, lookX: .9 } };
       }
-      // a snap turn on the skid (the rock stays up behind his head), the wind-up, the chop
-      const aL = t < 3.12 ? kf(t, [[3.04, RAISED.aL], [3.12, COCK[0]]]) : t < 3.3 ? lerp(COCK[0], hitBark.aL, easeIn(seg(t, 3.12, 3.3))) : hitBark.aL + .1 * Math.sin(t * 90) * Math.exp(-(t - 3.3) * 9);
-      const bendL = t < 3.12 ? kf(t, [[3.04, RAISED.bendL], [3.12, COCK[1]]]) : t < 3.3 ? lerp(COCK[1], .02, easeIn(seg(t, 3.12, 3.3))) : .02;
-      const armKL = t < 3.12 ? kf(t, [[3.04, RAISED.armKL], [3.12, 1]]) : 1;
+      // a snap turn on the skid, the rock swung from up behind his head down and back behind him (the wind-up, 3.15), then
+      // round under and forward into the bark at chest height (3.3): from the side, never across his face (an overhead
+      // chop from his near, back shoulder can only come down over it)
+      let aL = t < 3.15 ? kf(t, [[3.04, RAISED.aL], [3.15, LOWBACK]]) : t < 3.3 ? hitBark.aL : hitBark.aL + .1 * Math.sin(t * 90) * Math.exp(-(t - 3.3) * 9);
+      let bendL = t < 3.15 ? kf(t, [[3.04, RAISED.bendL], [3.15, .35]]) : .02;
+      const armKL = t < 3.15 ? kf(t, [[3.04, RAISED.armKL], [3.15, 1]]) : 1;
       const dx = kf(t, [[3.14, 0], [3.3, hitBark.dx], [3.6, hitBark.dx]]), skid = Math.exp(-(t - 3.04) * 14);
-      return { x: RX, o: { ...S, ...side, sq: .14 * skid, crouch: kf(t, [[3.04, .3], [3.14, .12], [3.3, 0]]), rot: kf(t, [[3.04, .1], [3.14, .14], [3.3, -.12], [3.6, -.04]]), aL, bendL, armKL, dx,
-        aR: kf(t, [[3.04, -.9], [3.12, -.5], [3.3, -1.1]]), bendR: .5, lookX: .55, lookY: -.55 } };
+      const o = { ...S, ...side, sq: .14 * skid, crouch: kf(t, [[3.04, .3], [3.14, .12], [3.3, 0]]), rot: kf(t, [[3.04, .1], [3.14, .14], [3.3, -.12], [3.6, -.04]]), aL, bendL, armKL, dx,
+        aR: kf(t, [[3.04, -.9], [3.12, -.5], [3.3, -1.1]]), bendR: .5, lookX: .55, lookY: -.55 };
+      // the swing itself: the hand goes straight from behind his hip to the strike, across in front of his belly (swinging
+      // the angle would dip it through the crotch)
+      if (t >= 3.15 && t < 3.3) {
+        const k = easeIn(seg(t, 3.15, 3.3)), a = handLocal(U, { ...o, aL: LOWBACK, bendL: .35 }, 'L'), b = handLocal(U, { ...o, aL: hitBark.aL, bendL: .02 }, 'L');
+        Object.assign(o, reachArm(U, o, 'L', lerp(a[0], b[0], k), lerp(a[1], b[1], k)));
+      }
+      return { x: RX, o };
     }
     const xs = RX + hitBark.dx * U;
     if (t < 4.48) {
