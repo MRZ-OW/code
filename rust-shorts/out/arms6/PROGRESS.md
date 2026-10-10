@@ -32,7 +32,10 @@ a6/base): before_epN.txt.
 - More continuity fixes found by the torture sheet's motion pages (scan6 LOOP=arms 8..12; were 46 state changes, 24
   flips, 35 jumps; now 9 / 1 / 7, the rest is the far upper arm coming in front of the chest in q, see Left):
   - unhead (raised far hand slid out past the head) is a projection from the asked x, not a step from the current one:
-    inside the push/reach loop it compounded into a snap, by however many passes ran. Its fade is 1u wide (was .35u).
+    inside the push/reach loop it compounded into a snap, by however many passes ran. Its fade is .5u wide (was .35u);
+    in profile the ahead/behind split is at x 1.0 (was .6) so a raised far arm (x ~.2) still shows behind the head; a
+    pushed-out hand keeps its x when the reach clamp brings it down (pulled toward the shoulder it slid back behind
+    the head: EP3 17.0 toss wind-up now shows the hand at -2.76, was -2.58).
   - pullIn: the largest fitting share of the line is found stepping down from the hand (halving from the shoulder
     assumed one fitting piece and threw the hand halfway in, or round the other side, on a hair's change).
   - "straight arm through the body" shortens the reach smoothly (thruK) instead of by 16% at a threshold.
@@ -47,7 +50,9 @@ a6/base): before_epN.txt.
 | 3 | 21 / 10 / 8 / 11 / 52 | 2 / 0 / 0 / 0 / 15 |
 | 4 | 34 / 30 / 3 / 10 / 54 | 0 / 0 / 0 / 4 / 29 |
 | 5 | 8 / 7 / 8 / 0 / 29 | 0 / 0 / 0 / 0 / 11 |
-Torture motion pages (LOOP=arms 8-12): 46 / 24 / 15 / 35 -> 9 / 1 / 1 / 7.
+Torture motion pages (LOOP=arms 8-12): 46 / 24 / 15 / 35 -> 9 / 1 / 9 / 16 (left: a far hand swept over the top of
+the head in profile swaps from ahead of the head to behind it within ~1u of asked travel, hidden by the head while it
+crosses; and in q a far upper arm laid flat across the chest comes in front at once, BBs<->FF; neither is in any episode).
 Deliberate layer changes left (all at the silhouette edge, hand within .25u of it, so the far hand goes round the edge):
 EP1 17.17 Naked R (s3c, far hand leaves his belly), EP3 23.17 and 24.88 Naked R (far hand comes onto / leaves his front).
 Position jumps left: EP4 0.5 (the smeared strike, asked hand moves 4.1u in a frame), EP4 1.13, 11.63, 19.67 (rock
@@ -61,3 +66,13 @@ far arms hidden behind the body; none is a visibility change.
   (the scanner's worst baseline moments per episode); strip_reg_ep*_{before,after}.jpg: one regression stretch per ep.
 - palms_*.jpg: every open-hand moment, top row before, bottom row after.
 - sheet_p0..7.jpg (torture pages), sheet_p12..15.jpg (thumbs), sheet_motion_*.jpg (motion strips).
+
+## Final check (a16c19a + unhead clamp)
+- Episode scans unchanged by the last fixes except EP3 17.29 (toss release jerk 2.49 vs asked 1.42, deliberate).
+- Old a5 checks: FACE/BEARD frames identical to baseline, 0 SHRK, 0 CROT.
+- Sheets: sheet_p0..7 vs arms5/final_p0..7: raised far arms show (side R raise / raise both); far hands on the belly
+  or chest in profile now show as a hand peeking past his front instead of being folded away (natural occlusion).
+- chk_ep1..5.jpg: before (top) / after (bottom) at the times where hands moved most (pullIn now lands hands where the
+  scene asked; it used to undershoot by up to .7u).
+- strip_ep3_toss_{before,after}.jpg: wind-up hand shows behind the head.
+- No sound moments moved; cues.json untouched.
