@@ -785,10 +785,11 @@ function armGeom(u, o, which) {
     for (let i = 1; i <= 8; i++) P.push([lerp(Ex, Hx, i / 8), lerp(E[1], y, i / 8)]);
     for (const k of [.25, .5]) P.push([Hx + (Hx - Ex) / l2 * k, y + (y - E[1]) / l2 * k]);   // the fist
     let vis = 0;
-    P.forEach((q, i) => { if (i) vis += Math.hypot(q[0] - P[i - 1][0], q[1] - P[i - 1][1]) * clamp((occ(q[0], q[1]) + .2) / .3); });
-    const k = 1 - ease((vis - 1.3) / 1.0);
+    // (how much shows: its length past the silhouettes, by the share of its width that clears them, outline included)
+    P.forEach((q, i) => { if (i) vis += Math.hypot(q[0] - P[i - 1][0], q[1] - P[i - 1][1]) * clamp((occ(q[0], q[1]) + hwA - .25) / (2 * hwA - .25)); });
+    const k = 1 - ease((vis - 1.0) / 1.0);
     // folded down out of sight behind the torso, as far as the sliver needs (a hidden arm's pose doesn't matter)
-    if (k > 0) { const Er = [Sx * .8, ys + 1.6], Hr = [Sx * .7, ys + 3.1]; tuckE = [(Er[0] - Ex) * k, (Er[1] - E[1]) * k]; tuck = [(Hr[0] - Hx) * k, (Hr[1] - y) * k]; }
+    if (k > 0) { const Er = [Sx * .5, ys + 1.6], Hr = [Sx * .4, ys + 3.1]; tuckE = [(Er[0] - Ex) * k, (Er[1] - E[1]) * k]; tuck = [(Hr[0] - Hx) * k, (Hr[1] - y) * k]; }
   }
   if (o._trace) o._trace({ x, y, w, E: [Ex, E[1]], tuck, tuckE, up, fo, split, wrapped });
   Hx += tuck[0]; Ex += tuckE[0];
