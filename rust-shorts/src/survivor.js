@@ -421,6 +421,19 @@ function survivor(x, y, u, o = {}) {
     }
   }
 
+  // Seated, seen from the front (or behind): the thighs come straight at us, so each shows as a round knee just under the
+  // briefs' (or trousers') cuff, over the top of the shin, instead of a shin coming straight out of the cuff.
+  if (!prof && st > .3 && !V.back) {
+    rs('knees');
+    const kc = (gear.pants || suit) ? (suit || (gear.pantsCol || '#3D4248')) : legC, kw = (gear.pants || suit ? legW[0] : 1.2 * u) * .56, kk = clamp((st - .3) / .4);
+    for (const th of thighs) {
+      if (!th) continue;
+      const [kx] = th[1], cy = hipY + (gear.pants || suit ? .75 : 1.0) * u, P = ellPts(kx, cy, kw * kk + kw * .6 * (1 - kk), .5 * u * kk + .2 * u, 18);
+      paint(P, { wash: kc, ink: null });
+      inkLine(P.slice(1, 9), sw * .7, PAL.ink, 'ink', .5);   // its lower rim
+    }
+  }
+
   // ---------- torso ----------
   rs('torso');
   // round shoulders (a square corner showed past the 3/4 view's round shoulder cap)
@@ -560,9 +573,10 @@ function svOcc(V, px, py, dr, hy) {
   return Math.min(dT, Math.hypot(px, py - hy) - HEAD_R);
 }
 // The face on screen, as ellipses (u, body frame) for view V (null from behind): [cx, cy, rx, ry, push centre's x offset
-// (in rx)]. FACE: where no hand goes above the mouth (front-on, the whole head: a hand on the head is on its side or top);
+// (in rx)]. FACE: where no hand goes above the mouth (front-on, the whole head: a hand on the head is on its side or top;
+// turned, the face and beard: a hand may rest on the hair at the back or top);
 // GUARD: the face and the beard, which no bone crosses.
-const SV_FACE = { front: [0, 0, 2.35, 2.35, 0], qf: [.2, 0, 2.35, 2.35, .05], q: [1.25, .45, 1.12, 1.55, .3], side: [2.1, .45, .85, 1.55, .5] };
+const SV_FACE = { front: [0, 0, 2.35, 2.35, 0], qf: [.2, 0, 2.35, 2.35, .05], q: [.3, .6, 2.1, 1.6, .3], side: [1.25, .6, 1.35, 1.6, .4] };
 const SV_GUARD = { front: [0, .45, 1.9, 1.75], qf: [.5, .45, 1.85, 1.75], q: [.3, .6, 2.1, 1.6], side: [1.25, .6, 1.35, 1.6] };
 const svFaceKey = V => V === SV.side ? 'side' : V === SV.q ? 'q' : V === SV.qf ? 'qf' : V.back ? null : 'front';
 function svFace(V, hy, guard = false) {
@@ -591,9 +605,9 @@ function armGeom(u, o, which) {
   // front of the face (eating, a hand at the chin).
   const FACE = svFace(V, hy), GUARD = svFace(V, hy, true);
   // (pushed along the line from a point at the chin, so the push never flips side as a hand passes over the face)
-  const unface = (px, py) => {
-    if (!FACE || (far && !o.farFront)) return [px, py];
-    const a = FACE[2] + HAND_HW, b = FACE[3] + HAND_HW, cx = FACE[0] + FACE[4] * FACE[2], cy = hy + 1.9, dx = px - cx, dy = py - cy;
+  const unface = (px, py, F = FACE, m = HAND_HW) => {
+    if (!F || (far && !o.farFront)) return [px, py];
+    const FACE = F, a = FACE[2] + m, b = FACE[3] + m, cx = FACE[0] + FACE[4] * FACE[2], cy = hy + 1.9, dx = px - cx, dy = py - cy;
     const qa = (dx / a) ** 2 + (dy / b) ** 2, qb = 2 * ((cx - FACE[0]) * dx / (a * a) + (cy - FACE[1]) * dy / (b * b)), qc = ((cx - FACE[0]) / a) ** 2 + ((cy - FACE[1]) / b) ** 2 - 1;
     if (qa < 1e-9) return [px, py];
     const t = (-qb + Math.sqrt(Math.max(0, qb * qb - 4 * qa * qc))) / (2 * qa), k = 1 - ease(clamp((py - hy - .5) / 1.0));
@@ -656,10 +670,18 @@ function armGeom(u, o, which) {
   pullIn();
   // then off the face (see 2. above) and in reach on screen, alternately (it settles where both hold: a raised arm
   // splays out beside the head), and its depth fitted again
-  for (let i = 0; i < 8; i++) {
+  const x0 = x;
+  for (let i = 0; i < 10; i++) {
     [x, y] = unface(x, y);
+    // (a straight arm from the shoulder to the hand mustn't cross the face and beard either: the hand moves out further)
+    // (only for a hand on the arm's own side of the face: one reaching up in front of the face to the far side may cross
+    // it, as it must on its way, rather than jump)
+    let mx = 0, my = 0;
+    const od = V.side ? -1 : xs < 0 ? -1 : 1, wB = GUARD ? clamp((x0 - GUARD[0]) * od / 1.2 + .5) : 0;
+    if (wB > 0) for (const t of [.4, .55, .7, .85]) { const px = lerp(xs, x, t), py = lerp(ys, y, t), [qx, qy] = unface(px, py, GUARD, ARM_HW); if (Math.hypot(qx - px, qy - py) > Math.hypot(mx, my) * t) { mx = (qx - px) / t; my = (qy - py) / t; } }
+    x += mx * wB; y += my * wB;
     const d2 = Math.hypot(x - xs, y - ys), rm = reach(ak) * .97;
-    if (d2 > rm) { x = xs + (x - xs) * rm / d2; y = ys + (y - ys) * rm / d2; } else break;
+    if (d2 > rm) { x = xs + (x - xs) * rm / d2; y = ys + (y - ys) * rm / d2; } else if (Math.hypot(mx, my) * wB < .01) break;
   }
   w = pullIn();
   [X, Z] = toB(x, w);
