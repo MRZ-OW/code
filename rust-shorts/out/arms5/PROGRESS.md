@@ -33,6 +33,11 @@ more than the asked hand, CROT = front hand over the briefs). Output scratchpad 
   EP5 17.3 drool wipe (deliberate), far-arm POPs in fast swings/runs (hidden arms).
 - final torture pages out/arms5/final_p0..7.jpg + final_thumbs.jpg.
 
+- EP4 12.0 CLANG restaged the same way (target level with his face): a hop (jump 11.78-12.3, apex 12.04), rock swung
+  down behind him (11.78), then straight across his chest onto the mask X from the side. CLANG time unchanged.
+- EP1 0-1.2 and 26.9-27.2 (loop match): rock arm aL -.95 -> -1.2 so the rock hangs by his thigh, not over his briefs.
+- Sweeps reviewed: ep3 a/b, ep4 a/b, ep5 a/b, ep1 a (before the rock fix).
+
 ## Left
 - full torture sheet (8 pages) -> final_p0..7.jpg; regression reg_ep*.jpg (times in scratchpad/times.txt + fixed shots);
   0.5 s sweeps per episode (sweep_epN_*.jpg).
