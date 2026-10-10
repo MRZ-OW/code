@@ -376,7 +376,7 @@
       handL: (u, sw) => beanCan(u * .9, sw, { open: true, rot: -.3 }), draw: (u, sw) => earFlower(u, 2.25, -11.35 + 2.05, .36, .5, 'gift3d') });
     emote('zzz', 200, 1020, 16, 1, t);
     const k = seg(t, 19, 22), nx = lerp(460, 760, k), ph = (t - 19) * 1.7;
-    spawnling(nx, 1470, 46, { ...feel('happy', t, { emote: null }), boilKey: NK, seed: 1, view: 'q', walk: ph, dy: -.25 * Math.pow(Math.sin(ph * Math.PI), 2), rawArms: true, aL: -1.0 + .5 * Math.sin(ph * Math.PI), bendL: .3, aR: -1.2 - .3 * Math.sin(ph * Math.PI), bendR: .3 });
+    spawnling(nx, 1470, 46, { ...feel('happy', t, { emote: null }), boilKey: NK, seed: 1, view: 'q', walk: ph, dy: -.25 * Math.pow(Math.sin(ph * Math.PI), 2), rawArms: true, aL: -1.4 + .3 * Math.sin(ph * Math.PI), bendL: .3, aR: -1.2 - .3 * Math.sin(ph * Math.PI), bendR: .3 });   // (the rock swings by his thigh, never over his briefs)
     emote('music', nx - 175, 1470 - 16.4 * 46, 24, 1, t);   // the notes float up-left, clear of his head
     grade('#F2A27A', 24); glow(930, 985, 380, '#FFC488', .5);
     camEnd();
