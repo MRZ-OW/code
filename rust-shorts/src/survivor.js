@@ -618,6 +618,21 @@ function armGeom(u, o, which) {
     const k = (1 - ease(clamp((py - hy - .5) / 1.0))) * (1 - ease((un + .1) / 1.0));
     return [lerp(px, xb, k), py];
   };
+  // A far hand raised up by the head (raised, pointing up, waving, hands up) would be hidden behind it: it slides out, at
+  // the same height, past the head's outline, so the forearm and hand rise into view from behind the head. It goes to the
+  // far shoulder's side (in 3/4 and profile: ahead, past the brow), or, for a hand well back of the head's middle (a
+  // wind-up behind the head), out past the back of the head; the push fades to nothing between the two (continuous).
+  // It fades in from the chin up, so a far hand at the mouth or below is left alone.
+  const raisedK = py => 1 - ease(clamp((py - (hy + .1)) / 1.3));
+  const unhead = (px, py, uRef) => {
+    if (!far || back) return [px, py];
+    const R = HEAD_R + .55, dy = py - hy, kh = raisedK(py);
+    if (Math.abs(dy) >= R || kh <= 0) return [px, py];
+    const hw = Math.sqrt(R * R - dy * dy), cM = V === SV.side ? .6 : -1.0, sd = uRef >= cM ? 1 : -1, xb = sd * hw;
+    if ((px - xb) * sd >= 0) return [px, py];
+    const k = kh * ease(clamp(Math.abs(uRef - cM) / .35));
+    return [lerp(px, xb, k), py];
+  };
   // the hand's depth
   // (seated or crouched, a hand below the chest rests forward, on the lap or the knees)
   const sitK = clamp(Math.max(clamp(o.sit || 0), .6 * clamp(o.crouch || 0)));
@@ -675,9 +690,10 @@ function armGeom(u, o, which) {
   pullIn();
   // then off the face (see 2. above) and in reach on screen, alternately (it settles where both hold: a raised arm
   // splays out beside the head), and its depth fitted again
-  const x0 = x;
+  const x0 = x, y0r = y;
   for (let i = 0; i < 10; i++) {
     [x, y] = unface(x, y, FACE, HAND_HW, x0);
+    [x, y] = unhead(x, y, x0);
     const mx = 0;
     const d2 = Math.hypot(x - xs, y - ys), rm = reach(ak) * .97;
     if (d2 > rm) { x = xs + (x - xs) * rm / d2; y = ys + (y - ys) * rm / d2; } else if (Math.abs(mx) < .01) break;
@@ -794,7 +810,8 @@ function armGeom(u, o, which) {
     let vis = 0;
     // (how much shows: its length past the silhouettes, by the share of its width that clears them, outline included)
     P.forEach((q, i) => { if (i) vis += Math.hypot(q[0] - P[i - 1][0], q[1] - P[i - 1][1]) * clamp((occ(q[0], q[1]) + hwA - .25) / (2 * hwA - .25)); });
-    const k = 1 - ease((vis - 1.0) / 1.0);
+    // (a raised far arm is never folded away: it shows rising from behind the head, see unhead)
+    const k = (1 - ease((vis - 1.0) / 1.0)) * (1 - raisedK(y0r));
     // folded down out of sight behind the torso, as far as the sliver needs (a hidden arm's pose doesn't matter)
     if (k > 0) { const Er = [Sx * .5, ys + 1.6], Hr = [Sx * .4, ys + 3.1]; tuckE = [(Er[0] - Ex) * k, (Er[1] - E[1]) * k]; tuck = [(Hr[0] - Hx) * k, (Hr[1] - y) * k]; }
   }
