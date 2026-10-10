@@ -29,3 +29,12 @@ a6/base): before_epN.txt.
 - Scans (a6/before_epN.txt vs after_epN.txt): see table below. Old a5 scan.js: FACE/BEARD frames identical, no
   CROT/SHRK, POPs 22 -> 1 (EP4 0.5 strike, asked hand moves 4.1u in that frame: deliberate smear).
 - Open-hand moments listed by a6/open.js; before/after crops out/arms6/palms_*.jpg (top row before, bottom after).
+- More continuity fixes found by the torture sheet's motion pages (scan6 LOOP=arms 8..12; were 46 state changes, 24
+  flips, 35 jumps; now 9 / 1 / 7, the rest is the far upper arm coming in front of the chest in q, see Left):
+  - unhead (raised far hand slid out past the head) is a projection from the asked x, not a step from the current one:
+    inside the push/reach loop it compounded into a snap, by however many passes ran. Its fade is 1u wide (was .35u).
+  - pullIn: the largest fitting share of the line is found stepping down from the hand (halving from the shoulder
+    assumed one fitting piece and threw the hand halfway in, or round the other side, on a hair's change).
+  - "straight arm through the body" shortens the reach smoothly (thruK) instead of by 16% at a threshold.
+- Scanner now also flags JERK (2nd difference of hand/elbow >> asked). Remaining jerks are fast swings/throws (asked
+  hand moving > 1u per frame) or elbows of far arms hidden behind the body; none new vs baseline except 3 hidden ones.

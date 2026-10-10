@@ -633,8 +633,10 @@ function armGeom(u, o, which) {
     if (Math.abs(dy) >= R || kh <= 0) return [px, py];
     const hw = Math.sqrt(R * R - dy * dy), cM = V === SV.side ? .6 : -1.0, sd = uRef >= cM ? 1 : -1, xb = sd * hw;
     if ((px - xb) * sd >= 0) return [px, py];
-    const k = kh * ease(clamp(Math.abs(uRef - cM) / .35));
-    return [lerp(px, xb, k), py];
+    // (a projection, not a step: pushed to the point k of the way from the asked x to the outline, never further, so
+    // applying it again, as the loop below does after each reach clamp, doesn't add up into a snap)
+    const k = kh * ease(clamp(Math.abs(uRef - cM) / 1.0)), tx = lerp(uRef, xb, k);
+    return [(px - tx) * sd >= 0 ? px : tx, py];
   };
   // the hand's depth
   // (seated or crouched, a hand below the chest rests forward, on the lap or the knees)
@@ -676,9 +678,11 @@ function armGeom(u, o, which) {
   // middle of the back) must be nearer: the arm has to bend round the body.
   let ak = ak0;
   const reach = k => (ARM_L1 + ARM_L2) * k * .995;
-  const thru = (px, py, pw) => { const [X2, Z2] = toB(px, pw); for (const t of [.35, .5, .65]) { const yy = lerp(ys, py, t), [A, C] = svBodyAx(yy, dr, seat); if (A > 1e-4 && Math.hypot(lerp(S[0], X2, t) / A, lerp(S[2], Z2, t) / C) < 1) return true; } return false; };
+  // (how far the straight arm would pass inside the body, 0..1: the reach shrinks with it smoothly, not at a threshold)
+  const thruK = (px, py, pw) => { const [X2, Z2] = toB(px, pw); let k = 0; for (const t of [.35, .5, .65]) { const yy = lerp(ys, py, t), [A, C] = svBodyAx(yy, dr, seat); if (A > 1e-4) k = Math.max(k, clamp((1 - Math.hypot(lerp(S[0], X2, t) / A, lerp(S[2], Z2, t) / C)) / .15)); } return k; };
+  const thru = (px, py, pw) => thruK(px, py, pw) > 0;
   const fit = (px, py) => {
-    const pw = place(px, py), L = reach(ak) * (thru(px, py, pw) ? .84 : 1), d2 = Math.hypot(px - xs, py - ys);
+    const pw = place(px, py), L = reach(ak) * (1 - .16 * thruK(px, py, pw)), d2 = Math.hypot(px - xs, py - ys);
     if (Math.hypot(d2, pw - ws) <= L) return pw;
     if (d2 >= L) return null;
     const wr = ws + (pw >= ws ? 1 : -1) * Math.sqrt(L * L - d2 * d2), [X2, Z2] = toB(px, wr), [A, C] = svBodyAx(py, dr, seat);
@@ -691,7 +695,11 @@ function armGeom(u, o, which) {
     alt = false;
     let wf = fit(x, y);
     if (wf == null) {
-      const halve = () => { let lo = 0, hi = 1; for (let i = 0; i < 14; i++) { const m = (lo + hi) / 2; if (fit(xs + (x - xs) * m, ys + (y - ys) * m) != null) lo = m; else hi = m; } return lo; };
+      // (the largest share of the way that fits: stepped down from the hand, then refined. Halving from the shoulder
+      // assumed the fitting part of the line is one piece; where it isn't, a hair's change sent the hand halfway in)
+      const halve = () => { const ok = m => fit(xs + (x - xs) * m, ys + (y - ys) * m) != null; let hi = 1, lo = 0;
+        for (let i = 47; i >= 0; i--) { const m = i / 48; if (ok(m)) { lo = m; hi = (i + 1) / 48; break; } }
+        for (let i = 0; i < 8; i++) { const m = (lo + hi) / 2; if (ok(m)) lo = m; else hi = m; } return lo; };
       let lo = halve();
       if (lo < .35) { alt = true; const lo2 = fit(x, y) != null ? 1 : halve(); if (lo2 > lo + .15) lo = lo2; else alt = false; }
       x = xs + (x - xs) * lo; y = ys + (y - ys) * lo; wf = fit(x, y);
@@ -701,7 +709,7 @@ function armGeom(u, o, which) {
   pullIn();
   // then off the face (see 2. above) and in reach on screen, alternately (it settles where both hold: a raised arm
   // splays out beside the head), and its depth fitted again
-  const x0 = x, y0r = y;
+  const x0 = x;
   for (let i = 0; i < 10; i++) {
     [x, y] = unface(x, y, FACE, HAND_HW, x0);
     [x, y] = unhead(x, y, x0);
