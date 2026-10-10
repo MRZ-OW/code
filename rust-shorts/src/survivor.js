@@ -428,7 +428,7 @@ function survivor(x, y, u, o = {}) {
     const kc = (gear.pants || suit) ? (suit || (gear.pantsCol || '#3D4248')) : legC, kw = (gear.pants || suit ? legW[0] : 1.2 * u) * .56, kk = clamp((st - .3) / .4);
     for (const th of thighs) {
       if (!th) continue;
-      const [kx] = th[1], cy = hipY + (gear.pants || suit ? .75 : 1.0) * u, P = ellPts(kx, cy, kw * kk + kw * .6 * (1 - kk), .5 * u * kk + .2 * u, 18);
+      const [kx] = th[1], cy = hipY + (gear.pants || suit ? .75 : 1.0) * u, P = ellPts(kx, cy, kw * (.6 + .4 * kk), (.32 * kk + .15) * u, 18);
       paint(P, { wash: kc, ink: null });
       inkLine(P.slice(1, 9), sw * .7, PAL.ink, 'ink', .5);   // its lower rim
     }
@@ -465,9 +465,9 @@ function survivor(x, y, u, o = {}) {
   // arms in front of the torso cast a soft shadow on it (clipped to it); then the forearms behind the head
   rs('armshadow');
   {
-    const clipP = torso.map(([px, py]) => [px * .96, lerp(py, (shY + wy) / 2, .04)]), sc = armTop || gear.chest ? '#3A2C2E' : SB.dk, sop = armTop || gear.chest ? 70 : 140;
+    const clipP = torso.map(([px, py]) => [px * .96, lerp(py, (shY + wy) / 2, .04)]), sc = armTop || gear.chest ? '#3A2C2E' : SB.dk, sop = armTop || gear.chest ? 55 : 95;
     for (const w of [...V.far, ...V.near]) for (const m of frontModes(AG[w])) for (const P of armShapes(w, m)) {
-      const Q = svClip(P.map(([px, py]) => [px, py + .3 * u]), clipP);
+      const Q = svClip(P.map(([px, py]) => [px, py + .2 * u]), clipP);
       if (Q.length > 2) paint(Q, { wash: sc, washOp: sop, ink: null });
     }
   }
