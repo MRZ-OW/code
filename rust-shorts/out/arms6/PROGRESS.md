@@ -38,3 +38,26 @@ a6/base): before_epN.txt.
   - "straight arm through the body" shortens the reach smoothly (thruK) instead of by 16% at a threshold.
 - Scanner now also flags JERK (2nd difference of hand/elbow >> asked). Remaining jerks are fast swings/throws (asked
   hand moving > 1u per frame) or elbows of far arms hidden behind the body; none new vs baseline except 3 hidden ones.
+
+## Scanner results, all 5 episodes at 24 fps (out/arms6/scans/, before = 7ab46c0, after = current)
+| ep | before: state changes / A-B-A flips / visibility jumps / position jumps / jerks | after |
+|----|----|----|
+| 1 | 26 / 13 / 28 / 8 / 40 | 1 / 0 / 0 / 0 / 10 |
+| 2 | 5 / 2 / 0 / 1 / 3 | 0 / 0 / 0 / 0 / 1 |
+| 3 | 21 / 10 / 8 / 11 / 52 | 2 / 0 / 0 / 0 / 15 |
+| 4 | 34 / 30 / 3 / 10 / 54 | 0 / 0 / 0 / 4 / 29 |
+| 5 | 8 / 7 / 8 / 0 / 29 | 0 / 0 / 0 / 0 / 11 |
+Torture motion pages (LOOP=arms 8-12): 46 / 24 / 15 / 35 -> 9 / 1 / 1 / 7.
+Deliberate layer changes left (all at the silhouette edge, hand within .25u of it, so the far hand goes round the edge):
+EP1 17.17 Naked R (s3c, far hand leaves his belly), EP3 23.17 and 24.88 Naked R (far hand comes onto / leaves his front).
+Position jumps left: EP4 0.5 (the smeared strike, asked hand moves 4.1u in a frame), EP4 1.13, 11.63, 19.67 (rock
+wind-ups: the near hand swings from in front to behind him 1.4-1.7u per frame and the no-hands-over-the-briefs push
+moves it to his hip side a frame early; 2.4-2.7u vs 1.4-1.7u asked). Jerks left: fast swings / throws, and elbows of
+far arms hidden behind the body; none is a visibility change.
+
+## Renders (out/arms6/)
+- strip_<moment>_{before,after}.jpg: EP1 13.8-15.8 (the creep, cropped), EP1 11.4-11.8, 16.9-17.25, 18.8-19.05,
+  EP2 7.5-7.8, EP3 2.95-3.3, 19.8-20.0, 23.0-23.3, 27.55-27.75, EP4 5.2-5.9, 8.0-8.25, 11.55-11.7, EP5 12.6-13.45
+  (the scanner's worst baseline moments per episode); strip_reg_ep*_{before,after}.jpg: one regression stretch per ep.
+- palms_*.jpg: every open-hand moment, top row before, bottom row after.
+- sheet_p0..7.jpg (torture pages), sheet_p12..15.jpg (thumbs), sheet_motion_*.jpg (motion strips).
