@@ -39,7 +39,14 @@ more than the asked hand, CROT = front hand over the briefs). Output scratchpad 
   briefs (check sheet fix_ep1_rock.jpg; sweep_ep1_a's 0.0-1.0 frames were rendered with an intermediate -1.2).
 - Sweeps reviewed: ep2 a/b, ep3 a/b, ep4 a/b, ep5 a/b, ep1 a (before the rock fix). Regression reg_ep1..5.jpg done.
 
+- EP1 19-21.5 walk: near (rock) arm swing -1.0±.5 -> -1.4±.3 so the rock swings by his thigh, not over his briefs
+  (fix_ep1_walk.jpg).
+- All sweeps done and reviewed (sweep_ep1..5_{a,b}.jpg); final scan3 (scan.js) flags only deliberate face contacts
+  (EP1 6.7 Chad drinking, EP1 25.45-25.95 eye rub, EP2 3.0-3.6 hand on chin, EP5 17.3 drool wipe) and EP4 15.3 the
+  Chad's raised rock hand brushing the top of his head guard (0.16, fine), plus far-arm POPs in fast run/swing cycles
+  (arms swinging behind/in front of the body).
+- No sound moments moved (all hits stay at 0.5, 1.6, 3.3, 12.0; the EP3 toss stays at 17.0).
+
 ## Left
-- full torture sheet (8 pages) -> final_p0..7.jpg; regression reg_ep*.jpg (times in scratchpad/times.txt + fixed shots);
-  0.5 s sweeps per episode (sweep_epN_*.jpg).
-- final.sh (scratchpad a5) renders reg_ep*.jpg and sweep_epN_{a,b}.jpg; then review sweeps, fix, re-render touched.
+- Nothing required. Possible polish: the swing1 swoosh trail (EP4 0.42-0.5) is drawn across his face (the arm isn't);
+  sweep_ep1_a's 0.0-1.0 and sweep_ep1_b's 19-21.5 / 27.x frames predate the last rock tweaks (see fix_ep1_*.jpg).
