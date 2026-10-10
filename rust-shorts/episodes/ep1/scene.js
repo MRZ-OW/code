@@ -438,6 +438,7 @@
       const rub = t > 25.45 && t < 25.95, up = ease(seg(t, 26.1, 26.35)), grabbed = t >= 26.1;
       const Ns = { ...feel('sleepy', t, { emote: null }), eyes: rub ? 'squeeze' : t < 25.95 ? 'closed' : 'normal', boilKey: NK, seed: 1, view: 'side', sit: 1 - up, legsOut: true, dy: 2.3 * (1 - up), crouch: .5 * Math.sin(up * Math.PI), rawArms: true, aL: -1.0, bendL: .4, aR: lerp(-1.0, -1.25, up), bendR: .4, prop: 'none', sq: .06 * Math.sin(clamp((t - 25.3) * 3) * Math.PI) };
       if (rub) {   // a solid fist, knuckles up, half over the eye, rubbing on twos
+        Ns.onFace = 'L';   // on the eye on purpose (the rig otherwise keeps hands off the face)
         Object.assign(Ns, reachArm(U, Ns, 'L', 1.9 * U + 6 * Math.sin(Math.floor(t * 12) * 2.1), -10.85 * U + 2.05 * U + .35 * U));
         Ns.handL = (u, sw) => { paint(ellPts(0, 0, .56 * u, .56 * u, 14), { wash: SKIN_TONES.light.dk, washOp: 120, ink: null }); for (const k of [-1, 0, 1]) inkLine(Array.from({ length: 5 }, (_, i) => { const a = Math.PI + i / 4 * Math.PI; return [k * .3 * u + Math.cos(a) * .15 * u, -.4 * u + Math.sin(a) * .15 * u]; }), sw * .5, PAL.ink, 'ink', 0); };
       } else if (t >= 25.95) {   // reach back for the rock, then carry it up

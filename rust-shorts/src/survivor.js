@@ -527,7 +527,8 @@ function sootPatches(cx, cy, w, h, k, key, u) {
 //      behind). The body is a rounded cylinder (svBodyAx: an ellipse at each height, tapering in at the shoulders and
 //      thighs), the head a sphere; the shoulder sockets sit at the sides of the chest (X ±1.72u, a little behind its middle).
 //   2. the hand: a hand put over the head (above the chin) goes to the side of the head on its own arm's side (a hand on
-//      the head comes from the side and never covers the face). Its depth: a relaxed hand at its own side, slid along the
+//      the head comes from the side and never covers the face; onFace: 'L' / 'R' puts that hand on the face on purpose,
+//      rubbing an eye or a facepalm). A far hand raised by the head slides out past its outline (see unhead). Its depth: a relaxed hand at its own side, slid along the
 //      view ray just far enough to clear the body and head (to the front for a near arm or farFront; behind for a far one
 //      or a hand behind the back). The clearance follows the surface round the body's edge, so the depth never jumps.
 //   3. hands are kept out of the crotch: a hand between the waist and mid-thigh, in front of the hips (not reaching well
@@ -603,7 +604,8 @@ function armGeom(u, o, which) {
   // (onto the hair, the ear or the side of the head, or in front of the nose in profile), so a hand on the head comes
   // from the side and the arm never covers the face (see also the elbow, below). From the mouth down a hand may come in
   // front of the face (eating, a hand at the chin).
-  const FACE = svFace(V, hy), GUARD = svFace(V, hy, true);
+  // (onFace: 'L' / 'R' / true: that hand is put ON the face on purpose (rubbing an eye, a facepalm): no push, no guard)
+  const onFace = o.onFace === true || o.onFace === which, FACE = onFace ? null : svFace(V, hy), GUARD = onFace ? null : svFace(V, hy, true);
   // (pushed along the line from a point at the chin, so the push never flips side as a hand passes over the face)
   // Pushed sideways, to the arm's own side of the face (turned: toward the back of the head), at the same height: a
   // continuous map with no side flips. Over the face's far third the push fades out, so a hand reaching across to the

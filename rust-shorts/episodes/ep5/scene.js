@@ -800,7 +800,7 @@
       spawnling(525, G, U, { ...feel('proud', t), emote: 'spark', emoteK: seg(t, 12.05, 12.25), tint: null, boilKey: NK, seed: 1, view: t < 12.06 ? 'qf' : 'front', rawArms: true, prop: 'none', aL: .05 + .12 * pump, bendL: -1.45, aR: .1 + .12 * pump, bendR: -1.5, sq: -.04 + .05 * pump, emoteDx: .2 });
     } else if (t < 13.08) {   // the flop: a hop sideways onto the towel, landing sitting
       const k = seg(t, 12.95, 13.08), x = lerp(525, SIT, ease(k));
-      spawnling(x, G, U, { ...feel('happy', t), emote: null, boilKey: NK, seed: 1, view: 'q', flip: true, sit: ease(seg(t, 12.97, 13.06)), legsOut: true, clutchL: .85 * ease(seg(t, 12.97, 13.08)), clutchR: ease(seg(t, 12.97, 13.08)), dy: 2.3 * ease(seg(t, 13.0, 13.08)) - 1.2 * Math.sin(Math.PI * k), rawArms: true, prop: 'none', aL: .7, bendL: .3, aR: .6, bendR: .3 });
+      spawnling(x, G, U, { ...feel('happy', t), emote: null, boilKey: NK, seed: 1, view: 'q', flip: true, sit: ease(seg(t, 12.97, 13.06)), legsOut: true, clutchL: .85 * ease(seg(t, 12.97, 13.08)), clutchR: ease(seg(t, 12.97, 13.08)), dy: 2.3 * ease(seg(t, 13.0, 13.08)) - 1.2 * Math.sin(Math.PI * k), rawArms: true, prop: 'none', aL: 2.45, bendL: .3, aR: .6, bendR: .3 });   // arms flung out fore and aft (the near one back, up behind him: forward it crossed his face)
     } else sunbathe(SIT, G, U, t, { lean: .14 + .02 * Math.sin(t * 4), face: { ...faceOnly(feel('cool', t)), eyes: 'normal', mouth: 'smile', lookX: .3, lookY: -.6 } });
     rockGround(...ROCK, .82);
     dust(SIT - 20, G - .2 * U, 95, t - 13.04, 'flop', .38);
