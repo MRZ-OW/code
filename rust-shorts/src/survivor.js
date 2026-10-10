@@ -559,6 +559,16 @@ function svOcc(V, px, py, dr, hy) {
   }
   return Math.min(dT, Math.hypot(px, py - hy) - HEAD_R);
 }
+// The face on screen, as ellipses (u, body frame) for view V (null from behind): [cx, cy, rx, ry, push centre's x offset
+// (in rx)]. FACE: where no hand goes above the mouth (front-on, the whole head: a hand on the head is on its side or top);
+// GUARD: the face and the beard, which no bone crosses.
+const SV_FACE = { front: [0, 0, 2.35, 2.35, 0], qf: [.2, 0, 2.35, 2.35, .05], q: [1.25, .45, 1.12, 1.55, .3], side: [2.1, .45, .85, 1.55, .5] };
+const SV_GUARD = { front: [0, .45, 1.9, 1.75], qf: [.5, .45, 1.85, 1.75], q: [.3, .6, 2.1, 1.6], side: [1.25, .6, 1.35, 1.6] };
+const svFaceKey = V => V === SV.side ? 'side' : V === SV.q ? 'q' : V === SV.qf ? 'qf' : V.back ? null : 'front';
+function svFace(V, hy, guard = false) {
+  const k = svFaceKey(V), f = k && (guard ? SV_GUARD : SV_FACE)[k];
+  return f ? [f[0], hy + f[1], f[2], f[3], f[4] || 0] : null;
+}
 function armGeom(u, o, which) {
   const V = SV[o.view] || SV.front, far = V.far.includes(which), sideSign = V.side ? 1 : (which === 'R' ? 1 : -1), s = which === 'R' ? 1 : -1;
   const dr = clamp(o.crouch || 0) * 1.2 + clamp(o.sit || 0) * 2.05, ys = -7.75 + dr, hy = HEAD_Y + dr;
@@ -575,17 +585,20 @@ function armGeom(u, o, which) {
   const rayBody = (px, py, m) => { const [A, C] = svBodyAx(py, dr, seat); return svRayEll(px, A, C, m * (A > 1e-4 ? Math.min(1, A / 1.2) : 0), c, sn); };
   const rayHead = (px, py, m) => { const R = HEAD_R + m, dy = py - hy; if (Math.abs(dy) >= R) return null; const rr = Math.sqrt(R * R - dy * dy), ax = Math.abs(px);
     if (ax < rr) { const d = Math.sqrt(rr * rr - px * px); return [-d, d, true]; } const out = 2.5 * (ax - rr); return [out, -out, false]; };
-  // 2. a hand over the head, above the chin, goes to the side of the head on its own arm's side (the back of the head in
-  // 3/4 and profile), far enough out that the arm clears the head: a hand on the head comes from the side, a raised arm
-  // goes up beside it, and neither ever covers the face. Eased out from the mouth down, where a hand may come in front.
-  if (!far) {
-    const R = HEAD_R + .55, dy = y - hy;
-    if (dy > -R && dy < R) {
-      // (in profile the face is the head's front half: a hand above the back half stays there, over the hair and ear)
-      const rd = Math.sqrt(R * R - dy * dy), rr = V === SV.side ? .2 : rd, sd = V.side ? -1 : xs < 0 ? -1 : 1, k = 1 - ease(clamp((dy / HEAD_R - .25) / .3));
-      if (k > 0 && Math.abs(x) < rd && x * sd < rr) x = lerp(x, sd * rr, k);
-    }
-  }
+  // 2. the face is kept clear: a near hand put over it, above the mouth, slides out radially to the edge of the face
+  // (onto the hair, the ear or the side of the head, or in front of the nose in profile), so a hand on the head comes
+  // from the side and the arm never covers the face (see also the elbow, below). From the mouth down a hand may come in
+  // front of the face (eating, a hand at the chin).
+  const FACE = svFace(V, hy), GUARD = svFace(V, hy, true);
+  // (pushed along the line from a point at the chin, so the push never flips side as a hand passes over the face)
+  const unface = (px, py) => {
+    if (!FACE || (far && !o.farFront)) return [px, py];
+    const a = FACE[2] + HAND_HW, b = FACE[3] + HAND_HW, cx = FACE[0] + FACE[4] * FACE[2], cy = hy + 1.9, dx = px - cx, dy = py - cy;
+    const qa = (dx / a) ** 2 + (dy / b) ** 2, qb = 2 * ((cx - FACE[0]) * dx / (a * a) + (cy - FACE[1]) * dy / (b * b)), qc = ((cx - FACE[0]) / a) ** 2 + ((cy - FACE[1]) / b) ** 2 - 1;
+    if (qa < 1e-9) return [px, py];
+    const t = (-qb + Math.sqrt(Math.max(0, qb * qb - 4 * qa * qc))) / (2 * qa), k = 1 - ease(clamp((py - hy - .5) / 1.0));
+    return t > 1 && k > 0 ? [lerp(px, cx + dx * t, k), lerp(py, cy + dy * t, k)] : [px, py];
+  };
   // the hand's depth
   // (seated or crouched, a hand below the chest rests forward, on the lap or the knees)
   const sitK = clamp(Math.max(clamp(o.sit || 0), .6 * clamp(o.crouch || 0)));
@@ -595,8 +608,9 @@ function armGeom(u, o, which) {
     // the body: a near hand in front of it, a far one behind it (with farFront: in front where it's well inside the
     // body's outline, a hand on the chest or belly; round its edge it stays behind)
     if (rb) { const rt = rayBody(px, py, 0), deep = rt && rt[2] && Math.abs(px - (rt[3] || 0)) < .78 * rt[4];
-      if (back && rb[2]) { const zOf = q => { const [Xq, Zq] = toB(px, q); return Zq - .3 * s * Xq; }; ww = zOf(rb[0]) < zOf(rb[1]) ? rb[0] : rb[1]; }   // behind his back (in profile: on his own side)
-      else ww = wantFront && (!far || deep) ? Math.max(ww, rb[1]) : Math.min(ww, rb[0]); }
+      // ("in front" is his front: seen from behind, that's the far side of him, and a hand behind his back is on the near side)
+      if (back && rb[2] && V.side) { const zOf = q => { const [Xq, Zq] = toB(px, q); return Zq - .3 * s * Xq; }; ww = zOf(rb[0]) < zOf(rb[1]) ? rb[0] : rb[1]; }   // behind his back, in 3/4 and profile: on his own side
+      else ww = (wantFront && (!far || deep)) !== !!V.back ? Math.max(ww, rb[1]) : Math.min(ww, rb[0]); }
     // the head: a near hand in front of it (only ever at the chin or mouth, see above); a far one behind it unless it
     // reaches across (farFront) to the mouth
     if (rh) ww = (!back && (!far || (o.farFront && py - hy > .3 * HEAD_R))) ? Math.max(ww, rh[1]) : Math.min(ww, rh[0]);
@@ -615,33 +629,33 @@ function armGeom(u, o, which) {
     S = [s * (ARM_SX - .3 * p), ys + .05 * p, ARM_SZ + .75 * p]; [xs, ws] = toV(S[0], S[2]);
   };
   protract();
-  // in reach: the depth gives way first, as long as the hand stays out of the body; otherwise the hand comes in toward
-  // the shoulder; past full reach on screen the arm stretches up to 10% more than asked, then the hand is pulled in
+  // In reach: the depth gives way first, as long as the hand stays out of the body; otherwise the hand comes in toward
+  // the shoulder, just as far as it must (found by halving, so it moves smoothly). Past full reach on screen the arm
+  // first stretches up to 10% more than asked. A hand the straight arm could only reach through the body (behind the
+  // middle of the back) must be nearer: the arm has to bend round the body.
   let ak = ak0;
   const reach = k => (ARM_L1 + ARM_L2) * k * .995;
-  // (a hand the straight arm could only reach through the body, e.g. behind the middle of the back, must be nearer: the
-  // arm has to bend round the body)
-  const thru = (px, pw) => { const [X2, Z2] = toB(px, pw); for (const t of [.35, .5, .65]) { const yy = lerp(ys, y, t), [A, C] = svBodyAx(yy, dr, seat); if (A > 1e-4 && Math.hypot(lerp(S[0], X2, t) / A, lerp(S[2], Z2, t) / C) < 1) return true; } return false; };
-  const lim = (px, pw) => reach(ak) * (thru(px, pw) ? .84 : 1);
-  for (let i = 0; i < 16; i++) {
-    const L = lim(x, w); if (Math.hypot(x - xs, y - ys, w - ws) <= L) break;
-    const d2 = Math.hypot(x - xs, y - ys);
-    if (i === 0 && d2 >= reach(ak)) {   // out of reach on screen: stretch, pull in, then fit its depth as below
-      ak = Math.min(ak * 1.1, d2 / reach(1));
-      if (d2 > reach(ak)) { x = xs + (x - xs) * reach(ak) / d2; y = ys + (y - ys) * reach(ak) / d2; }
-      w = place(x, y);
-      if (Math.hypot(x - xs, y - ys, w - ws) <= lim(x, w)) break;
-      const wr = ws + Math.sign(w - ws) * Math.sqrt(Math.max(0, lim(x, w) ** 2 - Math.hypot(x - xs, y - ys) ** 2));
-      if (Math.abs(wr - w) < .25) { w = wr; break; }
-      x = xs + (x - xs) * .94; y = ys + (y - ys) * .94; w = place(x, y);
-      continue;
+  const thru = (px, py, pw) => { const [X2, Z2] = toB(px, pw); for (const t of [.35, .5, .65]) { const yy = lerp(ys, py, t), [A, C] = svBodyAx(yy, dr, seat); if (A > 1e-4 && Math.hypot(lerp(S[0], X2, t) / A, lerp(S[2], Z2, t) / C) < 1) return true; } return false; };
+  const fit = (px, py) => {
+    const pw = place(px, py), L = reach(ak) * (thru(px, py, pw) ? .84 : 1), d2 = Math.hypot(px - xs, py - ys);
+    if (Math.hypot(d2, pw - ws) <= L) return pw;
+    if (d2 >= L) return null;
+    const wr = ws + (pw >= ws ? 1 : -1) * Math.sqrt(L * L - d2 * d2), [X2, Z2] = toB(px, wr), [A, C] = svBodyAx(py, dr, seat);
+    return (A < 1e-4 || Math.hypot(X2 / (A + .1), Z2 / (C + .1)) >= 1) && !thru(px, py, wr) ? wr : null;
+  };
+  { const d0 = Math.hypot(x - xs, y - ys); if (d0 >= reach(ak)) ak = Math.min(ak * 1.1, d0 / reach(1)); }
+  const pullIn = () => {
+    let wf = fit(x, y);
+    if (wf == null) {
+      let lo = 0, hi = 1;
+      for (let i = 0; i < 14; i++) { const m = (lo + hi) / 2; if (fit(xs + (x - xs) * m, ys + (y - ys) * m) != null) lo = m; else hi = m; }
+      x = xs + (x - xs) * lo; y = ys + (y - ys) * lo; wf = fit(x, y);
     }
-    if (d2 < L) {
-      const wr = ws + Math.sign(w - ws) * Math.sqrt(L * L - d2 * d2), [X2, Z2] = toB(x, wr), [A, C] = svBodyAx(y, dr, seat);
-      if (i === 15 || ((A < 1e-4 || Math.hypot(X2 / (A + .1), Z2 / (C + .1)) >= 1) && !thru(x, wr))) { w = wr; break; }
-    }
-    x = xs + (x - xs) * .94; y = ys + (y - ys) * .94; w = place(x, y);
-  }
+    return wf ?? place(x, y);
+  };
+  pullIn();
+  [x, y] = unface(x, y);   // then off the face (see 2. above), and in reach again
+  w = pullIn();
   [X, Z] = toB(x, w);
   // an arm hanging down is never locked dead straight: it lengthens a hair (up to 6%) to keep a soft bend at the elbow
   { const D3 = Math.hypot(x - xs, y - ys, w - ws), down = clamp(((y - ys) / (D3 || 1) - .6) / .3), rt = lerp(.995, .955, down);
@@ -669,7 +683,7 @@ function armGeom(u, o, which) {
   // the cost of a clearance: soft inside the arm's own half width (m: an arm laid on the body only just touches it), steep
   // once the bone would go into the body
   const pen = (p, m) => { const d = gap(p); return 2 * Math.max(0, m - d) ** 2 + 40 * Math.max(0, .12 - d); };
-  const rbH = rayBody(x, y, 0), wrapF = far && wantFront && rbH && rbH[2] && w > rbH[1] - .1;
+  const rbH = rayBody(x, y, 0), wrapF = far && wantFront && rbH && rbH[2] ? clamp((w - rbH[1] + .1) / .3) * clamp((rbH[4] - Math.abs(x)) / .4) : 0;
   const cost = f => {
     const E = elbowAt(f), rad = [(E[0] - C0[0]) / (r || 1), (E[1] - C0[1]) / (r || 1), (E[2] - C0[2]) / (r || 1)];
     let p = 0;
@@ -679,8 +693,14 @@ function armGeom(u, o, which) {
     // the point of the elbow: never well forward or turned in across the body
     const fw = Math.max(0, rad[2] - .35), inw = Math.max(0, -s * rad[0] - .25);
     // a far hand laid on the front of the body: the elbow stands out past the body's edge, so the arm reads whole
-    let wr = 0; if (wrapF) { const [ex] = toV(E[0], E[2]); wr = Math.max(0, .55 - svOcc(V, ex, E[1], dr, hy)) ** 2; }
-    return .5 * f * f + 10 * p + 6 * (fw * fw + inw * inw) + 8 * wr;
+    let wr = 0; if (wrapF > 0) { const [ex] = toV(E[0], E[2]); wr = wrapF * Math.max(0, .55 - svOcc(V, ex, E[1], dr, hy)) ** 2; }
+    // and no bone in front of the face (above the mouth)
+    let fc = 0;
+    if (GUARD) for (const q of [at(S, E, .6), at(S, E, .85), E, at(E, H, .25), at(E, H, .5)]) {
+      const [qx, qw] = toV(q[0], q[2]); if (qw < 0) continue;
+      const e = Math.hypot((qx - GUARD[0]) / (GUARD[2] + ARM_HW), (q[1] - GUARD[1]) / (GUARD[3] + ARM_HW)); if (e < 1) fc += (1 - e) ** 2;
+    }
+    return .5 * f * f + 10 * p + 6 * (fw * fw + inw * inw) + 8 * wr + 30 * fc;
   };
   let bf = 0, bc = cost(0);
   if (r > 1e-4) {
@@ -710,7 +730,8 @@ function armGeom(u, o, which) {
   // a near upper arm is in front, unless its elbow is well behind the torso (then the arm goes back from the shoulder)
   const [Exx, , Eww] = P3(E, E, 0), rbE = rayBody(Exx, E[1], -.45);
   let up = far || (rbE && rbE[2] && Eww < rbE[0] + .05) ? 'B' : 'F';
-  let fo = hasB ? 'B' : hasH ? (far ? 'B' : 'H') : far && !handF ? 'B' : 'F', split = null;   // (a far arm behind the head is behind the torso too)
+  let wrapped = false;
+  let fo = hasB ? 'B' : hasH && (far || (WK[WK.length - 1] === 'h' && w < -.2)) ? (far ? 'B' : 'H') : far && !handF ? 'B' : 'F', split = null;   // (a far arm behind the head is behind the torso too; a near forearm is behind the head only with its hand)
   // A hand in front whose arm comes from behind the torso or head wraps round its edge: the arm is drawn whole behind,
   // and from the edge on (found by halving between the last point not in front and the first in front) again in front.
   if (handF && (far || fo !== 'F')) {
@@ -721,13 +742,14 @@ function armGeom(u, o, which) {
       split = Math.max(far ? 0 : 1, lo - .08);
       if (far && fo === 'F') fo = 'B';
       if (far && split <= .3) { split = null; up = fo = 'F'; }   // in front from the shoulder on (it came forward): drawn whole, in front
+      wrapped = true;
     }
   }
   // A far arm that would only peek out past the body or head as a sliver, a stub or a lone fist is tucked fully behind it
   // (eased by how much of it would show, so it slides, never pops). It shows when a good length of it (a forearm) clears
   // the silhouettes.
   let tuck = [0, 0], tuckE = [0, 0];
-  if (far && split == null) {
+  if (far && !wrapped) {
     const hwA = (o.gear && (o.gear.hoodie || o.gear.hazmat || o.gear.scientist) ? .55 : .45);
     const occ = (px, py) => svOcc(V, px, py, dr, hy), l2 = Math.hypot(Hx - Ex, y - E[1]) || 1;
     const P = [];
@@ -735,28 +757,12 @@ function armGeom(u, o, which) {
     for (let i = 1; i <= 8; i++) P.push([lerp(Ex, Hx, i / 8), lerp(E[1], y, i / 8)]);
     for (const k of [.25, .5]) P.push([Hx + (Hx - Ex) / l2 * k, y + (y - E[1]) / l2 * k]);   // the fist
     let vis = 0;
-    P.forEach((q, i) => { if (i && occ(q[0], q[1]) > -.1) vis += Math.hypot(q[0] - P[i - 1][0], q[1] - P[i - 1][1]); });
-    const k = 1 - ease((vis - 1.2) / 1.4);
-    // each joint (and the fist, for the hand) is drawn in just behind the silhouette's edge, by its own amount
-    const pull = (px, py, ext) => {
-      const d = occ(px, py) + ext + .2; if (d <= 0 || k <= 0) return [0, 0];
-      const g = .02, gx = (occ(px + g, py) - occ(px - g, py)) / (2 * g), gy = (occ(px, py + g) - occ(px, py - g)) / (2 * g), gl = Math.hypot(gx, gy) || 1;
-      return [-gx / gl * d * k, -gy / gl * d * k];
-    };
-    const fx = Hx + (Hx - Ex) / l2 * .45, fy = y + (y - E[1]) / l2 * .45, pH = pull(fx, fy, .5), pH2 = pull(Hx, y, hwA), pE = pull(Ex, E[1], hwA);
-    tuck = Math.hypot(...pH) > Math.hypot(...pH2) ? pH : pH2; tuckE = pE;
-    // still showing between the joints (past the neck, between the head and the shoulder): fold it down out of sight
-    if (k > 0) {
-      const E2 = [Ex + tuckE[0], E[1] + tuckE[1]], H2 = [Hx + tuck[0], y + tuck[1]];
-      let shows = 0;
-      for (const t of [.35, .55, .75]) shows = Math.max(shows, occ(lerp(Sx, E2[0], t), lerp(ys, E2[1], t)) + hwA, occ(lerp(E2[0], H2[0], t), lerp(E2[1], H2[1], t)) + hwA);
-      const f = k * ease(clamp((shows + .2) / .3));
-      if (f > 0) {
-        const Er = [Sx * .8, ys + 1.6], Hr = [Sx * .7, ys + 3.1];
-        tuckE = [lerp(tuckE[0], Er[0] - Ex, f), lerp(tuckE[1], Er[1] - E[1], f)]; tuck = [lerp(tuck[0], Hr[0] - Hx, f), lerp(tuck[1], Hr[1] - y, f)];
-      }
-    }
+    P.forEach((q, i) => { if (i) vis += Math.hypot(q[0] - P[i - 1][0], q[1] - P[i - 1][1]) * clamp((occ(q[0], q[1]) + .2) / .3); });
+    const k = 1 - ease((vis - 1.3) / 1.0);
+    // folded down out of sight behind the torso, as far as the sliver needs (a hidden arm's pose doesn't matter)
+    if (k > 0) { const Er = [Sx * .8, ys + 1.6], Hr = [Sx * .7, ys + 3.1]; tuckE = [(Er[0] - Ex) * k, (Er[1] - E[1]) * k]; tuck = [(Hr[0] - Hx) * k, (Hr[1] - y) * k]; }
   }
+  if (o._trace) o._trace({ x, y, w, E: [Ex, E[1]], tuck, tuckE, up, fo, split, wrapped });
   Hx += tuck[0]; Ex += tuckE[0];
   const Hy = y + tuck[1], Ey = E[1] + tuckE[1];
   const fl = Math.hypot(Hx - Ex, Hy - Ey) || 1;
