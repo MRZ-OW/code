@@ -86,6 +86,23 @@ function svSuit(gear) {
   return { suit, dk, glove: [svShade(dk, .12), svShade(dk, .12)], boot: svShade(dk, .3), ring: '#B98A3E' };
 }
 
+// The part of polygon P inside the convex polygon C (Sutherland-Hodgman): an arm's shadow kept on the torso.
+function svClip(P, C) {
+  let area = 0; for (let i = 0; i < C.length; i++) { const a = C[i], b = C[(i + 1) % C.length]; area += a[0] * b[1] - b[0] * a[1]; }
+  const sg = area > 0 ? 1 : -1;
+  let out = P;
+  for (let i = 0; i < C.length && out.length; i++) {
+    const a = C[i], b = C[(i + 1) % C.length], side = p => sg * ((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]));
+    const inp = out; out = [];
+    for (let j = 0; j < inp.length; j++) {
+      const p = inp[j], q = inp[(j + 1) % inp.length], dp = side(p), dq = side(q);
+      if (dp >= 0) out.push(p);
+      if ((dp >= 0) !== (dq >= 0)) { const t = dp / (dp - dq); out.push([lerp(p[0], q[0], t), lerp(p[1], q[1], t)]); }
+    }
+  }
+  return out;
+}
+
 // ---------- feet ----------
 // Foot shapes in a local frame: the ankle at (0, 0), +x = toes, the sole at y ≈ +.4 (units of u). The washed shape runs up
 // inside the leg (hiding the leg's end); only the outline from the leg's back edge round to its front edge is inked.
@@ -244,42 +261,62 @@ function survivor(x, y, u, o = {}) {
 
   // ---------- arms ----------
   // armGeom() (below) solves each arm in the body's own 3D frame and projects it for this view: shoulder, elbow and hand,
-  // and which parts lie behind the torso. A far arm (3/4, profile) is drawn behind the body; when it reaches across the
-  // front (farFront), its upper arm stays behind and only the forearm is laid over the body. A hand put behind the back
-  // (handBackL / handBackR) draws its whole arm behind the torso. Everything else is drawn over the body, after the head.
+  // and the layer of each bone: behind the torso (drawn here, before it), behind the head (drawn after the torso and its
+  // gear, before the head) or in front (after the head). A forearm that wraps round the body's edge is drawn whole behind
+  // the torso and again, from the edge on, in front of it. Arms in front of the torso cast a soft shadow on it.
   const AG = { L: armGeom(u, o, 'L'), R: armGeom(u, o, 'R') };
-  const arm = (which, part) => {   // part: 'all' | 'upper' (the shoulder to the elbow only) | 'fore' (the elbow to the hand)
-    rs('arm' + which + part);
+  const armTop = gear.hoodie || suit, armCol0 = armTop ? (suit || (gear.hoodieCol || '#A8382E')) : SB.col;
+  const armW = [(heavy ? 1.45 : armTop ? 1.15 : .95) * u, (heavy ? 1.2 : armTop ? .95 : .78) * u];
+  // Tones by layer: in front of the body a step darker than the chest (so an arm laid over the torso separates from it,
+  // fully outlined on both sides); behind the body in shade; behind the head, or wrapping round the body's edge, between.
+  const armTone = L => L === 'B' ? (armTop ? svShade(armCol0, .14) : farSkin) : L === 'F' ? (armTop ? svShade(armCol0, .07) : mixCol(SB.col, SB.dk, .26)) : (armTop ? svShade(armCol0, .1) : mixCol(SB.col, SB.dk, .4));
+  const skinTone = L => L === 'B' ? farSkin : L === 'F' ? mixCol(SB.col, SB.dk, .26) : mixCol(SB.col, SB.dk, .4);
+  // The outline(s) of a piece of arm, as drawn. mode: 'all' | 'upper' (the shoulder to the elbow) | 'fore' (the elbow to
+  // the hand) | 'part' (the front piece of a wrapping forearm, from where it comes round the edge: open at that end).
+  // Each piece is ONE closed silhouette inked as one stroke (limbLoop: a round shoulder cap, a round elbow outside and a
+  // crease inside), so no outline ends or doubled lines show inside the limb. Folded tight (the forearm back over the
+  // upper arm on screen), the upper arm is its own shape with a round elbow and the forearm is laid over it.
+  const armShapes = (which, mode) => {
+    const G = AG[which], P0 = G.S, P1 = G.E, P2 = G.H, [w0, w1] = armW, wm = (w0 + w1) / 2, mid = (P, Q) => [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2];
+    const up = () => limbLoop(P0, mid(P0, P1), P1, w0, wm, true), fo = () => limbLoop(P1, mid(P1, P2), P2, wm, w1);
+    if (mode === 'upper') return [up()];
+    if (mode === 'fore') return [fo()];
+    if (mode === 'part') {   // from G.split along the arm (0..1 the upper arm, 1..2 the forearm): its two sides, no cap at the start
+      const k = G.split;
+      if (k >= 1) return [svQuad(svAlong(P1, P2, k - 1), P2, lerp(wm, w1, k - 1), w1)];
+      const [Ls, Rs] = limbSides(svAlong(P0, P1, k), P1, P2, lerp(w0, wm, k), w1);
+      return [[...Ls, ...[...Rs].reverse()]];
+    }
+    const l1 = Math.hypot(P1[0] - P0[0], P1[1] - P0[1]) || 1, d1 = [(P1[0] - P0[0]) / l1, (P1[1] - P0[1]) / l1];
+    const turn = Math.acos(clamp(d1[0] * G.d2[0] + d1[1] * G.d2[1], -1, 1));
+    return turn > 2.2 ? [up(), fo()] : [limbLoop(P0, P1, P2, w0, w1)];
+  };
+  // the pieces of an arm drawn in front of the body
+  const frontModes = G => G.split != null ? (G.up === 'F' ? ['upper', 'part'] : ['part']) : G.up === 'F' && G.fo === 'F' ? ['all'] : G.up === 'F' ? ['upper'] : G.fo === 'F' ? ['fore'] : [];
+  const arm = (which, mode, layer, withHand = true) => {
+    rs('arm' + which + mode + layer);
     const G = AG[which], sideSign = G.sideSign, [shx, shy] = G.S, [ex, ey] = G.E, [hx, hy] = G.H;
     const d2 = G.d2, d1 = (() => { const dx = ex - shx, dy2 = ey - shy, l = Math.hypot(dx, dy2) || 1; return [dx / l, dy2 / l]; })();
-    const top = gear.hoodie || suit, col0 = top ? (suit || (gear.hoodieCol || '#A8382E')) : SB.col;
-    // Tones: an arm in front of the body is a step darker than the chest (so an arm laid over the torso separates from it,
-    // fully outlined on both sides); one behind the body is in shade; a far forearm laid over the front sits between.
-    const back = G.far ? part !== 'fore' : G.back ? part === 'fore' : false, shade = back;
-    const col = back ? (top ? svShade(col0, .14) : farSkin) : part === 'fore' && G.far ? (top ? svShade(col0, .1) : mixCol(SB.col, SB.dk, .4)) : (top ? svShade(col0, .07) : mixCol(SB.col, SB.dk, .26));
-    const w0 = (heavy ? 1.45 : top ? 1.15 : .95) * u, w1 = (heavy ? 1.2 : top ? .95 : .78) * u, wm = (w0 + w1) / 2;
-    const mid = (P, Q) => [(P[0] + Q[0]) / 2, (P[1] + Q[1]) / 2];
-    // Each piece is ONE closed silhouette inked as one stroke (limbLoop: a round shoulder cap, a round elbow outside and a
-    // crease inside), so no outline ends or doubled lines show inside the limb. Folded tight (the forearm back over the
-    // upper arm on screen), the upper arm is its own shape with a round elbow and the forearm is laid over it.
-    const turn = Math.acos(clamp(d1[0] * d2[0] + d1[1] * d2[1], -1, 1));
-    if (part === 'upper') paint(limbLoop([shx, shy], mid([shx, shy], [ex, ey]), [ex, ey], w0, wm, true), { wash: col, ink: PAL.ink, sw: sw * .8 });
-    else if (part === 'fore') paint(limbLoop([ex, ey], mid([ex, ey], [hx, hy]), [hx, hy], wm, w1), { wash: col, ink: PAL.ink, sw: sw * .8 });
-    else if (turn > 2.2) {
-      paint(limbLoop([shx, shy], mid([shx, shy], [ex, ey]), [ex, ey], w0, wm, true), { wash: col, ink: PAL.ink, sw: sw * .8 });
-      paint(limbLoop([ex, ey], mid([ex, ey], [hx, hy]), [hx, hy], wm, w1), { wash: col, ink: PAL.ink, sw: sw * .8 });
-    } else paint(limbLoop([shx, shy], [ex, ey], [hx, hy], w0, w1), { wash: col, ink: PAL.ink, sw: sw * .8 });
-    if (part === 'upper') return;
-    if (gear.hazmat && part === 'all') {   // a baggy fold at the elbow
+    const top = armTop, col = armTone(layer), shade = layer === 'B';
+    const [w0, w1] = armW;
+    const shapes = armShapes(which, mode);
+    if (mode === 'part') {   // washed whole, inked down both sides only: its open end lies over the same arm behind
+      const Q = shapes[0], n = Q.length / 2;
+      paint(Q, { wash: col, ink: null });
+      inkLine(Q.slice(0, n), sw * .8, PAL.ink, 'ink', 0); inkLine(Q.slice(n).reverse(), sw * .8, PAL.ink, 'ink', 0);
+    } else for (const P of shapes) paint(P, { wash: col, ink: PAL.ink, sw: sw * .8 });
+    if (mode === 'upper' || !withHand) return;
+    const part = mode;
+    if (gear.hazmat && mode === 'all') {   // a baggy fold at the elbow
       const n = [-d1[1], d1[0]], fc = svShade(col, .28), c = [ex - d1[0] * .3 * u, ey - d1[1] * .3 * u];
       inkLine([[c[0] - n[0] * .4 * u, c[1] - n[1] * .4 * u], [c[0] + d1[0] * .1 * u, c[1] + d1[1] * .1 * u], [c[0] + n[0] * .35 * u, c[1] + n[1] * .35 * u]], sw * .45, fc, 'inkfine', .5);
     }
-    if (gear.scientist && typeof suitLimbGear === 'function') suitLimbGear(u, sw, gear, 'arm', [shx, shy], [ex, ey], [hx, hy], shade, which);
+    if (gear.scientist && mode !== 'part' && typeof suitLimbGear === 'function') suitLimbGear(u, sw, gear, 'arm', [shx, shy], [ex, ey], [hx, hy], shade, which);
     // hands: bare, burlap gloves (fingerless), the hazmat's black gauntlet (his right) and blue glove, the scientists' gloves
     const kind = gear.hazmat ? (which === (V.back ? 'R' : 'L') ? 'gauntlet' : 'glove') : gear.scientist ? 'sci' : gear.gloves ? 'burlap' : 'bare';
     const hand0 = gear.hazmat ? SC.glove[kind === 'gauntlet' ? 0 : 1] : gear.scientist ? SC.glove[0] : gear.gloves ? '#6B4A32' : null;
     // a bare hand is the arm's own skin tone (never lighter or darker than its wrist); gloves keep their colour, in shade behind
-    const hc = kind === 'bare' ? (top ? (shade ? farSkin : part === 'fore' && G.far ? mixCol(SB.col, SB.dk, .4) : mixCol(SB.col, SB.dk, .26)) : col) : shade ? svShade(hand0, .14) : hand0;
+    const hc = kind === 'bare' ? (top ? skinTone(layer) : col) : shade ? svShade(hand0, .14) : hand0;
     const open = which === 'L' ? o.openL : o.openR, fingers = shade ? farSkin : SB.col;   // the finger stubs out of a fingerless glove
     const wr = k => [hx - d2[0] * k * u, hy - d2[1] * k * u];   // a point k u back up the forearm from the hand
     const small = u < 26, detC = kind === 'bare' ? mixCol(SB.dk, PAL.ink, .15) : svShade(hc, .45);
@@ -338,9 +375,14 @@ function survivor(x, y, u, o = {}) {
     if (!(hook && o.handOver)) fist();
     if (hook) { push(); translate(hx, hy); hook(u, sw, { ang: Math.atan2(d2[1], d2[0]), side: sideSign, far: G.far && !G.front }); pop(); if (o.handOver) fist(); }   // handOver: the fist wraps a grip
   };
-  // behind the torso: the far arms (only the upper arm of one reaching across the front) and any hand behind the back
-  for (const w of V.far) arm(w, AG[w].front ? 'upper' : 'all');
-  for (const w of V.near) if (AG[w].back) arm(w, 'fore');   // a near hand behind the back: the forearm goes behind, the upper arm stays in front
+  // behind the torso (far arms first): whole arms, upper arms or forearms whose layer is 'B'; a wrapping forearm is drawn
+  // whole here in the in-between tone, its hand with its front piece
+  for (const w of [...V.far, ...V.near]) {
+    const G = AG[w], L = G.split != null ? 'S' : 'B';
+    if (G.up === 'B' && G.fo === 'B') arm(w, 'all', L, G.split == null);
+    else if (G.up === 'B') arm(w, 'upper', 'B');
+    else if (G.fo === 'B') arm(w, 'fore', L, G.split == null);
+  }
 
   // ---------- underwear (over the tops of the legs) ----------
   rs('briefs');
@@ -407,13 +449,24 @@ function survivor(x, y, u, o = {}) {
   if (gear.chest === 'metal') chestplateGear(u, sw, V, tw, shY, wy);
   if (gear.kilt === 'roadsign') roadsignKiltGear(u, sw, V, bw, wy);
 
+  // arms in front of the torso cast a soft shadow on it (clipped to it); then the forearms behind the head
+  rs('armshadow');
+  {
+    const clipP = torso.map(([px, py]) => [px * .96, lerp(py, (shY + wy) / 2, .04)]), sc = armTop || gear.chest ? '#3A2C2E' : SB.dk, sop = armTop || gear.chest ? 70 : 140;
+    for (const w of [...V.far, ...V.near]) for (const m of frontModes(AG[w])) for (const P of armShapes(w, m)) {
+      const Q = svClip(P.map(([px, py]) => [px, py + .3 * u]), clipP);
+      if (Q.length > 2) paint(Q, { wash: sc, washOp: sop, ink: null });
+    }
+  }
+  for (const w of [...V.far, ...V.near]) { const G = AG[w]; if (G.fo === 'H') arm(w, 'fore', 'H', G.split == null); }
+
   // ---------- neck and head (heads.js) ----------
   rs('head');
   survivorHead(u, sw, o, V, S, SB, gear, shY, drop, soot, rs);
   if (o.lap) { rs('lap'); o.lap(u, sw, V); }   // a prop over the body and gear (a rifle across the lap), under the arms and hands
 
-  for (const w of V.far) if (AG[w].front) arm(w, 'fore');   // a far forearm laid over the body, under the near arm and what it holds
-  for (const w of V.near) arm(w, AG[w].back ? 'upper' : 'all');
+  // in front: far arms first (under the near arm and what it holds)
+  for (const w of [...V.far, ...V.near]) for (const m of frontModes(AG[w])) arm(w, m, m === 'part' ? 'S' : 'F');
   if (gear.hazmat) hazmatCapeOver(u, sw, o, V, shY);   // gear.js: the hood's cape over the tops of the sleeves
   if (o.draw) { rs('draw'); o.draw(u, sw, V); }
   pop();
@@ -458,28 +511,44 @@ function sootPatches(cx, cy, w, h, k, key, u) {
 // view and facing, so an arm can't come out wrong whatever it's asked for:
 //   1. the body frame: X across the body (+ = his R arm's side, which is screen right in the front view), y down, Z forward.
 //      Each view is the body turned by a yaw (front 0, qf .3, q .62 as the head turns, side 90°; back = front seen from
-//      behind). The shoulder sockets sit at the sides of the chest (X ±1.72u, a little behind its middle).
-//   2. the hand's depth: the point along the view ray nearest a relaxed hand at its own side; a hand that would be inside
-//      the torso or hips goes to their surface (in front for a near arm, behind for a far one, unless farFront, or for any
-//      hand put behind the back with handBackL / handBackR).
+//      behind). The body is a rounded cylinder (svBodyAx: an ellipse at each height, tapering in at the shoulders and
+//      thighs), the head a sphere; the shoulder sockets sit at the sides of the chest (X ±1.72u, a little behind its middle).
+//   2. the hand: a hand put over the head (above the chin) goes to the side of the head on its own arm's side (a hand on
+//      the head comes from the side and never covers the face). Its depth: a relaxed hand at its own side, slid along the
+//      view ray just far enough to clear the body and head (to the front for a near arm or farFront; behind for a far one
+//      or a hand behind the back). The clearance follows the surface round the body's edge, so the depth never jumps.
 //   3. hands are kept out of the crotch: a hand between the waist and mid-thigh, in front of the hips (not reaching well
 //      forward, not seated or crouched), slides out to beside the hip and thigh (freeHands: true turns that off).
 //   4. the elbow is a hinge: of the circle of elbow points that join the shoulder to the hand, the one nearest a pole out,
-//      back and down from the shoulder (so the point of the elbow faces back or out and down, never forward or inward,
-//      and the forearm folds only toward the front), swung round just far enough to keep the arm out of the torso.
-//   5. projection and layering: a far arm (3/4 and profile) is behind the body. One that would only show as a sliver past
-//      the chest is tucked fully behind it. With farFront and its hand in front of the chest, its forearm is drawn over
-//      the body and its upper arm stays behind.
+//      back and down from the shoulder (so the point of the elbow faces back or out and down, never forward or inward, and
+//      the forearm folds only toward the front), swung round just far enough to keep both bones out of the body and head.
+//   5. layering, per bone: each bone is behind the torso (drawn before it), behind the head (between the torso and the
+//      head) or in front, by its depth where it overlaps them. A forearm that wraps round the body's edge (a far hand on
+//      the belly) is drawn whole behind the torso and again, from the edge on, in front of it, so it reads as one limb.
+//      A far arm that would only peek out past the body or head as a sliver is tucked fully behind it.
 // Returns body-frame screen points (before flip/scale, in px) S (shoulder), E (elbow), H (hand), d2 (the forearm's unit
-// direction), and far / front / back flags for the drawing.
-const ARM_L1 = 1.85, ARM_L2 = 1.75, ARM_SX = 1.72, ARM_SZ = -.15;
+// direction), the layer of each bone (up, fo: 'B' behind the torso, 'H' behind the head, 'F' in front), split (the
+// forearm parameter where its front piece starts, or null), and far / front / back flags.
+const ARM_L1 = 1.85, ARM_L2 = 1.75, ARM_SX = 1.95, ARM_SZ = -.05, ARM_HW = .44, HAND_HW = .4, HEAD_Y = -10.85, HEAD_R = 2.35;
 const svYaw = V => V === SV.side ? Math.PI / 2 : V === SV.q ? .62 : V === SV.qf ? .3 : 0;
-// the body's cross-section (half width X, half depth Z, in u) at height y (body frame, u), or null above the shoulders
-// and below mid-thigh
-const svBodyEll = (y, dr) => { const yy = y - dr; return yy < -8.45 || yy > -3.2 ? null : yy < -5.1 ? [2.0, 1.2] : [1.95, 1.15]; };
+// the body's cross-section (half width X, half depth Z, in u) at height y (body frame, u; dr = the seated/crouched drop):
+// the chest, the waist and hips, rounding in over the shoulders and down the thighs (0 above and below)
+function svBodyAx(y, dr, seat = 0) {
+  const yy = y - dr, top = ease(clamp((yy + 8.85) / .55)), bot = ease(clamp((lerp(-3.0, -4.1, seat) - yy) / .7)), k = clamp((yy + 5.4) / .6);
+  return [lerp(2.05, 2.0, k) * top * bot, lerp(1.25, 1.2, k) * top * bot];
+}
+// Along the view ray at screen x: where the ellipse (A, C), inflated by m, starts and ends in depth: [back, front] or, past
+// its edge, the silhouette's tangent depth slid steeply away (so a hand going round the edge moves smoothly).
+function svRayEll(x, A, C, m, c, sn) {
+  if (A <= 1e-4) return null;
+  const a = A + m, b = C + m, qa = sn * sn / (a * a) + c * c / (b * b), qb = 2 * x * c * sn * (1 / (b * b) - 1 / (a * a)), qc = x * x * (c * c / (a * a) + sn * sn / (b * b)) - 1;
+  const hw = Math.sqrt(a * a * c * c + b * b * sn * sn), wt = -qb / (2 * qa), disc = qb * qb - 4 * qa * qc;
+  if (Math.abs(x) < hw && disc > 0) { const r = Math.sqrt(disc) / (2 * qa); return [wt - r, wt + r, true, 0, hw]; }
+  const out = 2.5 * (Math.abs(x) - hw); return [wt + out, wt - out, false, 0, hw];
+}
 function armGeom(u, o, which) {
   const V = SV[o.view] || SV.front, far = V.far.includes(which), sideSign = V.side ? 1 : (which === 'R' ? 1 : -1), s = which === 'R' ? 1 : -1;
-  const dr = clamp(o.crouch || 0) * 1.2 + clamp(o.sit || 0) * 2.05, ys = -7.75 + dr;
+  const dr = clamp(o.crouch || 0) * 1.2 + clamp(o.sit || 0) * 2.05, ys = -7.75 + dr, hy = HEAD_Y + dr;
   const a = o.rawArms ? (which === 'L' ? o.aL ?? -1.32 : o.aR ?? -1.32) : humanArm(which === 'L' ? o.aL ?? .2 : o.aR ?? .2);
   const b = (which === 'L' ? o.bendL : o.bendR) ?? (.22 + .55 * clamp((a + .6) / 1.6)), ak0 = (which === 'L' ? o.armKL : o.armKR) ?? 1;
   // where the pose puts the hand (u, body frame)
@@ -487,76 +556,177 @@ function armGeom(u, o, which) {
   const th = svYaw(V), c = Math.cos(th), sn = Math.sin(th), zs = V.back ? -1 : 1;
   const toV = (X, Z) => [X * c + Z * zs * sn, Z * zs * c - X * sn];   // body (X, Z) → screen x and depth w (+ = toward us)
   const toB = (px, w) => [px * c - w * sn, (px * sn + w * c) * zs];
-  const S = [s * ARM_SX, ys, ARM_SZ], [xs, ws] = toV(S[0], S[2]);
+  let S = [s * ARM_SX, ys, ARM_SZ], [xs, ws] = toV(S[0], S[2]);
   const back = !!(which === 'L' ? o.handBackL : o.handBackR), wantFront = !back && (!far || !!o.farFront);
-  // the hand's depth
-  let w = toV(s * 1.95, .35)[1];
-  const E0 = svBodyEll(y, dr);
-  if (E0) {
-    const A = E0[0] + .4, C = E0[1] + .4, qa = sn * sn / (A * A) + c * c / (C * C), qb = 2 * x * c * sn * (1 / (C * C) - 1 / (A * A)), qc = x * x * (c * c / (A * A) + sn * sn / (C * C)) - 1, disc = qb * qb - 4 * qa * qc;
-    if (disc > 0) {
-      const r1 = (-qb - Math.sqrt(disc)) / (2 * qa), r2 = (-qb + Math.sqrt(disc)) / (2 * qa);
-      if (w > r1 && w < r2) w = wantFront ? r2 : r1;
-      else if (back && w >= r2) w = r1;
+  const seat = clamp(Math.max(clamp(o.sit || 0), clamp(o.crouch || 0) * .5));
+  const rayBody = (px, py, m) => { const [A, C] = svBodyAx(py, dr, seat); return svRayEll(px, A, C, m * (A > 1e-4 ? Math.min(1, A / 1.2) : 0), c, sn); };
+  const rayHead = (px, py, m) => { const R = HEAD_R + m, dy = py - hy; if (Math.abs(dy) >= R) return null; const rr = Math.sqrt(R * R - dy * dy), ax = Math.abs(px);
+    if (ax < rr) { const d = Math.sqrt(rr * rr - px * px); return [-d, d, true]; } const out = 2.5 * (ax - rr); return [out, -out, false]; };
+  // 2. a hand over the head, above the chin, goes to the side of the head on its own arm's side (the back of the head in
+  // 3/4 and profile), far enough out that the arm clears the head: a hand on the head comes from the side, a raised arm
+  // goes up beside it, and neither ever covers the face. Eased out from the mouth down, where a hand may come in front.
+  if (!far) {
+    const R = HEAD_R + .55, dy = y - hy;
+    if (dy > -R && dy < R) {
+      const rr = Math.sqrt(R * R - dy * dy), sd = V.side ? -1 : xs < 0 ? -1 : 1, k = 1 - ease(clamp((dy / HEAD_R - .25) / .3));
+      if (k > 0 && x * sd < rr) x = lerp(x, sd * rr, k);
     }
   }
+  // the hand's depth
+  // (seated or crouched, a hand below the chest rests forward, on the lap or the knees)
+  const sitK = clamp(Math.max(clamp(o.sit || 0), .6 * clamp(o.crouch || 0)));
+  const place = (px, py) => {
+    let ww = toV(s * 1.95, .35 + 1.5 * sitK * clamp((py - (ys + 1.2)) / 1.2))[1];
+    const rb = rayBody(px, py, HAND_HW), rh = rayHead(px, py, HAND_HW);
+    // the body: a near hand in front of it, a far one behind it (with farFront: in front where it's well inside the
+    // body's outline, a hand on the chest or belly; round its edge it stays behind)
+    if (rb) { const rt = rayBody(px, py, 0), deep = rt && rt[2] && Math.abs(px - (rt[3] || 0)) < .78 * rt[4];
+      ww = wantFront && (!far || deep) ? Math.max(ww, rb[1]) : Math.min(ww, rb[0]); }
+    // the head: a near hand in front of it (only ever at the chin or mouth, see above); a far one behind it unless it
+    // reaches across (farFront) to the mouth
+    if (rh) ww = (!back && (!far || (o.farFront && py - hy > .3 * HEAD_R))) ? Math.max(ww, rh[1]) : Math.min(ww, rh[0]);
+    return ww;
+  };
+  let w = place(x, y);
   let [X, Z] = toB(x, w);
-  // no hand in front of the briefs
+  // 3. no hand in front of the briefs
   if (!o.freeHands && !back) {
     const yy = y - dr, kY = clamp((yy + 5.3) / .35) * clamp((-2.3 - yy) / .4), kS = (1 - clamp(o.sit || 0)) * (1 - .85 * clamp(o.crouch || 0)), kZ = 1 - clamp((Z - 1.4) / .6), k = kY * kS * kZ;
-    if (k > 0) { X = lerp(X, s * Math.max(s * X, 2.3), k); Z = lerp(Z, Math.min(Z, .45), k); }
+    if (k > 0) { X = lerp(X, s * Math.max(s * X, 2.35), k); Z = lerp(Z, Math.min(Z, .45), k); [x, w] = toV(X, Z); }
   }
-  [x, w] = toV(X, Z);
-  // in reach (the depth gives way first; then the arm stretches up to 10% more than asked, then the hand is pulled in)
+  // the shoulder comes forward (and a little in) as the hand reaches out in front or across the chest
+  const protract = () => {
+    const p = clamp(clamp((Z - .7) / 1.5) + .5 * clamp(-s * X / 1.5)) * (1 - .7 * clamp((y - ys) / 2.5));
+    S = [s * (ARM_SX - .3 * p), ys + .05 * p, ARM_SZ + .75 * p]; [xs, ws] = toV(S[0], S[2]);
+  };
+  protract();
+  // in reach: the depth gives way first, as long as the hand stays out of the body; otherwise the hand comes in toward
+  // the shoulder; past full reach on screen the arm stretches up to 10% more than asked, then the hand is pulled in
   let ak = ak0;
   const reach = k => (ARM_L1 + ARM_L2) * k * .995;
-  if (Math.hypot(x - xs, y - ys, w - ws) > reach(ak)) {
+  // (a hand the straight arm could only reach through the body, e.g. behind the middle of the back, must be nearer: the
+  // arm has to bend round the body)
+  const thru = (px, pw) => { const [X2, Z2] = toB(px, pw); for (const t of [.35, .5, .65]) { const yy = lerp(ys, y, t), [A, C] = svBodyAx(yy, dr, seat); if (A > 1e-4 && Math.hypot(lerp(S[0], X2, t) / A, lerp(S[2], Z2, t) / C) < 1) return true; } return false; };
+  const lim = (px, pw) => reach(ak) * (thru(px, pw) ? .84 : 1);
+  for (let i = 0; i < 16; i++) {
+    const L = lim(x, w); if (Math.hypot(x - xs, y - ys, w - ws) <= L) break;
     const d2 = Math.hypot(x - xs, y - ys);
-    if (d2 < reach(ak)) w = ws + Math.sign(w - ws) * Math.sqrt(reach(ak) ** 2 - d2 * d2);
-    else {
+    if (i === 0 && d2 >= reach(ak)) {
       w = ws; ak = Math.min(ak * 1.1, d2 / reach(1));
       if (d2 > reach(ak)) { x = xs + (x - xs) * reach(ak) / d2; y = ys + (y - ys) * reach(ak) / d2; }
+      break;
     }
-    [X, Z] = toB(x, w);
+    if (d2 < L) {
+      const wr = ws + Math.sign(w - ws) * Math.sqrt(L * L - d2 * d2), [X2, Z2] = toB(x, wr), [A, C] = svBodyAx(y, dr, seat);
+      if (i === 15 || ((A < 1e-4 || Math.hypot(X2 / (A + .1), Z2 / (C + .1)) >= 1) && !thru(x, wr))) { w = wr; break; }
+    }
+    x = xs + (x - xs) * .94; y = ys + (y - ys) * .94; w = place(x, y);
   }
+  [X, Z] = toB(x, w);
   // an arm hanging down is never locked dead straight: it lengthens a hair (up to 6%) to keep a soft bend at the elbow
   { const D3 = Math.hypot(x - xs, y - ys, w - ws), down = clamp(((y - ys) / (D3 || 1) - .6) / .3), rt = lerp(.995, .955, down);
     if (D3 > rt * (ARM_L1 + ARM_L2) * ak) ak = Math.min(ak * 1.06, D3 / (rt * (ARM_L1 + ARM_L2))); }
-  // the elbow
+  // 4. the elbow
   const H = [X, y, Z], L1 = ARM_L1 * ak, L2 = ARM_L2 * ak;
   const sub = (p, q) => [p[0] - q[0], p[1] - q[1], p[2] - q[2]], dot = (p, q) => p[0] * q[0] + p[1] * q[1] + p[2] * q[2];
   const nz = p => { const l = Math.hypot(p[0], p[1], p[2]) || 1; return [p[0] / l, p[1] / l, p[2] / l]; };
+  const at = (P, Q, t) => [lerp(P[0], Q[0], t), lerp(P[1], Q[1], t), lerp(P[2], Q[2], t)];
   const dv = sub(H, S), D0 = Math.hypot(dv[0], dv[1], dv[2]), n = D0 > 1e-6 ? nz(dv) : [0, 1, 0], D = clamp(D0, Math.abs(L1 - L2) + .05, L1 + L2 - .001);
   const cd = (L1 * L1 - L2 * L2 + D * D) / (2 * D), r = Math.sqrt(Math.max(0, L1 * L1 - cd * cd)), C0 = [S[0] + n[0] * cd, S[1] + n[1] * cd, S[2] + n[2] * cd];
   const perp = p => { const k = dot(p, n); return [p[0] - k * n[0], p[1] - k * n[1], p[2] - k * n[2]]; };
-  const P1 = perp([s * .55, .45, -.7]), P2 = perp([s * .25, 1, .15]);
-  const e1 = nz([P1[0] + .3 * P2[0], P1[1] + .3 * P2[1], P1[2] + .3 * P2[2]]), e2 = [n[1] * e1[2] - n[2] * e1[1], n[2] * e1[0] - n[0] * e1[2], n[0] * e1[1] - n[1] * e1[0]];
+  const pole = [s * .6, .5, -.65];
+  let e1 = perp(pole); if (Math.hypot(...e1) < 1e-3) e1 = perp([s, 0, 0]); e1 = nz(e1);
+  const e2 = [n[1] * e1[2] - n[2] * e1[1], n[2] * e1[0] - n[0] * e1[2], n[0] * e1[1] - n[1] * e1[0]];
   const elbowAt = f => [C0[0] + r * (Math.cos(f) * e1[0] + Math.sin(f) * e2[0]), C0[1] + r * (Math.cos(f) * e1[1] + Math.sin(f) * e2[1]), C0[2] + r * (Math.cos(f) * e1[2] + Math.sin(f) * e2[2])];
-  const inBody = p => { const E = svBodyEll(p[1], dr); if (!E) return 0; const q = 1 - Math.hypot(p[0] / (E[0] - .15), p[2] / (E[1] - .15)); return q > 0 ? q * q : 0; };
+  // how deep a point of the arm's centre line is inside the body or the head, each grown by the arm's half width (u)
+  // how far a point of the arm's centre line is outside the body and the head (u; negative inside), first order
+  const gap = p => {
+    let d = Infinity;
+    const [A, C] = svBodyAx(p[1], dr, seat);
+    if (A > 1e-4) { const e = Math.hypot(p[0] / A, p[2] / C), g = Math.hypot(p[0] / (A * A), p[2] / (C * C)) / (e || 1); d = (e - 1) / (g || 1); }
+    return Math.min(d, Math.hypot(p[0], p[1] - hy, p[2]) - HEAD_R);
+  };
+  // the cost of a clearance: soft inside the arm's own half width (m: an arm laid on the body only just touches it), steep
+  // once the bone would go into the body
+  const pen = (p, m) => { const d = gap(p); return 2 * Math.max(0, m - d) ** 2 + 40 * Math.max(0, .12 - d); };
   const cost = f => {
-    const E = elbowAt(f), at = (P, Q, t) => [lerp(P[0], Q[0], t), lerp(P[1], Q[1], t), lerp(P[2], Q[2], t)];
-    return f * f + 60 * (inBody(at(S, E, .6)) + inBody(at(S, E, .85)) + inBody(E) + inBody(at(E, H, .35)) + inBody(at(E, H, .7)));
+    const E = elbowAt(f), rad = [(E[0] - C0[0]) / (r || 1), (E[1] - C0[1]) / (r || 1), (E[2] - C0[2]) / (r || 1)];
+    let p = 0;
+    for (const t of [.5, .65, .8, .92]) p += pen(at(S, E, t), ARM_HW * clamp((t - .4) / .4));
+    p += pen(E, ARM_HW);
+    for (const t of [.15, .3, .45, .6, .75]) p += pen(at(E, H, t), ARM_HW * (1 - .8 * t));
+    // the point of the elbow: never well forward or turned in across the body
+    const fw = Math.max(0, rad[2] - .35), inw = Math.max(0, -s * rad[0] - .25);
+    return .5 * f * f + 10 * p + 6 * (fw * fw + inw * inw);
   };
   let bf = 0, bc = cost(0);
-  if (r > 1e-4 && bc > 1e-9) {
-    const N = 90; for (let i = 1; i < N; i++) { const f = -Math.PI + i * TAU / N, cc = cost(f); if (cc < bc - 1e-9) { bc = cc; bf = f; } }
+  if (r > 1e-4) {
+    const N = 144; for (let i = 1; i < N; i++) { const f = -Math.PI + i * TAU / N, cc = cost(f); if (cc < bc - 1e-9) { bc = cc; bf = f; } }
     const h = TAU / N, cm = cost(bf - h), cp = cost(bf + h), den = cm - 2 * bc + cp;   // a parabola through the best sample and its neighbours
     if (den > 1e-9) bf += clamp(.5 * h * (cm - cp) / den, -h, h);
   }
-  const E = elbowAt(bf);
+  let E = elbowAt(bf);
+  if (o._dbg) o._dbg({ cost, elbowAt, bf, S, H, gap });
   // project
-  const [Sx, Sw] = toV(S[0], S[2]), [Ex, Ew] = toV(E[0], E[2]);
-  let Hx = x, Exx = Ex;
-  // the far arm (3/4 and profile): in front of the chest only when it reaches across with farFront; otherwise behind it,
-  // and tucked in when it would only peek out past the chest as a sliver
-  const front = far && !!o.farFront && Z > 1.0;
-  if (far && !front) {
-    const p = Math.max(Ex, Hx) + .45 - 2.1 * V.torsoW, kk = clamp((Math.min(E[1], y) - (ys - .3)) / .8);
-    const tuck = (p < .3 ? Math.max(0, p + .1) : lerp(.4, 0, clamp((p - .3) / .4))) * kk;
-    Hx -= tuck; Exx -= tuck;
+  const [Sx, Sw] = toV(S[0], S[2]);
+  let [Ex, Ew] = toV(E[0], E[2]), Hx = x;
+  // 5. layering. Where a point of the arm's centre line is: 'o' clear of the torso and head on screen, 'f' over them,
+  // 'b' behind the torso, 'h' behind the head
+  const where = (px, py, pw) => {
+    const rh = rayHead(px, py, 0);
+    if (rh && rh[2]) return pw < rh[1] - .05 ? 'h' : 'f';
+    const rb = rayBody(px, py, 0);
+    if (rb && rb[2]) return pw < rb[1] - .05 ? 'b' : 'f';
+    return 'o';
+  };
+  const P3 = (P, Q, t) => { const p = at(P, Q, t), [px, pw] = toV(p[0], p[2]); return [px, p[1], pw]; };
+  // the whole arm as one path, T 0..1 the upper arm and 1..2 the forearm (from .3: the shoulder end is inside the body)
+  const pathW = T => where(...(T <= 1 ? P3(S, E, T) : P3(E, H, T - 1)));
+  const TS = [.3, .42, .55, .68, .8, .9, 1, 1.12, 1.25, 1.38, 1.5, 1.62, 1.75, 1.88, 2], WK = TS.map(pathW);
+  const foK = WK.filter((_, i) => TS[i] >= 1), hasB = foK.includes('b'), hasH = foK.includes('h'), handF = WK[WK.length - 1] === 'f';
+  // a near upper arm is in front, unless its elbow is well behind the torso (then the arm goes back from the shoulder)
+  const [Exx, , Eww] = P3(E, E, 0), rbE = rayBody(Exx, E[1], -.45);
+  let up = far || (rbE && rbE[2] && Eww < rbE[0] + .05) ? 'B' : 'F';
+  let fo = hasB ? 'B' : hasH ? 'H' : far && !handF ? 'B' : 'F', split = null;
+  // A hand in front whose arm comes from behind the torso or head wraps round its edge: the arm is drawn whole behind,
+  // and from the edge on (found by halving between the last point not in front and the first in front) again in front.
+  if (handF && (far || fo !== 'F')) {
+    let i = TS.length - 1; while (i > 0 && WK[i - 1] === 'f' && (far || TS[i - 1] >= 1)) i--;
+    if (far || i > 0) {
+      let lo = i > 0 ? TS[i - 1] : 0, hi = TS[i];
+      if (i > 0) for (let k = 0; k < 8; k++) { const m = (lo + hi) / 2; if (pathW(m) === 'f') hi = m; else lo = m; }
+      split = Math.max(far ? 0 : 1, lo - .08);
+      if (far && fo === 'F') fo = 'B';
+      if (far && split <= .3) { split = null; up = fo = 'F'; }   // in front from the shoulder on (it came forward): drawn whole, in front
+    }
   }
-  const fl = Math.hypot(Hx - Exx, y - E[1]) || 1;
-  return { S: [Sx * u, ys * u], E: [Exx * u, E[1] * u], H: [Hx * u, y * u], d2: [(Hx - Exx) / fl, (y - E[1]) / fl], wS: Sw, wE: Ew, wH: w, ak, far, front, back: back && !far, sideSign };
+  // a far arm that would only peek out past the body or head as a sliver is tucked fully behind it (eased: a quick slide,
+  // never a pop). Its outer edge's reach past the silhouettes, in u:
+  let tuck = [0, 0];
+  if (far && split == null) {
+    const hwA = (o.gear && (o.gear.hoodie || o.gear.hazmat || o.gear.scientist) ? .55 : .45);
+    const occ = (px, py) => {   // signed distance outside the torso (to the bottom of the briefs) and the head, on screen
+      const hw = 2.1 * V.torsoW, y0 = -8.35 + dr, y1 = -3.7 + dr, dx = Math.abs(px) - hw, dy = Math.max(y0 - py, py - y1);
+      const dT = Math.hypot(Math.max(dx, 0), Math.max(dy, 0)) + Math.min(Math.max(dx, dy), 0);
+      return Math.min(dT, Math.hypot(px, py - hy) - HEAD_R);
+    };
+    let pm = -Infinity, pp = null;
+    const samp = (px, py) => { const v = occ(px, py) + hwA; if (v > pm) { pm = v; pp = [px, py]; } };
+    for (const t of [.4, .6, .8, 1]) samp(lerp(Sx, Ex, t), lerp(ys, E[1], t));
+    for (const t of [.25, .5, .75, 1]) samp(lerp(Ex, Hx, t), lerp(E[1], y, t));
+    { const l = Math.hypot(Hx - Ex, y - E[1]) || 1; samp(Hx + (Hx - Ex) / l * .45, y + (y - E[1]) / l * .45); }   // the fist
+    const full = 2 * hwA, p0 = .3 * full;
+    if (pm > 0 && pm < full) {
+      const shown = pm * ease((pm - p0) / (full - p0)), amt = pm - shown, g = .02;
+      const gx = (occ(pp[0] + g, pp[1]) - occ(pp[0] - g, pp[1])) / (2 * g), gy = (occ(pp[0], pp[1] + g) - occ(pp[0], pp[1] - g)) / (2 * g), gl = Math.hypot(gx, gy) || 1;
+      tuck = [-gx / gl * amt, -gy / gl * amt];
+    }
+  }
+  Hx += tuck[0]; Ex += tuck[0];
+  const Hy = y + tuck[1], Ey = E[1] + tuck[1];
+  const fl = Math.hypot(Hx - Ex, Hy - Ey) || 1;
+  return { S: [Sx * u, ys * u], E: [Ex * u, Ey * u], H: [Hx * u, Hy * u], d2: [(Hx - Ex) / fl, (Hy - Ey) / fl], wS: Sw, wE: Ew, wH: w, ak, far, up, fo, split,
+    front: split != null || (far && fo === 'F'), back: fo === 'B' && !far, sideSign };
 }
 // Where a survivor's hand is, in its upright body frame (before flip, scale and rotation).
 function handLocal(u, o, which) { return armGeom(u, o, which).H; }
